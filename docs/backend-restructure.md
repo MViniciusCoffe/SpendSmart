@@ -117,18 +117,19 @@ Separar:
 
 O teste atual de banco depende da AWS antiga e deve ser substituido por um teste de integracao reproduzivel.
 
-## Ordem de reestruturacao recomendada
+## Ordem de reestruturacao recomendada para o monolito Next.js
 
 1. Remover ou invalidar configuracoes e credenciais antigas.
-2. Fechar o inventario e decidir a arquitetura.
-3. Criar o schema Supabase e suas migrations.
-4. Criar cliente/configuracao por ambiente.
-5. Implementar autenticacao escolhida.
+2. Criar PostgreSQL local via Docker e scripts de servicos.
+3. Criar o schema novo e suas migrations.
+4. Criar o cliente/configuracao por ambiente.
+5. Implementar Supabase Auth.
 6. Migrar uma vertical completa: categorias, do banco ate a tela.
-7. Migrar receitas e despesas.
-8. Atualizar dashboard.
-9. Remover dependencias e codigo legado sem uso.
-10. Executar testes, build e auditoria de variaveis.
+7. Adicionar `pages/api/` somente onde a regra exigir server-side.
+8. Migrar receitas e despesas.
+9. Atualizar dashboard.
+10. Remover dependencias e codigo legado sem uso.
+11. Executar testes, build e auditoria de variaveis.
 
 ## Criterios para remover uma biblioteca
 

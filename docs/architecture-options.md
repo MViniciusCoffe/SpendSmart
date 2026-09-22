@@ -90,15 +90,18 @@ Navegador -> Vercel/Next.js -> API Express -> Supabase PostgreSQL
 
 Somente se houver necessidade concreta de API independente, jobs, integracoes privadas ou futuros clientes alem do frontend web.
 
-## Recomendacao
+## Decisao adotada
 
 1. Adotar Supabase Auth como unica autenticacao.
 2. Adotar Supabase PostgreSQL com RLS.
-3. Comecar com Next.js + Supabase direto ou uma camada de servicos server-side pequena.
-4. Manter o Express legado apenas durante o inventario e a migracao.
-5. Reavaliar Route Handlers se as regras de negocio deixarem de ser simples.
+3. Usar o monolito fullstack Next.js com Pages Router.
+4. Preferir acesso direto ao Supabase para operacoes simples.
+5. Usar `pages/api/` para regras server-side, integracoes e operacoes que nao devem ocorrer no navegador.
+6. Manter o Express legado apenas durante a migracao e remove-lo depois.
+7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistencia.
+8. Usar Preview Deployments da Vercel para homologacao e Production para a branch `main`.
 
-A escolha final deve ser registrada neste documento depois da discussao e antes de criar migrations da aplicacao nova.
+Essa decisao foi registrada em 2026-09-22. O uso de `pages/api/` nao significa que todas as operacoes precisarao passar por uma API propria.
 
 ## Estrutura de pastas recomendada
 
@@ -128,17 +131,21 @@ spendsmart/
 ```text
 spendsmart/
   docs/
+  infra/
+    compose.yaml
+    scripts/
+  supabase/
+    migrations/
+  tests/
   pages/
-    api/                 # somente se Route Handlers forem adotados
+    api/
     components/
     lib/
       supabase/
       services/
       validation/
   public/
-  supabase/
-    migrations/
-    seed.sql
+  .env.development
   .env.example
   package.json
   README.md
@@ -172,4 +179,4 @@ spendsmart/
   README.md
 ```
 
-Nao e recomendavel mover o frontend para `frontend/` e reorganizar o Express no mesmo commit. Primeiro documentar, depois decidir a arquitetura, depois fazer uma movimentacao mecanica, e somente entao refatorar comportamento.
+Nao e recomendavel mover o frontend para `frontend/` ou copiar a estrutura inteira do `clone-tabnews`. A arquitetura foi definida, mas a infraestrutura deve ser adicionada em commits pequenos e verificaveis.

@@ -81,51 +81,35 @@ public/
 	images/
 ```
 
-## Decisao arquitetural em aberto
+## Arquitetura definida
 
-O projeto precisa escolher uma unica fonte de verdade para autenticacao e acesso aos dados. As opcoes consideradas sao:
-
-### Opcao recomendada: Next.js e Supabase
+O SpendSmart adotara um monolito fullstack baseado em Next.js. O frontend continua na raiz, e a camada server-side sera implementada em `pages/api/` quando uma operacao nao puder ou nao dever ser feita diretamente pelo navegador.
 
 ```text
 Next.js na Vercel
-Supabase Auth
-Supabase PostgreSQL
-Row Level Security
+	pages/       interface React
+	pages/api/   endpoints serverless quando necessario
+	infra/       desenvolvimento local, banco e scripts
+	supabase/    migrations e configuracao do banco
+	tests/       testes unitarios e de integracao
+				|
+				+-- Supabase Auth
+				+-- Supabase PostgreSQL com RLS
 ```
 
-Nesta opcao, o frontend usa a sessao do Supabase e as politicas RLS isolam os dados por usuario. O backend Express legado pode ser removido ou mantido apenas como referencia durante a migracao.
+Decisoes adotadas:
 
-Vantagens:
+- Supabase Auth sera a unica autenticacao.
+- Supabase PostgreSQL sera o banco da aplicacao.
+- RLS sera responsavel pelo isolamento dos dados por usuario.
+- O Express legado sera mantido somente como referencia durante a migracao e depois removido.
+- O frontend permanecera na raiz durante a transicao.
+- O Pages Router continuara sendo usado inicialmente.
+- O acesso direto ao Supabase sera preferido; `pages/api/` sera usado para regras server-side, integracoes ou operacoes que exigirem protecao adicional.
+- O ambiente local usara PostgreSQL via Docker e `.env.development`.
+- Homologacao e producao usarao Preview Deployments e Production da Vercel, com variaveis configuradas na plataforma.
 
-- Menos infraestrutura para manter
-- Autenticacao pronta e mais segura
-- Banco, autenticacao e politicas no mesmo ecossistema
-- Deploy mais simples na Vercel
-
-### Opcao alternativa: Express separado
-
-```text
-Next.js na Vercel
-Express em um servico de backend
-Supabase PostgreSQL
-```
-
-Esta opcao deve ser escolhida somente se o projeto precisar de regras de negocio, integracoes ou processamento que justifiquem uma API propria. Ela exige configurar CORS, deploy separado, variaveis adicionais e autenticacao entre os servicos.
-
-Nao devemos manter Supabase Auth e um sistema proprio de JWT como autenticacoes independentes.
-
-## Decisoes que precisam ser tomadas
-
-1. O Express continuara na arquitetura final ou sera apenas uma referencia para a migracao?
-2. A autenticacao sera feita pelo Supabase Auth?
-3. O frontend acessara o Supabase diretamente ou por uma camada de servico/API?
-4. O backend sera integrado como `backend/` ou o projeto usara apenas o Next.js?
-5. Quais campos de perfil serao mantidos alem da identidade do Supabase Auth?
-6. Qual sera o modelo definitivo de categorias, receitas e despesas?
-7. Quais funcionalidades entram na primeira versao publicada?
-8. Qual sera a estrategia de validacao, testes e tratamento de erros?
-9. Quais dominios e ambientes serao usados em desenvolvimento e producao?
+As decisoes de schema, funcionalidades da primeira entrega e estrategia detalhada de testes continuam sendo refinadas nas fases correspondentes.
 
 ## Plano de revitalizacao
 
@@ -136,7 +120,7 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 - [x] Documentar o estado atual e o plano inicial
 - [x] Integrar o backend legado ao repositorio
 - [x] Concluir o inventario de contratos
-- [ ] Escolher e registrar a arquitetura final
+- [x] Escolher e registrar a arquitetura final
 - [ ] Criar o projeto e o schema do Supabase
 - [ ] Implementar a nova autenticacao
 - [ ] Migrar as funcionalidades financeiras
@@ -172,17 +156,20 @@ Documentos produzidos nesta fase:
 
 ### Fase 1: decisao arquitetural
 
-- [ ] Comparar Supabase direto pelo frontend, API do Next.js e Express separado
-- [ ] Decidir se o Express sera temporario ou parte da arquitetura final
-- [ ] Decidir se o Supabase Auth sera a unica autenticacao
-- [ ] Decidir se o frontend acessara o Supabase diretamente ou por uma camada de servico
-- [ ] Definir os ambientes local, homologacao e producao
-- [ ] Registrar a decisao e suas justificativas neste README
+- [x] Comparar Supabase direto pelo frontend, API do Next.js e Express separado
+- [x] Decidir se o Express sera temporario ou parte da arquitetura final
+- [x] Decidir se o Supabase Auth sera a unica autenticacao
+- [x] Decidir se o frontend acessara o Supabase diretamente ou por uma camada de servico
+- [x] Definir os ambientes local, homologacao e producao
+- [x] Registrar a decisao e suas justificativas neste README
 
-**Criterio de conclusao:** existe uma arquitetura escolhida, com responsabilidades claras e uma unica fonte de verdade para autenticacao.
+**Criterio de conclusao:** concluido. Existe uma arquitetura escolhida, com responsabilidades claras e uma unica fonte de verdade para autenticacao.
 
-### Fase 2: banco e Supabase
+### Fase 2: banco, infraestrutura local e Supabase
 
+- [ ] Criar `infra/compose.yaml` para o PostgreSQL local
+- [ ] Criar scripts para subir, aguardar e parar os servicos locais
+- [ ] Criar `.env.development` local com as variaveis documentadas
 - [ ] Criar o projeto no Supabase
 - [ ] Definir tabelas de perfil, categorias, receitas e despesas
 - [ ] Definir chaves primarias e estrangeiras
@@ -198,7 +185,8 @@ Documentos produzidos nesta fase:
 
 ### Fase 3: autenticacao e camada de dados
 
-- [ ] Criar `.env.example` sem valores secretos
+- [ ] Criar `.env.example` com as variaveis publicas do Supabase
+- [ ] Configurar variaveis de Preview e Production na Vercel
 - [ ] Configurar Supabase Auth
 - [ ] Implementar cadastro
 - [ ] Implementar login
@@ -281,16 +269,34 @@ Use esta secao para registrar decisoes que possam afetar as proximas etapas.
 
 - 2026-09-22: criado o roteiro de fases, checklists e criterios de conclusao.
 
-## Variaveis de ambiente
+## Variaveis de ambiente e ambientes
 
-Nenhum arquivo `.env` real deve ser commitado. Quando a integracao for implementada, as variaveis publicas do frontend poderao ser documentadas em `.env.example`, por exemplo:
+O arquivo `.env.development` sera usado somente no desenvolvimento local e nao deve conter credenciais de producao. Ele sera ignorado pelo Git. Um modelo sem segredos podera ser mantido como `.env.development.example` ou documentado neste README.
+
+Configuracao local esperada:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=local_user
+POSTGRES_DB=local_db
+POSTGRES_PASSWORD=local
+DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB
 ```
 
-Chaves privadas, como `SUPABASE_SERVICE_ROLE_KEY`, nunca devem usar o prefixo `NEXT_PUBLIC_` e nunca devem ser expostas no navegador.
+As variaveis do Supabase serao adicionadas quando a integracao for implementada:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-chave-publica
+```
+
+Na Vercel, cada ambiente tera sua propria configuracao:
+
+- Preview: homologacao, usada por branches e Pull Requests.
+- Production: producao, usada pela branch `main`.
+
+Chaves privadas, como `SUPABASE_SERVICE_ROLE_KEY`, nunca devem usar o prefixo `NEXT_PUBLIC_` e nunca devem ser expostas no navegador. O arquivo `.env.development` local nao deve ser commitado.
 
 ## Commits e branches
 
