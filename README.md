@@ -134,7 +134,7 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 ### Progresso geral
 
 - [x] Documentar o estado atual e o plano inicial
-- [ ] Integrar o backend legado ao repositorio
+- [x] Integrar o backend legado ao repositorio
 - [ ] Concluir o inventario de contratos
 - [ ] Escolher e registrar a arquitetura final
 - [ ] Criar o projeto e o schema do Supabase
@@ -147,11 +147,13 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 ### Fase 0: preparacao e inventario
 
 - [ ] Confirmar que a branch de trabalho esta atualizada
-- [ ] Criar ou revisar o `.gitignore`
+- [x] Criar ou revisar o `.gitignore`
 - [ ] Confirmar que nenhum `.env`, segredo ou `node_modules` sera copiado
-- [ ] Criar a pasta `backend/`
-- [ ] Copiar o backend legado sem alterar seu comportamento
-- [ ] Confirmar que o backend possui um `package.json` proprio
+- [x] Criar a pasta `backend/`
+- [x] Copiar o backend legado sem alterar seu comportamento
+- [x] Confirmar que o backend possui um `package.json` proprio
+- [ ] Remover o `backend/.env` local ou substituir por `.env.example` sem segredos
+- [ ] Confirmar que credenciais antigas foram revogadas ou rotacionadas
 - [ ] Listar todas as rotas existentes
 - [ ] Listar todas as chamadas Axios do frontend
 - [ ] Comparar payloads enviados e respostas esperadas

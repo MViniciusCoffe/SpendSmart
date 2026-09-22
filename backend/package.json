@@ -1,0 +1,37 @@
+{
+  "name": "spendsmart-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+  "test": "jest --detectOpenHandles",
+  "test:watch": "jest --watchAll",
+  "dev": "nodemon app.js",
+  "lint:check": "prettier check .",
+  "lint:write": "prettier write ."
+},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^30.5.1",
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "prettier": "^3.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MViniciusCoffe/SpendSmart-Backend.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MViniciusCoffe/SpendSmart-Backend/issues"
+  },
+  "homepage": "https://github.com/MViniciusCoffe/SpendSmart-Backend#readme"
+}
