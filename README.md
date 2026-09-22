@@ -172,12 +172,12 @@ Documentos produzidos nesta fase:
 - [x] Criar scripts para subir, aguardar e parar os servicos locais
 - [x] Criar `.env.development` local com as variaveis documentadas
 - [ ] Criar o projeto no Supabase
-- [ ] Definir tabelas de perfil, categorias, receitas e despesas
+- [x] Definir tabelas de perfil, categorias, receitas e despesas
 - [ ] Definir chaves primarias e estrangeiras
-- [ ] Definir campos obrigatorios e tipos monetarios
-- [ ] Definir indices por usuario, categoria e data
-- [ ] Criar migrations versionadas
-- [ ] Criar constraints para tipo de categoria e valores positivos
+- [x] Definir campos obrigatorios e tipos monetarios
+- [x] Definir indices por usuario, categoria e data
+- [x] Criar migrations versionadas
+- [x] Criar constraints para tipo de categoria e valores positivos
 - [ ] Criar politicas RLS para todas as tabelas privadas
 - [ ] Criar seed de desenvolvimento, se necessario
 - [ ] Testar o isolamento entre dois usuarios

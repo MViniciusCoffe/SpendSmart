@@ -33,6 +33,7 @@ process.on("SIGTERM", handleShutdown);
 try {
   runCommand("npm run services:up");
   runCommand("npm run services:wait:database");
+  runCommand("npm run migrations:up");
 
   console.log("\nIniciando Next.js...");
   const nextDev = spawn("npm", ["run", "next:dev"], {

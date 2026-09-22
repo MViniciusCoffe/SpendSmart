@@ -1,6 +1,6 @@
 # Esquema de banco de dados
 
-Este documento separa o esquema inferido do banco legado do esquema recomendado para o Supabase. O esquema recomendado e uma proposta; ainda nao foi aplicado.
+Este documento separa o esquema inferido do banco legado do esquema recomendado para o Supabase. A primeira migration do esquema novo ja foi aplicada e validada no PostgreSQL local; a aplicacao das referencias a `auth.users` e das politicas RLS sera validada quando o projeto Supabase existir.
 
 ## Esquema legado inferido
 
@@ -56,6 +56,8 @@ O backend referencia as seguintes tabelas:
 | `usuario_id` | Dono do registro |
 
 ## Esquema alvo recomendado
+
+A migration local correspondente esta em `supabase/migrations/001_create_financial_schema.js`. Ela cria as tabelas e regras de integridade comuns. Quando executada em um banco que possui `auth.users`, adiciona as referencias para a identidade do Supabase e habilita as politicas RLS.
 
 A recomendacao e usar `auth.users.id` como identidade em todas as tabelas privadas. O frontend nao deve criar ou escolher o `user_id`.
 

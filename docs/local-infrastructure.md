@@ -10,6 +10,8 @@ infra/
   scripts/
     run-services.js
     wait-for-postgres.js
+supabase/
+  migrations/
 .env.development.example
 ```
 
@@ -42,6 +44,18 @@ Aguardar o banco:
 npm run services:wait:database
 ```
 
+Aplicar migrations pendentes:
+
+```bash
+npm run migrations:up
+```
+
+Desfazer a ultima migration:
+
+```bash
+npm run migrations:down
+```
+
 Parar os containers sem remover os dados:
 
 ```bash
@@ -60,10 +74,12 @@ Iniciar o ambiente completo de desenvolvimento:
 npm run dev
 ```
 
-O script `run-services.js` sobe o PostgreSQL, aguarda a conexao e inicia o Next.js. Ao receber `SIGINT` ou `SIGTERM`, ele para os servicos locais.
+O script `run-services.js` sobe o PostgreSQL, aguarda a conexao, aplica as migrations pendentes e inicia o Next.js. Ao receber `SIGINT` ou `SIGTERM`, ele para os servicos locais.
 
 ## Estado atual
 
-A infraestrutura ainda nao executa migrations. O proximo passo sera adicionar migrations versionadas antes de conectar as funcionalidades financeiras ao banco.
+A migration inicial cria `profiles`, `categories`, `incomes` e `expenses`, alem de constraints e indices. Ela e aplicada automaticamente pelo `npm run dev`.
+
+O nome atual da migration e numerico (`001_create_financial_schema`), por isso o `node-pg-migrate` exibe o aviso `Can't determine timestamp for 001`. A migration funciona, mas novas migrations devem usar nomes com timestamp para evitar esse aviso.
 
 A infraestrutura local usa PostgreSQL puro. Supabase Auth, RLS e variaveis de Preview/Production serao configurados nas etapas de integracao com o Supabase e a Vercel.
