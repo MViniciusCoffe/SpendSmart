@@ -4,8 +4,13 @@
   "description": "Teste 123",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node infra/scripts/run-services.js",
+    "next:dev": "next dev",
+    "services:up": "docker compose -f infra/compose.yaml up -d",
+    "services:stop": "docker compose -f infra/compose.yaml stop",
+    "services:down": "docker compose -f infra/compose.yaml down",
+    "services:wait:database": "node infra/scripts/wait-for-postgres.js",
+    "test": "echo \"Testes ainda nao configurados\" && exit 0"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +21,8 @@
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "dotenv": "^16.4.7",
+    "pg": "^8.16.3"
   }
 }

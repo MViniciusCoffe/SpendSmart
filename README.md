@@ -153,6 +153,7 @@ Documentos produzidos nesta fase:
 - [Esquema de banco de dados](docs/database-schema.md)
 - [Opcoes de arquitetura](docs/architecture-options.md)
 - [Bibliotecas e reestruturacao do backend](docs/backend-restructure.md)
+- [Infraestrutura local](docs/local-infrastructure.md)
 
 ### Fase 1: decisao arquitetural
 
@@ -167,9 +168,9 @@ Documentos produzidos nesta fase:
 
 ### Fase 2: banco, infraestrutura local e Supabase
 
-- [ ] Criar `infra/compose.yaml` para o PostgreSQL local
-- [ ] Criar scripts para subir, aguardar e parar os servicos locais
-- [ ] Criar `.env.development` local com as variaveis documentadas
+- [x] Criar `infra/compose.yaml` para o PostgreSQL local
+- [x] Criar scripts para subir, aguardar e parar os servicos locais
+- [x] Criar `.env.development` local com as variaveis documentadas
 - [ ] Criar o projeto no Supabase
 - [ ] Definir tabelas de perfil, categorias, receitas e despesas
 - [ ] Definir chaves primarias e estrangeiras
