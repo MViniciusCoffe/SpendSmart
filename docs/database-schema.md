@@ -1,193 +1,205 @@
 # Esquema de banco de dados
 
-Este documento separa o esquema inferido do banco legado do esquema recomendado para o Supabase. A primeira migration do esquema novo ja foi aplicada e validada no PostgreSQL local; a aplicacao das referencias a `auth.users` e das politicas RLS sera validada quando o projeto Supabase existir.
+Este documento descreve o modelo de dados planejado para o SpendSmart com Supabase Auth e Supabase PostgreSQL. A migration correspondente esta em `supabase/migrations/001_create_financial_schema.js`.
 
-## Esquema legado inferido
+## Schemas do Supabase
 
-O backend referencia as seguintes tabelas:
+O PostgreSQL organiza objetos em schemas. Neste projeto, os dois schemas relevantes sao:
 
-### `usuarios`
+### `auth`
 
-| Coluna observada | Uso observado | Problema |
-| --- | --- | --- |
-| `id` | Identificador usado nos payloads | Deve ser substituido pela identidade de `auth.users` na migracao |
-| `nome_completo` | Perfil | Pode permanecer em `profiles` |
-| `email` | Login e identificacao por URL | Deve ser gerenciado pelo Supabase Auth |
-| `senha` | Login e atualizacao | Armazenada em texto puro; nao migrar como senha |
-| `data_nascimento` | Perfil | Pode permanecer em `profiles` |
-| `telefone` | Perfil | Pode permanecer em `profiles` |
-| `data_criacao` | Criacao | Padronizar como `created_at` |
+O schema `auth` e gerenciado pelo Supabase Auth. A tabela `auth.users` representa as contas autenticadas.
 
-### `categorias`
+Informacoes conceituais disponiveis:
 
-| Coluna observada | Tipo esperado | Uso |
-| --- | --- | --- |
-| `id` | Inteiro | Identificador |
-| `nome` | Texto | Nome da categoria |
-| `tipo` | Texto | `receita` ou `despesa` |
-| `descricao` | Texto | Descricao opcional |
-| `cor` | Texto | Cor em formato hexadecimal |
-| `usuario_id` | Inteiro | Dono do registro |
-
-### `rendas`
-
-| Coluna observada | Uso esperado |
+| Campo | Funcao |
 | --- | --- |
-| `id` | Identificador |
-| `categoria_id` | Categoria da receita |
-| `usuario_id` | Dono do registro |
-| `valor` | Valor monetario |
-| `fonte_renda` | Origem da receita |
-| `data` | Data da receita |
-| `descricao` | Texto opcional |
-| `forma_pagamento` | Forma de recebimento |
+| `id` | UUID unico da conta e identidade usada nas politicas RLS |
+| `email` | Email da conta, gerenciado pelo Auth |
+| credenciais | Gerenciadas e protegidas pelo Supabase Auth |
+| sessao | Tokens e estado de autenticacao gerenciados pelo Auth |
 
-### `gastos`
+A aplicacao nao deve criar `auth.users`, armazenar uma senha paralela ou depender da estrutura interna completa dessa tabela. O contrato usado pela aplicacao e o `id` autenticado e, quando necessario, o email fornecido pelo Auth.
 
-| Coluna observada | Uso esperado |
-| --- | --- |
-| `id` | Identificador |
-| `nome` | Nome da despesa |
-| `categoria_id` | Categoria da despesa |
-| `valor` | Valor monetario |
-| `data` | Data da despesa |
-| `descricao` | Texto opcional |
-| `forma_pagamento` | Forma de pagamento |
-| `usuario_id` | Dono do registro |
+### `public`
 
-## Esquema alvo recomendado
-
-A migration local correspondente esta em `supabase/migrations/001_create_financial_schema.js`. Ela cria as tabelas e regras de integridade comuns. Quando executada em um banco que possui `auth.users`, adiciona as referencias para a identidade do Supabase e habilita as politicas RLS.
-
-A recomendacao e usar `auth.users.id` como identidade em todas as tabelas privadas. O frontend nao deve criar ou escolher o `user_id`.
+O schema `public` contem as tabelas de dominio da aplicacao:
 
 ```text
-auth.users
-    |
-    +-- profiles.id
-    |
-    +-- categories.user_id
-    |
-    +-- incomes.user_id
-    |
-    +-- expenses.user_id
-
-categories.id <--- incomes.category_id
-categories.id <--- expenses.category_id
+public.profiles
+public.categories
+public.transactions
 ```
+
+O schema nao e uma tabela. Ele funciona como um namespace que organiza as tabelas.
+
+## Modelo de identidade
+
+O mesmo UUID identifica a conta autenticada e os registros pertencentes a ela:
+
+```text
+auth.users.id = profiles.id
+auth.users.id = categories.user_id
+auth.users.id = transactions.user_id
+```
+
+O frontend nunca escolhe nem incrementa `user_id`. O usuario e identificado pela sessao do Supabase Auth, e as politicas RLS comparam essa identidade com cada registro.
+
+## Tabelas publicas
 
 ### `public.profiles`
 
-| Coluna | Tipo sugerido | Regra |
+Perfil complementar da conta autenticada. Nao armazena senha.
+
+| Coluna | Tipo | Regra |
 | --- | --- | --- |
 | `id` | `uuid` | PK e FK para `auth.users.id` |
-| `nome_completo` | `text` | Obrigatorio conforme produto |
+| `nome_completo` | `text` | Obrigatorio |
 | `data_nascimento` | `date` | Opcional |
 | `telefone` | `text` | Opcional |
 | `created_at` | `timestamptz` | Default `now()` |
-| `updated_at` | `timestamptz` | Atualizado por trigger ou aplicacao |
+| `updated_at` | `timestamptz` | Default `now()` |
 
-O email deve ser consultado no Supabase Auth. Nao duplicar senha ou manter uma segunda tabela de credenciais.
+O `profiles.id` recebe o UUID criado pelo Supabase Auth. Ele nao possui UUID aleatorio automatico.
 
 ### `public.categories`
 
-| Coluna | Tipo sugerido | Regra |
+Categorias usadas para classificar transacoes.
+
+| Coluna | Tipo | Regra |
 | --- | --- | --- |
-| `id` | `bigint generated always as identity` | PK |
-| `user_id` | `uuid` | FK para `auth.users.id`, not null |
-| `name` | `text` | Not null |
+| `id` | `bigint` | PK gerada pelo banco |
+| `user_id` | `uuid` | FK para `auth.users.id`, obrigatorio |
+| `name` | `text` | Obrigatorio |
 | `type` | `text` | `income` ou `expense` |
 | `description` | `text` | Opcional |
-| `color` | `text` | Hexadecimal validado na aplicacao ou banco |
+| `color` | `text` | Cor hexadecimal, default `#FFFFFF` |
 | `created_at` | `timestamptz` | Default `now()` |
 | `updated_at` | `timestamptz` | Default `now()` |
 
-Restricao recomendada:
+Regras:
 
 ```sql
 check (type in ('income', 'expense'))
-```
-
-Unicidade recomendada:
-
-```sql
 unique (user_id, name, type)
 ```
 
-### `public.incomes`
+### `public.transactions`
 
-| Coluna | Tipo sugerido | Regra |
+Um lancamento financeiro. A coluna `type` diferencia entrada e saida:
+
+- `income`: dinheiro recebido pelo usuario;
+- `expense`: dinheiro pago pelo usuario.
+
+| Coluna | Tipo | Regra |
 | --- | --- | --- |
-| `id` | `bigint generated always as identity` | PK |
-| `user_id` | `uuid` | FK para `auth.users.id`, not null |
-| `category_id` | `bigint` | FK para `categories.id` |
+| `id` | `bigint` | PK gerada pelo banco |
+| `user_id` | `uuid` | FK para `auth.users.id`, obrigatorio |
+| `category_id` | `bigint` | FK para `categories.id`, obrigatorio |
+| `type` | `text` | `income` ou `expense` |
 | `amount` | `numeric(12,2)` | Maior que zero |
-| `source` | `text` | Fonte da renda |
-| `occurred_on` | `date` | Data da receita |
+| `title` | `text` | Nome ou fonte do lancamento |
+| `occurred_on` | `date` | Data do lancamento |
 | `description` | `text` | Opcional |
 | `payment_method` | `text` | Opcional |
 | `created_at` | `timestamptz` | Default `now()` |
 | `updated_at` | `timestamptz` | Default `now()` |
 
-Restricao recomendada:
+Regras:
 
 ```sql
+check (type in ('income', 'expense'))
 check (amount > 0)
 ```
 
-### `public.expenses`
+A aplicacao deve garantir que `transactions.type` seja igual ao tipo da categoria escolhida.
 
-| Coluna | Tipo sugerido | Regra |
-| --- | --- | --- |
-| `id` | `bigint generated always as identity` | PK |
-| `user_id` | `uuid` | FK para `auth.users.id`, not null |
-| `category_id` | `bigint` | FK para `categories.id` |
-| `amount` | `numeric(12,2)` | Maior que zero |
-| `name` | `text` | Nome da despesa |
-| `occurred_on` | `date` | Data da despesa |
-| `description` | `text` | Opcional |
-| `payment_method` | `text` | Opcional |
-| `created_at` | `timestamptz` | Default `now()` |
-| `updated_at` | `timestamptz` | Default `now()` |
+## Diagrama entidade-relacionamento
+
+```mermaid
+erDiagram
+  AUTH_USERS {
+    uuid id PK
+    string email
+  }
+
+  PROFILES {
+    uuid id PK, FK
+    string nome_completo
+    date data_nascimento
+    string telefone
+    datetime created_at
+    datetime updated_at
+  }
+
+  CATEGORIES {
+    bigint id PK
+    uuid user_id FK
+    string name
+    string type
+    string description
+    string color
+    datetime created_at
+    datetime updated_at
+  }
+
+  TRANSACTIONS {
+    bigint id PK
+    uuid user_id FK
+    bigint category_id FK
+    string type
+    numeric amount
+    string title
+    date occurred_on
+    string description
+    string payment_method
+    datetime created_at
+    datetime updated_at
+  }
+
+  AUTH_USERS ||--|| PROFILES : owns
+  AUTH_USERS ||--o{ CATEGORIES : owns
+  AUTH_USERS ||--o{ TRANSACTIONS : records
+  CATEGORIES ||--o{ TRANSACTIONS : classifies
+```
 
 ## Relacionamentos e exclusao
 
-- `profiles.id` referencia `auth.users.id`.
-- `categories.user_id` referencia `auth.users.id`.
-- `incomes.user_id` e `expenses.user_id` referenciam `auth.users.id`.
-- `category_id` deve aceitar apenas categoria do mesmo usuario. Isso deve ser garantido por validacao de aplicacao e, se necessario, por funcao ou desenho de constraint adicional.
-- Ao excluir uma conta, os dados privados podem usar `on delete cascade`, desde que essa decisao seja confirmada antes da migration.
-- Ao excluir uma categoria em uso, a politica deve ser escolhida: impedir exclusao ou usar `on delete restrict`. Nao apagar transacoes silenciosamente.
+- Uma conta autenticada possui um perfil.
+- Uma conta pode possuir varias categorias.
+- Uma conta pode possuir varias transacoes.
+- Uma categoria pode classificar varias transacoes.
+- A exclusao da conta usa `on delete cascade` para seus dados privados.
+- A exclusao de uma categoria em uso usa `on delete restrict`; transacoes nao sao apagadas silenciosamente.
+- A aplicacao deve validar que categoria e transacao pertencem ao mesmo usuario e possuem o mesmo tipo.
 
-## Indices recomendados
+## Indices
+
+Indices aceleram consultas frequentes sem alterar os dados. A migration cria:
 
 ```sql
 create index categories_user_id_idx on public.categories (user_id);
-create index incomes_user_date_idx on public.incomes (user_id, occurred_on);
-create index expenses_user_date_idx on public.expenses (user_id, occurred_on);
-create index incomes_category_idx on public.incomes (category_id);
-create index expenses_category_idx on public.expenses (category_id);
+create index transactions_user_date_idx on public.transactions (user_id, occurred_on);
+create index transactions_user_type_idx on public.transactions (user_id, type);
+create index transactions_category_idx on public.transactions (category_id);
 ```
 
-## RLS recomendado
+## Row Level Security
 
-Todas as tabelas publicas privadas devem ter RLS ativado. A forma basica das politicas e:
+RLS significa Row Level Security. Com RLS, o banco aplica regras por linha e impede que um usuario leia ou altere registros de outro usuario.
+
+Politicas conceituais:
 
 ```sql
-using (user_id = auth.uid())
-with check (user_id = auth.uid())
+profiles: id = auth.uid()
+categories: user_id = auth.uid()
+transactions: user_id = auth.uid()
 ```
 
-Para `profiles`, a comparacao e `id = auth.uid()`.
+As politicas usam a identidade da sessao do Supabase Auth. Elas nao confiam em um `user_id` enviado pelo frontend.
 
-A politica nao deve confiar em `user_id` recebido pelo frontend. O banco precisa comparar com a identidade da sessao.
+## Ambiente local e Supabase
 
-## Decisoes ainda abertas
+O PostgreSQL local valida tabelas, constraints, indices e migrations. O Supabase adiciona `auth.users`, `auth.uid()` e RLS. Por isso, a migration verifica se `auth.users` existe antes de criar as referencias e politicas especificas do Supabase.
 
-- Usar nomes em portugues legados ou nomes em ingles no schema novo.
-- Permitir categorias sem transacoes e categorias compartilhadas.
-- Permitir edicao do tipo de categoria depois de haver transacoes.
-- Usar exclusao em cascata na conta.
-- Manter `payment_method` como texto livre ou criar dominio enumerado.
-- Criar visoes ou funcoes para os agregados do dashboard.
-- Migrar dados antigos, caso algum backup seja recuperado. Senhas antigas nao devem ser migradas como credenciais.
+O isolamento entre dois usuarios ainda precisa ser validado em um projeto Supabase antes da entrega de producao.

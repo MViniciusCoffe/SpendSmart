@@ -172,7 +172,7 @@ Documentos produzidos nesta fase:
 - [x] Criar scripts para subir, aguardar e parar os servicos locais
 - [x] Criar `.env.development` local com as variaveis documentadas
 - [ ] Criar o projeto no Supabase
-- [x] Definir tabelas de perfil, categorias, receitas e despesas
+- [x] Definir tabelas de perfil, categorias e transacoes
 - [ ] Definir chaves primarias e estrangeiras
 - [x] Definir campos obrigatorios e tipos monetarios
 - [x] Definir indices por usuario, categoria e data

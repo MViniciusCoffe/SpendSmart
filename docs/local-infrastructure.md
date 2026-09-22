@@ -78,7 +78,7 @@ O script `run-services.js` sobe o PostgreSQL, aguarda a conexao, aplica as migra
 
 ## Estado atual
 
-A migration inicial cria `profiles`, `categories`, `incomes` e `expenses`, alem de constraints e indices. Ela e aplicada automaticamente pelo `npm run dev`.
+A migration inicial cria `profiles`, `categories` e `transactions`, alem de constraints e indices. Ela e aplicada automaticamente pelo `npm run dev`.
 
 O nome atual da migration e numerico (`001_create_financial_schema`), por isso o `node-pg-migrate` exibe o aviso `Can't determine timestamp for 001`. A migration funciona, mas novas migrations devem usar nomes com timestamp para evitar esse aviso.
 
