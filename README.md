@@ -135,7 +135,7 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 
 - [x] Documentar o estado atual e o plano inicial
 - [x] Integrar o backend legado ao repositorio
-- [ ] Concluir o inventario de contratos
+- [x] Concluir o inventario de contratos
 - [ ] Escolher e registrar a arquitetura final
 - [ ] Criar o projeto e o schema do Supabase
 - [ ] Implementar a nova autenticacao
@@ -154,14 +154,21 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 - [x] Confirmar que o backend possui um `package.json` proprio
 - [ ] Remover o `backend/.env` local ou substituir por `.env.example` sem segredos
 - [ ] Confirmar que credenciais antigas foram revogadas ou rotacionadas
-- [ ] Listar todas as rotas existentes
-- [ ] Listar todas as chamadas Axios do frontend
-- [ ] Comparar payloads enviados e respostas esperadas
-- [ ] Mapear tabelas, colunas e relacionamentos usados pelo backend
-- [ ] Identificar URLs, credenciais e segredos antigos
-- [ ] Registrar incompatibilidades entre frontend e backend
+- [x] Listar todas as rotas existentes
+- [x] Listar todas as chamadas Axios do frontend
+- [x] Comparar payloads enviados e respostas esperadas
+- [x] Mapear tabelas, colunas e relacionamentos usados pelo backend
+- [x] Identificar URLs, credenciais e segredos antigos
+- [x] Registrar incompatibilidades entre frontend e backend
 
 **Criterio de conclusao:** frontend e backend estao no mesmo repositorio, o contrato atual esta documentado e nenhum segredo antigo foi trazido para a branch.
+
+Documentos produzidos nesta fase:
+
+- [Inventario da API legada](docs/api-inventory.md)
+- [Esquema de banco de dados](docs/database-schema.md)
+- [Opcoes de arquitetura](docs/architecture-options.md)
+- [Bibliotecas e reestruturacao do backend](docs/backend-restructure.md)
 
 ### Fase 1: decisao arquitetural
 
