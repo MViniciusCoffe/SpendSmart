@@ -3,7 +3,12 @@ import Navbar from "./components/Navbar/navbarApp";
 import styles from "./categoriaPage.module.css";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import {
+  buscarCategorias,
+  criarCategoria,
+  excluirCategoria,
+  atualizarCategoria,
+} from "../services/categoriaService";
 
 // aqui vou poder cadastrar tanto os gastos como as suas respectivas categorias, mesma coisa com rendaPage
 function categoriaPage() {
@@ -46,12 +51,7 @@ function categoriaPage() {
     if (activeTab === "delete") {
       const fetchCategorias = async () => {
         try {
-          const response = await axios.get("http://54.227.20.33:5000/category", {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer: ${authToken}`,
-            },
-          });
+          const response = await buscarCategorias(authToken);
 
           const categoriasFiltradas = response.data.filter(
             (categoria) => categoria.usuario_id === userId
@@ -70,12 +70,7 @@ function categoriaPage() {
     if (activeTab === "edit") {
       const fetchCategorias = async () => {
         try {
-          const response = await axios.get("http://54.227.20.33:5000/category", {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer: ${authToken}`,
-            },
-          });
+          const response = await buscarCategorias(authToken);
 
           const categoriasFiltradas = response.data.filter(
             (categoria) => categoria.usuario_id === userId
@@ -98,22 +93,16 @@ function categoriaPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        "http://54.227.20.33:5000/category",
-        JSON.stringify({
-          nome,
-          tipo,
-          descricao,
-          cor,
-          userId,
-        }),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        }
-      );
+      const response = await criarCategoria(
+  {
+    nome,
+    tipo,
+    descricao,
+    cor,
+    userId,
+  },
+  authToken
+);
 
       setAddingErrorMessage("");
       alert("Categoria adicionada com Sucesso");
@@ -133,14 +122,9 @@ function categoriaPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.delete(
-        `http://54.227.20.33:5000/category/${categorySelected}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        }
+      const response = await excluirCategoria(
+        categorySelected,
+        authToken
       );
 
       alert("Categoria Removida com sucesso!");
@@ -165,22 +149,17 @@ function categoriaPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.put(
-        `http://54.227.20.33:5000/category/${categoryUpdateSelected}`,
-        JSON.stringify({
-          editNome,
-          editTipo,
-          editDescricao,
-          editCor,
-          userId,
-        }),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        }
-      );
+      const response = await atualizarCategoria(
+      categoryUpdateSelected,
+      {
+        editNome,
+        editTipo,
+        editDescricao,
+        editCor,
+        userId,
+      },
+      authToken
+    );
 
       setUpdatingErrorMessage("");
       alert("Categoria atualizada com sucesso");
