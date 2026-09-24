@@ -1,24 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Cookies from "js-cookie";
+import { authService } from "../services/authServices";
 
 const withAuth = (WrappedComponent) => {
   return (props) => {
     const router = useRouter();
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     useEffect(() => {
-      try {
-        const token = Cookies.get("authToken");
-        const user = JSON.parse(Cookies.get("user"));
+      const checkAuth = async () => {
+        try {
+          const session = await authService.getSession();
 
-        // Verifica se o token de autenticação e o usuário estão presentes, se não, redireciona para Login
-        if (!token || !user) {
-          router.push("/login");
+          if (!session) {
+            // Troca o topo da pilha router para não sujar histórico de navegação com páginas protegidas
+            router.replace("/login");
+          } else {
+            setIsAuthorized(true);
+          }
+        } catch (error) {
+          router.replace("/login");
         }
-      } catch (error) {
-        router.push("/login");
-      }
-    }, []);
+      };
+
+      checkAuth();
+    }, [router]);
+
+    if (!isAuthorized) {
+      return null; // Futuro componente de carregamento
+    }
 
     return <WrappedComponent {...props} />;
   };
