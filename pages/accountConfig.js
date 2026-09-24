@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./accountConfig.module.css";
-import Navbar from "./components/Navbar/navbarApp";
+import Navbar from "../components/Navbar/navbarApp";
 import withAuth from "./components/utils/withAuth";
 import Cookies from "js-cookie";
 import axios from "axios";

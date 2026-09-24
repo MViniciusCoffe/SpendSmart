@@ -1,5 +1,5 @@
 import withAuth from "./components/utils/withAuth";
-import Navbar from "./components/Navbar/navbarApp";
+import Navbar from "../components/Navbar/navbarApp";
 import styles from "./rendaPage.module.css";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";

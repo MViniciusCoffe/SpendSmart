@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import withAuth from "./components/utils/withAuth";
 import styles from "./dashboard.module.css";
-import Navbar from "./components/Navbar/navbarApp.js";
+import Navbar from "../components/Navbar/navbarApp.js";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { Doughnut, Line } from "react-chartjs-2";
