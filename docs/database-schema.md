@@ -125,9 +125,9 @@ erDiagram
 
   PROFILES {
     uuid id PK, FK
-    string nome_completo
-    date data_nascimento
-    string telefone
+    string complete_name
+    date birth_date
+    string phone_number
     datetime created_at
     datetime updated_at
   }
@@ -173,7 +173,21 @@ erDiagram
 - A exclusao de uma categoria em uso usa `on delete restrict`; transacoes nao sao apagadas silenciosamente.
 - A aplicacao deve validar que categoria e transacao pertencem ao mesmo usuario e possuem o mesmo tipo.
 
+## Esquema Relacional (3FN)
+
+```text
+users(id, email)
+profiles(id*, complete_name, birth_date, phone, created_at, updated_at)
+  Nota: Aqui o id é PK e FK ao mesmo tempo, garantindo a relação 1:1 com users.
+categories(id, user_id*, name, type, description, color, created_at, updated_at)
+  user_id referencia users(id)
+transactions(id, user_id*, category_id*, type, amount, title, occurred_on, description, payment_method, created_at, updated_at)
+  user_id referencia users(id)
+  category_id referencia categories(id)
+```
+
 ## Indices
+
 
 Indices aceleram consultas frequentes sem alterar os dados. A migration cria:
 
