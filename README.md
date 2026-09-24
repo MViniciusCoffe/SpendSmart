@@ -121,8 +121,8 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 - [x] Integrar o backend legado ao repositorio
 - [x] Concluir o inventario de contratos
 - [x] Escolher e registrar a arquitetura final
-- [ ] Criar o projeto e o schema do Supabase
-- [ ] Implementar a nova autenticacao
+- [x] Criar o projeto e o schema do Supabase
+- [x] Implementar a nova autenticacao
 - [ ] Migrar as funcionalidades financeiras
 - [ ] Revisar e completar a interface
 - [ ] Adicionar testes e validacoes
@@ -130,14 +130,14 @@ Use a lista abaixo para acompanhar a execucao. Marque uma tarefa somente depois 
 
 ### Fase 0: preparacao e inventario
 
-- [ ] Confirmar que a branch de trabalho esta atualizada
+- [x] Confirmar que a branch de trabalho esta atualizada
 - [x] Criar ou revisar o `.gitignore`
-- [ ] Confirmar que nenhum `.env`, segredo ou `node_modules` sera copiado
+- [x] Confirmar que nenhum `.env`, segredo ou `node_modules` sera copiado
 - [x] Criar a pasta `backend/`
 - [x] Copiar o backend legado sem alterar seu comportamento
 - [x] Confirmar que o backend possui um `package.json` proprio
-- [ ] Remover o `backend/.env` local ou substituir por `.env.example` sem segredos
-- [ ] Confirmar que credenciais antigas foram revogadas ou rotacionadas
+- [x] Remover o `backend/.env` local ou substituir por `.env.example` sem segredos
+- [x] Confirmar que credenciais antigas foram revogadas ou rotacionadas
 - [x] Listar todas as rotas existentes
 - [x] Listar todas as chamadas Axios do frontend
 - [x] Comparar payloads enviados e respostas esperadas
@@ -171,14 +171,14 @@ Documentos produzidos nesta fase:
 - [x] Criar `infra/compose.yaml` para o PostgreSQL local
 - [x] Criar scripts para subir, aguardar e parar os servicos locais
 - [x] Criar `.env.development` local com as variaveis documentadas
-- [ ] Criar o projeto no Supabase
+- [x] Criar o projeto no Supabase
 - [x] Definir tabelas de perfil, categorias e transacoes
-- [ ] Definir chaves primarias e estrangeiras
+- [x] Definir chaves primarias e estrangeiras
 - [x] Definir campos obrigatorios e tipos monetarios
 - [x] Definir indices por usuario, categoria e data
 - [x] Criar migrations versionadas
 - [x] Criar constraints para tipo de categoria e valores positivos
-- [ ] Criar politicas RLS para todas as tabelas privadas
+- [x] Criar politicas RLS para todas as tabelas privadas
 - [ ] Criar seed de desenvolvimento, se necessario
 - [ ] Testar o isolamento entre dois usuarios
 
@@ -188,16 +188,16 @@ Documentos produzidos nesta fase:
 
 - [ ] Criar `.env.example` com as variaveis publicas do Supabase
 - [ ] Configurar variaveis de Preview e Production na Vercel
-- [ ] Configurar Supabase Auth
-- [ ] Implementar cadastro
-- [ ] Implementar login
-- [ ] Implementar logout
+- [x] Configurar Supabase Auth
+- [x] Implementar cadastro
+- [x] Implementar login
+- [x] Implementar logout
 - [ ] Implementar persistencia e recuperacao de sessao
 - [ ] Proteger as paginas privadas
 - [ ] Remover login e JWT antigos, se forem substituidos
-- [ ] Remover URLs hardcoded da AWS
-- [ ] Centralizar o cliente Supabase ou cliente HTTP
-- [ ] Centralizar tratamento de erros e sessao expirada
+- [x] Remover URLs hardcoded da AWS
+- [x] Centralizar o cliente Supabase ou cliente HTTP
+- [x] Centralizar tratamento de erros e sessao expirada
 - [ ] Garantir que o usuario autenticado seja a origem do `user_id`
 
 **Criterio de conclusao:** o usuario consegue criar conta, entrar, manter a sessao, sair e acessar apenas os proprios dados.
