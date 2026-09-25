@@ -1,6 +1,15 @@
 # Esquema de banco de dados
 
-Este documento descreve o modelo de dados planejado para o SpendSmart com Supabase Auth e Supabase PostgreSQL. A migration correspondente esta em `supabase/migrations/001_create_financial_schema.js`.
+Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
+As migrations correspondentes estao em `supabase/migrations/`:
+
+| Migration | O que faz |
+| --- | --- |
+| `001_create_financial_schema.js` | Cria as tres tabelas de dominio, constraints, indices, chaves estrangeiras para `auth.users` e as politicas RLS |
+| `1790304277043_add-rbac-permissions.js` | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequencias |
+
+> A segunda migration so tem efeito no Supabase: como `auth.users` nao existe no PostgreSQL
+> local, todo o seu corpo fica dentro de um `IF` que nao e satisfeito. Ver §7.
 
 ## Schemas do Supabase
 
@@ -45,6 +54,9 @@ auth.users.id = transactions.user_id
 
 O frontend nunca escolhe nem incrementa `user_id`. O usuario e identificado pela sessao do Supabase Auth, e as politicas RLS comparam essa identidade com cada registro.
 
+> Essas igualdades so se sustentam no Supabase. No PostgreSQL local nao existe `auth.users`, e
+> portanto nao existem nem a FK que liga as tabelas a ele nem o RLS. Ver §7.
+
 ## Tabelas publicas
 
 ### `public.profiles`
@@ -53,7 +65,7 @@ Perfil complementar da conta autenticada. Nao armazena senha.
 
 | Coluna | Tipo | Regra |
 | --- | --- | --- |
-| `id` | `uuid` | PK e FK para `auth.users.id` |
+| `id` | `uuid` | PK; FK para `auth.users.id`, criada apenas no Supabase (ver §7) |
 | `nome_completo` | `text` | Obrigatorio |
 | `data_nascimento` | `date` | Opcional |
 | `telefone` | `text` | Opcional |
@@ -61,6 +73,10 @@ Perfil complementar da conta autenticada. Nao armazena senha.
 | `updated_at` | `timestamptz` | Default `now()` |
 
 O `profiles.id` recebe o UUID criado pelo Supabase Auth. Ele nao possui UUID aleatorio automatico.
+
+> `profiles` e a unica tabela com colunas de dominio em portugues. `categories` e `transactions`
+> usam ingles. A padronizacao proposta esta em
+> [Migrações Futuras](future-migrations.md#proposta-1--padronizar-profiles-para-ingles).
 
 ### `public.categories`
 
@@ -124,10 +140,10 @@ erDiagram
   }
 
   PROFILES {
-    uuid id PK, FK
-    string complete_name
-    date birth_date
-    string phone_number
+    uuid id PK
+    string nome_completo
+    date data_nascimento
+    string telefone
     datetime created_at
     datetime updated_at
   }
@@ -169,7 +185,7 @@ erDiagram
 - Uma conta pode possuir varias categorias.
 - Uma conta pode possuir varias transacoes.
 - Uma categoria pode classificar varias transacoes.
-- A exclusao da conta usa `on delete cascade` para seus dados privados.
+- A exclusao da conta usa `on delete cascade` para seus dados privados (Supabase).
 - A exclusao de uma categoria em uso usa `on delete restrict`; transacoes nao sao apagadas silenciosamente.
 - A aplicacao deve validar que categoria e transacao pertencem ao mesmo usuario e possuem o mesmo tipo.
 
@@ -177,14 +193,18 @@ erDiagram
 
 ```text
 users(id, email)
-profiles(id*, complete_name, birth_date, phone, created_at, updated_at)
-  Nota: Aqui o id é PK e FK ao mesmo tempo, garantindo a relação 1:1 com users.
+profiles(id*, nome_completo, data_nascimento, telefone, created_at, updated_at)
+  Nota: o id e PK e FK ao mesmo tempo, garantindo a relacao 1:1 com users.
 categories(id, user_id*, name, type, description, color, created_at, updated_at)
   user_id referencia users(id)
 transactions(id, user_id*, category_id*, type, amount, title, occurred_on, description, payment_method, created_at, updated_at)
   user_id referencia users(id)
   category_id referencia categories(id)
 ```
+
+`users` corresponde a `auth.users`, gerenciada pelo Supabase. As tres tabelas estao em 3FN: nao ha
+dependencia transitiva entre colunas nao-chave, e todo atributo nao-chave depende da chave
+inteira da sua tabela.
 
 ## Indices
 
@@ -202,18 +222,42 @@ create index transactions_category_idx on public.transactions (category_id);
 
 RLS significa Row Level Security. Com RLS, o banco aplica regras por linha e impede que um usuario leia ou altere registros de outro usuario.
 
-Politicas conceituais:
+Politicas criadas em `001_create_financial_schema.js:118-120`:
 
 ```sql
-profiles: id = auth.uid()
-categories: user_id = auth.uid()
-transactions: user_id = auth.uid()
+profiles:     USING      (id = auth.uid()) WITH CHECK (id = auth.uid())
+categories:   USING      (user_id = auth.uid()) WITH CHECK (user_id = auth.uid())
+transactions: USING      (user_id = auth.uid()) WITH CHECK (user_id = auth.uid())
 ```
+
+As tres sao `FOR ALL`. O `USING` filtra a leitura e o `WITH CHECK` valida a escrita, entao um
+`UPDATE` nao consegue mover um registro para fora do proprio `user_id`.
 
 As politicas usam a identidade da sessao do Supabase Auth. Elas nao confiam em um `user_id` enviado pelo frontend.
 
+O RLS e a ultima barreira, nao a unica. Os services filtram por `user_id` explicitamente em toda
+leitura e escrita, conforme `services/categoryService.js:31,41` e
+`services/transactionService.js:33,46`.
+
+## Limites conhecidos
+
+Registrados aqui para que ninguem os descubra em producao.
+
+| Limite | Consequencia |
+| --- | --- |
+| O RLS so e criado se `auth.users` existir | No PostgreSQL local **nunca** e aplicado. Um banco local tem zero isolamento entre usuarios. |
+| O isolamento entre dois usuarios nunca foi exercitado | Os casos IT-01 e IT-02 do [plano de testes](test-plan.md#22-testes-de-integracao) ainda nao rodaram. |
+| `transactions.type` nao e validado contra `categories.type` | Um lancamento pode apontar para categoria de tipo oposto e corromper o dashboard. |
+| `updated_at` nao tem trigger | A coluna registra apenas o instante da insercao, nunca a ultima alteracao. |
+| `profiles` usa portugues; as outras duas, ingles | Inconsistencia de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8). |
+
+As tres primeiras pendencias tem script pronto em [Future Migrations](future-migrations.md).
+
 ## Ambiente local e Supabase
 
-O PostgreSQL local valida tabelas, constraints, indices e migrations. O Supabase adiciona `auth.users`, `auth.uid()` e RLS. Por isso, a migration verifica se `auth.users` existe antes de criar as referencias e politicas especificas do Supabase.
+O PostgreSQL local valida tabelas, constraints, indices e migrations. O Supabase adiciona `auth.users`, `auth.uid()`, RLS e os `GRANT` de `service_role` e `authenticated`. Por isso, as duas migrations verificam se `auth.users` existe antes de criar essas referencias, usando o guard `IF to_regclass('auth.users') IS NOT NULL` (`001_create_financial_schema.js:101`, `1790304277043_add-rbac-permissions.js:7`).
 
-O isolamento entre dois usuarios ainda precisa ser validado em um projeto Supabase antes da entrega de producao.
+O efeito colateral do guard e que **o banco local nao tem RLS nem FK para `auth.users`**. Isso e
+aceito como consequencia de rodar a mesma migration em dois motores, e esta registrado na issue
+[#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20). O isolamento entre dois usuarios
+precisa ser validado em um projeto Supabase antes da entrega.

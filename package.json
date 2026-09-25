@@ -1,8 +1,8 @@
 {
-  "name": "spend-smart",
-  "version": "1.0.0",
-  "description": "Teste 123",
-  "main": "index.js",
+  "name": "spendsmart",
+  "version": "0.1.0",
+  "description": "Aplicacao web pessoal de controle financeiro: receitas, despesas, categorias e dashboard.",
+  "private": true,
   "scripts": {
     "dev": "node infra/scripts/run-services.js",
     "next:dev": "next dev",
@@ -17,8 +17,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "MViniciusCoffe",
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
     "chart.js": "^4.5.1",
