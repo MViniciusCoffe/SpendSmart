@@ -38,7 +38,7 @@ export default function RegisterPage() {
       });
 
       alert("Usuário criado com sucesso! Faça login para continuar.");
-      router.push("/dashboard");
+      router.push("/login");
     } catch (error) {
       setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`);
     } finally {

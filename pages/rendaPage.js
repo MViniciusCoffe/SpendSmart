@@ -9,6 +9,7 @@ import { categoryService } from "../services/categoryService";
 function RendaPage() {
   // Variáveis para salvar as rendas
   const [valor, setValor] = useState(0.0);
+  const [nome, setNome] = useState("");
   const [fonteRenda, setFonteRenda] = useState("");
   const [descricao, setDescricao] = useState("");
   const [data, setData] = useState();
@@ -32,6 +33,7 @@ function RendaPage() {
   const [incomes, setIncomes] = useState([]);
   const [incomeSelected, setIncomeSelected] = useState("");
   const [incomeDetails, setIncomeDetails] = useState(null);
+
 
   // Ativa um gatilho
   const [updateTrigger, setUpdateTrigger] = useState(0);
@@ -143,11 +145,11 @@ function RendaPage() {
         {/* --- ABA ADICIONAR --- */}
         {activeTab === "add" && (
           <form className={styles.form_content} onSubmit={handleSave}>
-            <h1 className={styles.content_h1}>Adicionar Despesa</h1>
+            <h1 className={styles.content_h1}>Adicionar Renda</h1>
 
             <div className={styles.form_group}>
               <label className={styles.input_title} htmlFor="nome">
-                Nome da Despesa
+                Nome da Renda
               </label>
               <input
                 className={styles.input_data}
@@ -206,7 +208,7 @@ function RendaPage() {
 
               <div className={styles.input_group}>
                 <label className={styles.input_title} htmlFor="data">
-                  Data da Despesa
+                  Data da Renda
                 </label>
                 <input
                   className={styles.input_data_50}
@@ -257,7 +259,7 @@ function RendaPage() {
                 className={styles.save_button}
                 disabled={!categorySelected || !checkValorIsValid() || !nome || !data}
               >
-                Salvar Despesa
+                Salvar Renda
               </button>
             </div>
           </form>
@@ -266,42 +268,42 @@ function RendaPage() {
         {/* --- ABA EXCLUIR --- */}
         {activeTab === "delete" && (
           <form className={styles.form_content} onSubmit={handleDelete}>
-            <h1 className={styles.content_h1}>Excluir Despesa</h1>
+            <h1 className={styles.content_h1}>Excluir Renda</h1>
             <div className={styles.form_group}>
-              <label className={styles.input_title} htmlFor="despesa">
-                Selecionar Despesa
+              <label className={styles.input_title} htmlFor="renda">
+                Selecionar Renda
               </label>
               <select
                 className={styles.input_data}
-                id="despesa"
-                value={expenseSelected}
+                id="renda"
+                value={incomeSelected}
                 onChange={(e) => {
                   const selectedId = Number(e.target.value);
-                  setExpenseSelected(selectedId);
-                  const expense = expenses.find((exp) => exp.id === selectedId);
-                  setExpenseDetails(expense || null);
+                  setIncomeSelected(selectedId);
+                  const income = incomes.find((exp) => exp.id === selectedId);
+                  setIncomeDetails(income || null);
                 }}
               >
-                <option value="" disabled>Selecionar uma Despesa</option>
-                {expenses.map((gasto) => (
-                  <option key={gasto.id} value={gasto.id}>
-                    {gasto.titulo} {/* No serviço novo usamos titulo */}
+                <option value="" disabled>Selecionar uma Renda</option>
+                {incomes.map((receita) => (
+                  <option key={receita.id} value={receita.id}>
+                    {receita.titulo} {/* No serviço novo usamos titulo */}
                   </option>
                 ))}
               </select>
 
               <div className={styles.category_details}>
-                <h2>Detalhes da Despesa</h2>
-                <p><strong>Nome:</strong> {expenseDetails?.titulo || "Sem dados"}</p>
-                <p><strong>Valor:</strong> R$ {expenseDetails?.valor || "0.00"}</p>
-                <p><strong>Descrição:</strong> {expenseDetails?.descricao || "Nenhuma descrição fornecida."}</p>
+                <h2>Detalhes da Renda</h2>
+                <p><strong>Nome:</strong> {incomeDetails?.titulo || "Sem dados"}</p>
+                <p><strong>Valor:</strong> R$ {incomeDetails?.valor || "0.00"}</p>
+                <p><strong>Descrição:</strong> {incomeDetails?.descricao || "Nenhuma descrição fornecida."}</p>
                 <p>
                   <strong>Data:</strong>{" "}
-                  {expenseDetails?.data
-                    ? new Date(expenseDetails.data).toISOString().split("T")[0]
+                  {incomeDetails?.data
+                    ? new Date(incomeDetails.data).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
-                <p><strong>Forma de Pagamento:</strong> {expenseDetails?.forma_pagamento || "Sem dados"}</p>
+                <p><strong>Forma de Pagamento:</strong> {incomeDetails?.metodo_pagamento || "Sem dados"}</p>
               </div>
             </div>
 
@@ -313,9 +315,9 @@ function RendaPage() {
               <button
                 type="submit"
                 className={styles.delete_button}
-                disabled={!expenseSelected}
+                disabled={!incomeSelected}
               >
-                Excluir Despesa
+                Excluir Renda
               </button>
             </div>
           </form>
@@ -325,4 +327,4 @@ function RendaPage() {
   );
 }
 
-export default withAuth(rendaPage);
+export default withAuth(RendaPage);

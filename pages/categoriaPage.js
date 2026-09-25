@@ -31,10 +31,6 @@ function CategoriaPage() {
   const [categoryUpdateSelected, setCategoryUpdateSelected] = useState("");
   const [categoryDetails, setCategoryDetails] = useState(null);
 
-  // Recuperar informações do usuário
-  const [userId, setUserId] = useState(null);
-  const authToken = Cookies.get("authToken");
-
   // Ativa um gatilho para atualizar as categorias quando uma ação é realizada (adicionar, editar ou deletar)
   const [updateTrigger, setUpdateTrigger] = useState(0);
 
