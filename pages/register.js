@@ -1,22 +1,20 @@
 import Link from "next/link";
 import styles from "./register.module.css";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/router";
-import Cookies from "js-cookie";
+import { authService } from "../services/authServices";
 
-function register() {
+export default function RegisterPage() {
   const router = useRouter();
 
-  // Estados para armazenar os dados dos usuários
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [telefone, setTelefone] = useState("");
 
-  // Estado para armazenar a mensagem de erro
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Função para criar usuário
   const handleRegister = async (e) => {
@@ -24,56 +22,27 @@ function register() {
 
     if (!nomeCompleto || !email || !senha || !dataNascimento) {
       setErrorMessage("Preencha todos os campos obrigatórios");
+      return;
     }
 
+    setIsLoading(true);
+    setErrorMessage("");
+
     try {
-      const response = await axios.post(
-        "http://54.227.20.33:5000/user",
-        JSON.stringify({
-          nomeCompleto,
-          email,
-          senha,
-          dataNascimento,
-          telefone,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      await authService.registerUser({
+        email: email,
+        password: senha,
+        nomeCompleto: nomeCompleto,
+        dataNascimento: dataNascimento,
+        telefone: telefone
+      });
 
-      alert("Usuário criado com sucesso");
-      // Depois de criado o usuário, ele autentica no sistema e salva os tokens
-      if (response.status == 200) {
-        try {
-          const response = await axios.post(
-            "http://54.227.20.33:5000/auth",
-            JSON.stringify({ email, senha }),
-            {
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-
-          const token = response.data.token;
-          const user = JSON.stringify(response.data.user);
-
-          Cookies.set("user", user, { expires: 7 });
-          Cookies.set("authToken", token, { expires: 7 });
-          setErrorMessage("");
-          router.push("/dashboard");
-        } catch (error) {
-          alert(error);
-          if (!error?.response) {
-            setErrorMessage("Erro ao acessar o servidor");
-          }
-        }
-      }
+      alert("Usuário criado com sucesso! Faça login para continuar.");
+      router.push("/login");
     } catch (error) {
-      if (error.response.data.message === "Usuário já existe") {
-        setErrorMessage("Usuário já cadastrado nesse email");
-      }
-      if (!error?.response) {
-        setErrorMessage("Erro ao acessar ao servidor");
-      }
+      setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,7 +54,7 @@ function register() {
             Voltar
           </Link>
           <h2>Criar Usuário</h2>
-          <form>
+          <form onSubmit={handleRegister}>
             <div>
               <div className={styles.input_group}>
                 <label htmlFor="nomeCompleto">Nome Completo:</label>
@@ -157,16 +126,15 @@ function register() {
             </div>
 
             <div className={styles.button_group}>
-              <Link href="login" className={styles.login_button}>
+              <Link href="/login" className={styles.login_button}>
                 Entrar
               </Link>
               <button
                 type="submit"
                 className={styles.create_button}
-                onClick={(e) => handleRegister(e)}
-                disabled={!nomeCompleto || !email || !senha || !dataNascimento}
+                disabled={isLoading || !nomeCompleto || !email || !senha || !dataNascimento}
               >
-                Criar conta
+                {isLoading ? "Criando..." : "Criar conta"}
               </button>
             </div>
           </form>
@@ -175,5 +143,3 @@ function register() {
     </>
   );
 }
-
-export default register;

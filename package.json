@@ -4,25 +4,35 @@
   "description": "Teste 123",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node infra/scripts/run-services.js",
+    "next:dev": "next dev",
+    "services:up": "docker compose -f infra/compose.yaml up -d",
+    "services:stop": "docker compose -f infra/compose.yaml stop",
+    "services:down": "docker compose -f infra/compose.yaml down",
+    "services:wait:database": "node infra/scripts/wait-for-postgres.js",
+    "migrations:create": "node-pg-migrate -m supabase/migrations --envPath .env.development create",
+    "migrations:up": "node-pg-migrate -m supabase/migrations --envPath .env.development up",
+    "migrations:down": "node-pg-migrate -m supabase/migrations --envPath .env.development down",
+    "migrations:supabase:up": "node-pg-migrate -m supabase/migrations --envPath .env.supabase up",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.9",
-    "chart.js": "^4.4.7",
-    "js-cookie": "^3.0.5",
-    "next": "^15.0.3",
-    "react": "^18.3.1",
-    "react-chartjs-2": "^5.3.0",
-    "react-dom": "^18.3.1"
+    "@supabase/supabase-js": "^2.117.1",
+    "chart.js": "^4.5.1",
+    "dotenv": "^16.4.7",
+    "next": "^16.3.5",
+    "node-pg-migrate": "^8.0.3",
+    "pg": "^8.16.3",
+    "react": "^19.3.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@babel/core": "^8.0.6",
     "@babel/preset-env": "^8.0.6",
-    "axios-mock-adapter": "^2.1.0",
     "babel-jest": "^30.5.2",
     "jest": "^30.5.2"
   }

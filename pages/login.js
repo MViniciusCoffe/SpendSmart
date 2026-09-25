@@ -2,30 +2,27 @@ import Link from "next/link";
 import styles from "./login.module.css";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
-import Cookies from "js-cookie";
+import { authService } from "../services/authServices";
 
-function login() {
+export default function LoginPage() {
   const router = useRouter();
 
-  // Estado para armazenar as credenciais
   const [email, setEmail] = useState("");
   const [senha, setPassword] = useState("");
-
-  // Estado para armazenar mensagem de erro
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Use Effect para redirecionar o usuário para "/dashboard" caso ele esteja logado
+  // Redireciona o usuário para "/dashboard" caso ele já tenha uma sessão ativa no supabase
   useEffect(() => {
-    const token = Cookies.get("authToken");
-    const user = Cookies.get("user");
+    const checkSession = async () => {
+      const session = await authService.getSession();
+      if (session) {
+        router.push("/dashboard");
+      }
+    };
+    checkSession();
+  }, [router]);
 
-    if (token && user) {
-      router.push("/dashboard");
-    }
-  }, []);
-
-  // Função para fazer a requisição na rota auth
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -34,33 +31,19 @@ function login() {
       return;
     }
 
+    setIsLoading(true);
+    setErrorMessage("");
+
     try {
-      const response = await axios.post(
-        "http://54.227.20.33:5000/auth",
-        JSON.stringify({ email, senha }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      // Supabase valida credenciais
+      await authService.loginUser({ email, password: senha });
 
-      // Salva o token do usuário
-      const token = response.data.token;
-      const user = JSON.stringify(response.data.user);
-
-      Cookies.set("user", user, { expires: 7 });
-      Cookies.set("authToken", token, { expires: 7 });
-
-      // Redireciona o usuário para /dashboard
-      setErrorMessage("");
+      // Se passar, redireciona para dashboard. Sessão já está salva no navegador pelo supabase
       router.push("/dashboard");
     } catch (error) {
-      if (!error?.response) {
-        setErrorMessage("Erro ao acessar ao servidor");
-      } else if (error.response.status == 401) {
-        setErrorMessage(
-          "Ocorreu um erro ao fazer login, verifique seu email/senha"
-        );
-      }
+      setErrorMessage(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,7 +55,7 @@ function login() {
             Voltar
           </Link>
           <h2>Fazer Login</h2>
-          <form>
+          <form onSubmit={handleLogin}>
             <div>
               <div className={styles.input_group}>
                 <label htmlFor="email">E-mail:</label>
@@ -109,12 +92,11 @@ function login() {
               <button
                 type="submit"
                 className={styles.login_button}
-                onClick={(e) => handleLogin(e)}
-                disabled={!email || !senha}
+                disabled={isLoading || !email || !senha}
               >
-                Entrar
+                {isLoading ? "Entrando..." : "Entrar"}
               </button>
-              <Link href="register" className={styles.create_button}>
+              <Link href="/register" className={styles.create_button}>
                 Criar conta
               </Link>
             </div>
@@ -124,5 +106,3 @@ function login() {
     </>
   );
 }
-
-export default login;

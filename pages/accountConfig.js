@@ -1,12 +1,12 @@
 import { useState } from "react";
-import styles from "./accountConfig.module.css";
-import Navbar from "./components/Navbar/navbarApp";
-import withAuth from "./components/utils/withAuth";
-import Cookies from "js-cookie";
-import axios from "axios";
 import { useRouter } from "next/router";
+import styles from "./accountConfig.module.css";
+import Navbar from "../components/Navbar/navbarApp";
+import withAuth from "../components/utils/withAuth";
+import { profileService } from "../services/profileService";
+import { supabase } from "../infra/supabase"; // Apenas para o logout
 
-function accountConfig() {
+function AccountConfig() {
   const router = useRouter();
 
   const [nome, setNome] = useState("");
@@ -22,47 +22,24 @@ function accountConfig() {
   const handleEdit = async (e) => {
     e.preventDefault();
 
-    const userEmail = JSON.parse(Cookies.get("user")).email;
-    const authToken = Cookies.get("authToken");
-
     try {
-      const updatedData = {
-        nome_completo: nome || null,
-        senha: senha || null,
-        data_nascimento: dataNascimento || null,
-        telefone: telefone || null,
-      };
-
-      // Filtrar dados não preenchidos, removendo campos não preenchidos
-      const filteredData = Object.fromEntries(
-        Object.entries(updatedData).filter(([_, v]) => v !== null)
-      );
-
-      const response = await axios.put(
-        `http://54.227.20.33:5000/user/${userEmail}`,
-        filteredData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      // Substitui o cookie antigo pelo novo com o usuário atualizado
-      const updatedUser = JSON.stringify(response.data.updatedUser);
-      Cookies.set("user", updatedUser, { expires: 7 });
+      await profileService.updateProfile({
+        nome: nome,
+        senha: senha,
+        dataNascimento: dataNascimento,
+        telefone: telefone
+      });
 
       setErrorMessage("");
       alert("Alterações salvas com sucesso!");
+
+      // Limpar os campos para o usuário saber que foi salvo
+      setNome("");
+      setSenha("");
+      setDataNascimento("");
+      setTelefone("");
     } catch (error) {
-      if (!error?.response) {
-        setErrorMessage("Erro ao acessar o servidor");
-      } else if (error.response.status === 400) {
-        setErrorMessage("Erro ao atualizar os dados. Verifique os campos.");
-      } else {
-        setErrorMessage("Erro desconhecido ao atualizar os dados.");
-      }
+      setErrorMessage(error.message);
     }
   };
 
@@ -70,37 +47,37 @@ function accountConfig() {
   const handleDelete = async (e) => {
     e.preventDefault();
 
-    const authToken = Cookies.get("authToken");
-    const userEmail = JSON.parse(Cookies.get("user")).email;
+    const confirmacao = window.confirm("Tem certeza que deseja excluir sua conta? Todos os seus dados serão apagados para sempre.");
+    if (!confirmacao) return;
 
     try {
-      const response = await axios.delete(
-        `http://54.227.20.33:5000/user/${userEmail}`,
-        {
-          headers: { Authorization: `Bearer ${authToken}` },
-        }
-      );
+      // A tela só dá a ordem para o serviço. Zero HTTP aqui!
+      await profileService.deleteAccount();
 
-      alert("Conta deletada com sucesso");
+      alert("Conta excluída com sucesso.");
 
-      Cookies.remove("authToken");
-      Cookies.remove("user");
-      router.push("/login");
+      // Limpa a sessão local e manda pro login
+      await supabase.auth.signOut();
+      router.replace("/login");
     } catch (error) {
-      if (!error?.response) {
-        setErrorMessage("Erro ao acessar o servidor");
-      } else {
-        setErrorMessage("Operação não autorizada");
-      }
+      setErrorMessage(error.message);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace("/login");
   };
 
   return (
     <>
-      <Navbar></Navbar>
+      {/* Mantive a Navbar aqui conforme você pediu para mexermos no _app.js depois */}
+      <Navbar />
+
       <div className={styles.app_content}>
-        <form className={styles.form_content}>
+        <form className={styles.form_content} onSubmit={handleEdit}>
           <h1 className={styles.content_h1}>Configurações da Conta</h1>
+
           <div className={styles.form_group}>
             <label className={styles.input_title} htmlFor="nome_completo">
               Nome Completo
@@ -109,6 +86,7 @@ function accountConfig() {
               className={styles.input_data}
               type="text"
               id="nome_completo"
+              value={nome}
               placeholder="Seu nome completo"
               onChange={(e) => setNome(e.target.value)}
             />
@@ -116,13 +94,14 @@ function accountConfig() {
 
           <div className={styles.form_group}>
             <label className={styles.input_title} htmlFor="senha">
-              Senha
+              Nova Senha
             </label>
             <input
               className={styles.input_data}
               type="password"
               id="senha"
-              placeholder="Sua senha"
+              value={senha}
+              placeholder="Sua nova senha"
               onChange={(e) => setSenha(e.target.value)}
             />
           </div>
@@ -135,6 +114,7 @@ function accountConfig() {
               className={styles.input_data}
               type="date"
               id="data_nascimento"
+              value={dataNascimento}
               onChange={(e) => setDataNascimento(e.target.value)}
             />
           </div>
@@ -147,6 +127,7 @@ function accountConfig() {
               className={styles.input_data}
               type="text"
               id="telefone"
+              value={telefone}
               placeholder="Seu telefone"
               maxLength={20}
               onChange={(e) => setTelefone(e.target.value)}
@@ -161,7 +142,6 @@ function accountConfig() {
             <button
               type="submit"
               className={styles.save_button}
-              onClick={(e) => handleEdit(e)}
               disabled={isSaveDisabled}
             >
               Salvar Alterações
@@ -169,15 +149,23 @@ function accountConfig() {
             <button
               type="button"
               className={styles.delete_button}
-              onClick={(e) => handleDelete(e)}
+              onClick={handleDelete}
             >
               Excluir Conta
             </button>
           </div>
+
+          {/* Um botão de logout amigável é sempre bom nas configurações */}
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <button type="button" onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#666', textDecoration: 'underline', cursor: 'pointer' }}>
+              Sair da minha conta
+            </button>
+          </div>
+
         </form>
       </div>
     </>
   );
 }
 
-export default withAuth(accountConfig);
+export default withAuth(AccountConfig);
