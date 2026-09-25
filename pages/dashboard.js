@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import withAuth from "./components/utils/withAuth";
 import styles from "./dashboard.module.css";
 import Navbar from "../components/Navbar/navbarApp.js";
-import axios from "axios";
-import Cookies from "js-cookie";
+import { supabase } from "../infra/supabase";
+import { transactionService } from "../services/transactionService";
+import { categoryService } from "../services/categoryService";
 import { Doughnut, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -26,7 +27,7 @@ ChartJS.register(
   CategoryScale
 );
 
-function dashboard() {
+function DashboardPage() {
   const [dados, setDados] = useState({
     saldo: 0,
     totalReceitas: 0,
@@ -34,109 +35,79 @@ function dashboard() {
   });
   const [spends, setSpends] = useState([]);
   const [incomes, setIncomes] = useState([]);
-
+  const [categories, setCategories] = useState([]);
+  const [nomeUsuario, setNomeUsuario] = useState("Usuário");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [nomeUsuario, setNomeUsuario] = useState("Sem dados");
-  const [categories, setCategories] = useState([]);
-
+  // Buscar nome atualizado direto do banco (Resolve o bug do Cookie desatualizado)
   useEffect(() => {
-    const userCookie = Cookies.get("user");
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("nome_completo")
+            .eq("id", user.id)
+            .single();
 
-    if (userCookie) {
-      // Converter de string JSON para objeto
-      const user = JSON.parse(userCookie);
-      // Atualiza o estado com o nome do usuário
-      setNomeUsuario(user.nome_completo || "Sem dados");
-    }
+          if (profile?.nome_completo) {
+            setNomeUsuario(profile.nome_completo);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar perfil:", error);
+      }
+    };
+
+    fetchUserProfile();
   }, []);
 
+  // Buscar Transações e Categorias usando os Services
   useEffect(() => {
-    const authToken = Cookies.get("authToken");
-    const userId = JSON.parse(Cookies.get("user")).id;
-
     const fetchData = async () => {
       try {
-        const responseIncome = await axios.get("http://54.227.20.33:5000/income", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        });
-        const incomesData = responseIncome.data;
+        // 1. Busca todas as categorias
+        const allCategories = await categoryService.getCategories();
+        setCategories(allCategories);
 
-        const incomes = incomesData.filter(
-          (renda) => renda.usuario_id === userId
-        );
-        setIncomes(incomes);
+        // 2. Busca todas as transações (Receitas e Gastos unificados)
+        const allTransactions = await transactionService.getTransactions();
 
-        const responseSpend = await axios.get("http://54.227.20.33:5000/spend", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        });
-        const spendsData = responseSpend.data;
+        // 3. Filtra localmente
+        const fetchedIncomes = allTransactions.filter((t) => t.tipo === "receita");
+        const fetchedSpends = allTransactions.filter((t) => t.tipo === "despesa");
 
-        const spends = spendsData.filter(
-          (gasto) => gasto.usuario_id === userId
-        );
-        setSpends(spends);
+        setIncomes(fetchedIncomes);
+        setSpends(fetchedSpends);
 
-        // O código soma todos os valores de valor presentes no array incomes e retorna o total acumulado.
-        const totalReceitas = incomes.reduce(
-          (acc, item) => acc + parseFloat(item.valor),
+        // 4. Calcula os totais e o saldo
+        const totalReceitas = fetchedIncomes.reduce(
+          (acc, item) => acc + parseFloat(item.valor || 0),
           0
         );
 
-        const totalGastos = spends.reduce(
-          (acc, item) => acc + parseFloat(item.valor),
+        const totalGastos = fetchedSpends.reduce(
+          (acc, item) => acc + parseFloat(item.valor || 0),
           0
         );
+
         const saldo = totalReceitas - totalGastos;
 
-        const data = {
+        setDados({
           saldo,
           totalReceitas,
           totalGastos,
-        };
+        });
 
-        setDados(data);
         setErrorMessage("");
       } catch (error) {
-        setErrorMessage("Houve um erro ao atualizar os dados");
+        console.error("Erro no Dashboard:", error);
+        setErrorMessage("Houve um erro ao atualizar os dados do dashboard.");
       }
     };
 
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const authToken = Cookies.get("authToken");
-    const userId = JSON.parse(Cookies.get("user")).id;
-
-    const fetchCategorias = async () => {
-      try {
-        const response = await axios.get("http://54.227.20.33:5000/category", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer: ${authToken}`,
-          },
-        });
-
-        // Filtrar categorias pelo usuário e pelo tipo "despesa"
-        const categoriasFiltradas = response.data.filter(
-          (categoria) => categoria.usuario_id === userId
-        );
-
-        setCategories(categoriasFiltradas);
-        setErrorMessage("");
-      } catch (error) {
-        setErrorMessage("Houve um erro ao recuperar as categorias");
-      }
-    };
-
-    fetchCategorias();
   }, []);
 
   // Formatar valores para dinheiro em Real
@@ -147,29 +118,23 @@ function dashboard() {
     }).format(value);
   };
 
-  // Montar o gráfico de despesas
+  // Montar o gráfico de despesas por categoria
   const expensesCategoryChart = () => {
-    if (categories.length === 0 || dados.totalGastos === 0) {
-      return null; // Sem dados disponíveis
-    }
+    if (categories.length === 0 || dados.totalGastos === 0) return null;
 
-    // Mapear as categorias e somar os valores das despesas
     const despesasPorCategoria = categories.map((categoria) => {
       const valorTotalCategoria = spends
-        ?.filter((gasto) => gasto.categoria_id === categoria.id)
+        .filter((gasto) => gasto.categoria_id === categoria.id)
         .reduce((acc, gasto) => acc + parseFloat(gasto.valor), 0);
 
       return {
         nome: categoria.nome,
         valor: valorTotalCategoria || 0,
-        cor: categoria.cor || "#FFFFFF", // Cor padrão se não houver cor na categoria
+        cor: categoria.cor || "#FFFFFF",
       };
     });
 
-    // Filtrar apenas categorias com valores > 0
-    const categoriesFilter = despesasPorCategoria.filter(
-      (cat) => cat.valor > 0
-    );
+    const categoriesFilter = despesasPorCategoria.filter((cat) => cat.valor > 0);
 
     return {
       labels: categoriesFilter.map((cat) => cat.nome),
@@ -183,60 +148,50 @@ function dashboard() {
     };
   };
 
+  // Montar o gráfico de despesas por nome (Nota: No modelo unificado usamos 'titulo')
   const expensesChart = () => {
-    if (spends.length === 0 || dados.totalGastos === 0) {
-      return null; // Sem dados disponíveis
-    }
+    if (spends.length === 0 || dados.totalGastos === 0) return null;
 
-    // Mapear os gastos e associá-los às suas categorias
     const gastosComCategoria = spends.map((gasto) => {
       const categoria = categories.find((cat) => cat.id === gasto.categoria_id);
       return {
-        nome: gasto.nome || "Sem nome", // Nome do gasto (ou padrão se não existir)
-        valor: parseFloat(gasto.valor), // Valor do gasto
-        cor: categoria?.cor || "#FFFFFF", // Cor da categoria correspondente (ou padrão)
+        nome: gasto.titulo || "Sem nome",
+        valor: parseFloat(gasto.valor),
+        cor: categoria?.cor || "#FFFFFF",
       };
     });
 
-    // Filtrar apenas os gastos com valores > 0
-    const gastosFiltrados = gastosComCategoria.filter(
-      (gasto) => gasto.valor > 0
-    );
+    const gastosFiltrados = gastosComCategoria.filter((gasto) => gasto.valor > 0);
 
     return {
-      labels: gastosFiltrados.map((gasto) => gasto.nome), // Nomes dos gastos
+      labels: gastosFiltrados.map((gasto) => gasto.nome),
       datasets: [
         {
-          data: gastosFiltrados.map((gasto) => gasto.valor), // Valores dos gastos
-          backgroundColor: gastosFiltrados.map((gasto) => gasto.cor), // Cores associadas
+          data: gastosFiltrados.map((gasto) => gasto.valor),
+          backgroundColor: gastosFiltrados.map((gasto) => gasto.cor),
           hoverOffset: 4,
         },
       ],
     };
   };
 
+  // Montar o gráfico de receitas por categoria
   const incomesCategoryChart = () => {
-    if (categories.length === 0 || dados.totalReceitas === 0) {
-      return null; // Sem dados disponíveis
-    }
+    if (categories.length === 0 || dados.totalReceitas === 0) return null;
 
-    // Mapear as categorias e somar os valores das despesas
-    const despesasPorCategoria = categories.map((categoria) => {
+    const receitasPorCategoria = categories.map((categoria) => {
       const valorTotalCategoria = incomes
-        ?.filter((receita) => receita.categoria_id === categoria.id)
+        .filter((receita) => receita.categoria_id === categoria.id)
         .reduce((acc, receita) => acc + parseFloat(receita.valor), 0);
 
       return {
         nome: categoria.nome,
         valor: valorTotalCategoria || 0,
-        cor: categoria.cor || "#FFFFFF", // Cor padrão se não houver cor na categoria
+        cor: categoria.cor || "#FFFFFF",
       };
     });
 
-    // Filtrar apenas categorias com valores > 0
-    const categoriesFilter = despesasPorCategoria.filter(
-      (cat) => cat.valor > 0
-    );
+    const categoriesFilter = receitasPorCategoria.filter((cat) => cat.valor > 0);
 
     return {
       labels: categoriesFilter.map((cat) => cat.nome),
@@ -250,88 +205,70 @@ function dashboard() {
     };
   };
 
+  // Montar o gráfico de receitas por nome (Usando 'titulo')
   const incomesChart = () => {
-    if (incomes.length === 0 || dados.totalReceitas === 0) {
-      return null; // Sem dados disponíveis
-    }
+    if (incomes.length === 0 || dados.totalReceitas === 0) return null;
 
-    // Mapear as receitas e associá-los às suas categorias
     const receitasComCategoria = incomes.map((receita) => {
-      const categoria = categories.find(
-        (cat) => cat.id === receita.categoria_id
-      );
+      const categoria = categories.find((cat) => cat.id === receita.categoria_id);
       return {
-        nome: receita.fonte_renda || "Sem nome", // Nome do receita (ou padrão se não existir)
-        valor: parseFloat(receita.valor), // Valor do receita
-        cor: categoria?.cor || "#FFFFFF", // Cor da categoria correspondente (ou padrão)
+        nome: receita.titulo || "Sem nome",
+        valor: parseFloat(receita.valor),
+        cor: categoria?.cor || "#FFFFFF",
       };
     });
 
-    // Filtrar apenas as receitas com valores > 0
-    const receitasFiltradas = receitasComCategoria.filter(
-      (receita) => receita.valor > 0
-    );
+    const receitasFiltradas = receitasComCategoria.filter((receita) => receita.valor > 0);
 
     return {
-      labels: receitasFiltradas.map((receita) => receita.nome), // Nomes das receitas
+      labels: receitasFiltradas.map((receita) => receita.nome),
       datasets: [
         {
-          data: receitasFiltradas.map((receita) => receita.valor), // Valores das receitas
-          backgroundColor: receitasFiltradas.map((receita) => receita.cor), // Cores associadas
+          data: receitasFiltradas.map((receita) => receita.valor),
+          backgroundColor: receitasFiltradas.map((receita) => receita.cor),
           hoverOffset: 4,
         },
       ],
     };
   };
 
-  // Mostrar o gráfico de barras
+  // Gráfico de Linhas - 10 Maiores Transações
   const combinedLineChart = () => {
-    if (spends.length === 0 && incomes.length === 0) {
-      return null; // Sem dados disponíveis
-    }
+    if (spends.length === 0 && incomes.length === 0) return null;
 
-    // Combinar receitas e despesas em um único array
     const combinedData = [
       ...spends.map((gasto) => ({
-        nome: gasto.nome || "Sem nome",
+        nome: gasto.titulo || "Sem nome",
         valor: parseFloat(gasto.valor),
         tipo: "Gasto",
       })),
       ...incomes.map((receita) => ({
-        nome: receita.fonte_renda || "Sem nome",
+        nome: receita.titulo || "Sem nome",
         valor: parseFloat(receita.valor),
         tipo: "Receita",
       })),
     ];
 
-    // Ordenar pelos valores e separar os 10 maiores
     combinedData.sort((a, b) => b.valor - a.valor);
     const top10 = combinedData.slice(0, 10);
     const overflow = combinedData.slice(10);
 
-    // Somar o restante dos valores como "Outros"
     const overflowSum = overflow.reduce((acc, item) => acc + item.valor, 0);
     if (overflowSum > 0) {
       top10.push({ nome: "Outros", valor: overflowSum, tipo: "Outros" });
     }
 
-    // Preparar os dados para o gráfico
     const data = {
-      labels: top10.map((item) => item.nome), // Eixo X com nomes das categorias
+      labels: top10.map((item) => item.nome),
       datasets: [
         {
           label: "Valores",
-          data: top10.map((item) => item.valor), // Valores para o eixo Y
-          borderColor: "rgba(75, 192, 192, 1)", // Cor da linha
-          backgroundColor: "rgba(75, 192, 192, 0.2)", // Cor do fundo
-          tension: 0.3, // Suavização da linha
+          data: top10.map((item) => item.valor),
+          borderColor: "rgba(75, 192, 192, 1)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          tension: 0.3,
         },
       ],
-    };
-
-    const options = {
-      responsive: true,
-      maintainAspectRatio: false, // Desativa a manutenção da proporção de aspecto
     };
 
     return <Line data={data} />;
@@ -345,13 +282,13 @@ function dashboard() {
         <div className={styles.user_content}>
           <div className={styles.filter}></div>
           <div className={styles.user}>
-            {/* Ajeitar bug que o nome não atualiza no dashboard quando eu atualizo no banco de dados */}
             <h1>Olá! {nomeUsuario}</h1>
             <div className={styles.user_image}>
               <img src="/images/profile-icon.jpg" alt="Imagem Perfil" />
             </div>
           </div>
         </div>
+
         <div className={styles.status_content}>
           <div className={styles.metric}>
             <div className={styles.metric_img}>
@@ -359,7 +296,6 @@ function dashboard() {
             </div>
             <div>
               <h3>Saldo atual</h3>
-              {/* Renderiza "Sem dados disponíveis" caso não tenha saldo */}
               <p>
                 {dados.saldo !== 0
                   ? formatCurrency(dados.saldo)
@@ -369,11 +305,10 @@ function dashboard() {
           </div>
           <div className={styles.metric}>
             <div className={styles.metric_img}>
-              <img src="/images/recipe-img.png" alt="Imagem saldo atual" />
+              <img src="/images/recipe-img.png" alt="Imagem total receitas" />
             </div>
             <div>
               <h3>Total em Receitas</h3>
-              {/* Renderiza "Sem dados disponíveis" caso não tenha receitas */}
               <p>
                 {dados.totalReceitas !== 0
                   ? formatCurrency(dados.totalReceitas)
@@ -383,11 +318,10 @@ function dashboard() {
           </div>
           <div className={styles.metric}>
             <div className={styles.metric_img}>
-              <img src="/images/drop-money.png" alt="Imagem saldo atual" />
+              <img src="/images/drop-money.png" alt="Imagem total gastos" />
             </div>
             <div>
               <h3>Total em Gastos</h3>
-              {/* Renderiza "Sem dados disponíveis" caso não tenha gastos */}
               <p>
                 {dados.totalGastos !== 0
                   ? formatCurrency(dados.totalGastos)
@@ -460,5 +394,4 @@ function dashboard() {
   );
 }
 
-// Redireciona o usuário para "login" caso ele não esteja logado
-export default withAuth(dashboard);
+export default withAuth(DashboardPage);
