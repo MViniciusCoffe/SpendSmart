@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar/navbarApp";
 import styles from "./categoriaPage.module.css";
 import { categoryService } from "../services/categoryService";
 
-function categoriaPage() {
+function CategoriaPage() {
   // Variáveis para salvar as categorias
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("receita");
@@ -369,4 +369,4 @@ function categoriaPage() {
   );
 }
 
-export default withAuth(categoriaPage);
+export default withAuth(CategoriaPage);
