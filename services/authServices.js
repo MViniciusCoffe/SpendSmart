@@ -1,7 +1,7 @@
 import { supabase } from '../infra/supabase';
 
 export const authService = {
-  async registerUser(email, password, nomeCompleto, dataNascimento, telefone) {
+  async registerUser({ email, password, nomeCompleto, dataNascimento, telefone }) {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -17,19 +17,20 @@ export const authService = {
         throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente");
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: authData.user.id,
-            nome_completo: nomeCompleto,
-            data_nascimento: dataNascimento,
-            telefone: telefone,
-          },
-        ]);
+      const response = await fetch('/api/createProfile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: authData.user.id,
+          nome_completo: nomeCompleto,
+          data_nascimento: dataNascimento,
+          telefone: telefone
+        })
+      });
 
-      if (profileError) {
-        console.error("[Supabase Profile Insert Error]", profileError.message);
+      if (!response.ok) {
         throw new Error("Conta criada, mas houve um problema ao salvar dados adicionais");
       }
 
