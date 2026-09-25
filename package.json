@@ -14,7 +14,8 @@
     "migrations:up": "node-pg-migrate -m supabase/migrations --envPath .env.development up",
     "migrations:down": "node-pg-migrate -m supabase/migrations --envPath .env.development down",
     "migrations:supabase:up": "node-pg-migrate -m supabase/migrations --envPath .env.supabase up",
-    "test": "echo \"Testes ainda nao configurados\" && exit 0"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "author": "",
   "license": "ISC",
@@ -30,5 +31,11 @@
     "react": "^19.3.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.6",
+    "@babel/preset-env": "^8.0.6",
+    "babel-jest": "^30.5.2",
+    "jest": "^30.5.2"
   }
 }
