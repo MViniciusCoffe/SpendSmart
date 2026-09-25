@@ -1,18 +1,17 @@
 import Link from "next/link";
 import styles from "./navbarApp.module.css";
 import { useRouter } from "next/router";
-import Cookies from "js-cookie";
+import { supabase } from "../../infra/supabase";
 
-function navbarApp() {
+function NavbarApp() {
   const router = useRouter();
 
-  // Função de fazer logout
   const handleLogout = async (e) => {
     e.preventDefault();
 
-    Cookies.remove("authToken");
-    Cookies.remove("user");
-    router.push("/login");
+    // Desloga do Supabase
+    await supabase.auth.signOut(); 
+    router.replace("/login"); 
   };
 
   return (
@@ -22,21 +21,11 @@ function navbarApp() {
       </div>
       <div className={styles.navigation}>
         <ul className={styles.links}>
-          <li>
-            <Link href="/dashboard">Dashboard</Link>
-          </li>
-          <li>
-            <Link href="/rendaPage">Configurar Receitas</Link>
-          </li>
-          <li>
-            <Link href="/gastosPage">Configurar Despesas</Link>
-          </li>
-          <li>
-            <Link href="/categoriaPage">Configurar Categorias</Link>
-          </li>
-          <li>
-            <Link href="/accountConfig">Configurações da conta</Link>
-          </li>
+          <li><Link href="/dashboard">Dashboard</Link></li>
+          <li><Link href="/rendaPage">Configurar Receitas</Link></li>
+          <li><Link href="/gastosPage">Configurar Despesas</Link></li>
+          <li><Link href="/categoriaPage">Configurar Categorias</Link></li>
+          <li><Link href="/accountConfig">Configurações da conta</Link></li>
           <li>
             <button
               className={styles.exit_button}
@@ -51,4 +40,4 @@ function navbarApp() {
   );
 }
 
-export default navbarApp;
+export default NavbarApp;

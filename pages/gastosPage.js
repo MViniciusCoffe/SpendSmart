@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./gastosPage.module.css";
-import withAuth from "./components/utils/withAuth";
+import withAuth from "../components/utils/withAuth";
 import Navbar from "../components/Navbar/navbarApp";
 import { transactionService } from "../services/transactionService";
 import { categoryService } from "../services/categoryService";

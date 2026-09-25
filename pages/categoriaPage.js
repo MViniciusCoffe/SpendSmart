@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import withAuth from "./components/utils/withAuth";
+import withAuth from "../components/utils/withAuth";
 import Navbar from "../components/Navbar/navbarApp";
 import styles from "./categoriaPage.module.css";
 import { categoryService } from "../services/categoryService";

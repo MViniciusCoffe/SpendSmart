@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import styles from "./accountConfig.module.css";
 import Navbar from "../components/Navbar/navbarApp";
-import withAuth from "./components/utils/withAuth";
+import withAuth from "../components/utils/withAuth";
 import { profileService } from "../services/profileService";
 import { supabase } from "../infra/supabase"; // Apenas para o logout
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import withAuth from "./components/utils/withAuth";
+import withAuth from "../components/utils/withAuth";
 import styles from "./dashboard.module.css";
 import Navbar from "../components/Navbar/navbarApp.js";
 import { supabase } from "../infra/supabase";
