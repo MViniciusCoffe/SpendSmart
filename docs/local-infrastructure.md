@@ -1,6 +1,13 @@
 # Infraestrutura local
 
-A primeira camada de infraestrutura do SpendSmart usa PostgreSQL local em Docker e scripts npm para tornar o ambiente reproduzivel.
+Docker Compose com PostgreSQL 16, para validar schema, constraints e migrations sem depender do
+Supabase.
+
+> **A matriz de ambientes e as variaveis estao em
+> [environments.md](environments.md).** Este arquivo cobre apenas o que e especifico do
+> PostgreSQL local. Em particular, veja o aviso sobre `npm run dev` em
+> [environments.md](environments.md#4-o-problema-do-npm-run-dev): hoje o script se conecta ao
+> banco remoto, e nao ao container deste documento.
 
 ## Arquivos
 
@@ -15,9 +22,9 @@ supabase/
 .env.development.example
 ```
 
-O arquivo `.env.development` real e local e esta ignorado pelo Git.
+## Variaveis do container
 
-## Variaveis locais
+Definidas em `infra/compose.yaml` e espelhadas no `.env.development.example`:
 
 ```env
 POSTGRES_HOST=localhost
@@ -25,61 +32,60 @@ POSTGRES_PORT=5432
 POSTGRES_USER=local_user
 POSTGRES_DB=local_db
 POSTGRES_PASSWORD=local
-DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB
 ```
 
-O `.env.development.example` deve ser copiado para `.env.development` antes de executar os scripts. O valor de `DATABASE_URL` pode ser escrito de forma expandida, como `postgres://local_user:local@localhost:5432/local_db`, caso a ferramenta usada nao expanda referencias entre variaveis.
+O `.env.development` real nao e versionado. Copie o exemplo antes de usar o banco local:
+
+```bash
+cp .env.development.example .env.development
+```
+
+> **Atencao:** o `.env.development` que existe hoje ja esta preenchido e aponta para o Supabase
+> remoto. Copiar o exemplo por cima substitui essas chaves. Guarde o conteudo atual antes, se
+> ainda precisar dele.
 
 ## Comandos
 
-Subir o banco:
+| Comando | Efeito |
+| --- | --- |
+| `npm run services:up` | Sobe o container em background |
+| `npm run services:wait:database` | Aguarda a conexao usando `DATABASE_URL` |
+| `npm run services:stop` | Para o container, preserva o volume |
+| `npm run services:down` | Remove container, rede e volume |
+| `npm run migrations:up` | Aplica as migrations de `supabase/migrations/` |
+| `npm run migrations:down` | Desfaz a ultima migration |
+| `npm run migrations:create` | Cria um arquivo de migration com timestamp |
+| `npm run migrations:supabase:up` | Aplica as migrations no Supabase, lendo `.env.supabase` |
 
-```bash
-npm run services:up
-```
+`migrations:up` e `migrations:down` leem `.env.development`; `migrations:supabase:up` le
+`.env.supabase`. Nao existe `migrations:supabase:down` — se precisar reverter no Supabase, use
+`node-pg-migrate down` apontando explicitamente para `.env.supabase`.
 
-Aguardar o banco:
+## O que o Postgres local valida e o que nao valida
 
-```bash
-npm run services:wait:database
-```
+| Valida | Nao valida |
+| --- | --- |
+| Criacao das tres tabelas e suas constraints | RLS — depende de `auth.users`, que nao existe aqui |
+| `check (type in ('income','expense'))` | Politicas de `auth.uid()` |
+| `check (amount > 0)` | `GRANT` de `service_role` e `authenticated` |
+| `unique (user_id, name, type)` | FK para `auth.users` e o `on delete cascade` |
+| `on delete restrict` de `transactions.category_id` | |
+| Os quatro indices | |
 
-Aplicar migrations pendentes:
+O guard `IF to_regclass('auth.users') IS NOT NULL` em `001_create_financial_schema.js:101` faz o
+PostgreSQL local pular silenciosamente toda a parte de Supabase. Consequencia: **um banco local
+passa todos os testes sem nenhuma barreira de isolamento.** Ver
+[database-schema.md](database-schema.md#limites-conhecidos).
 
-```bash
-npm run migrations:up
-```
+## Nome das migrations
 
-Desfazer a ultima migration:
+A migration inicial se chama `001_create_financial_schema` e nao tem timestamp, entao o
+`node-pg-migrate` emite o aviso `Can't determine timestamp for 001`. Funciona, mas e por compatibilidade.
 
-```bash
-npm run migrations:down
-```
+Migrations novas **precisam** ter timestamp (`node-pg-migrate create` ja faz isso). Nao renomeie a
+`001`: ela ja foi aplicada e esta registrada na tabela `pgmigrations` do banco.
 
-Parar os containers sem remover os dados:
+## Sugestao de uso
 
-```bash
-npm run services:stop
-```
-
-Parar e remover containers, rede e volume:
-
-```bash
-npm run services:down
-```
-
-Iniciar o ambiente completo de desenvolvimento:
-
-```bash
-npm run dev
-```
-
-O script `run-services.js` sobe o PostgreSQL, aguarda a conexao, aplica as migrations pendentes e inicia o Next.js. Ao receber `SIGINT` ou `SIGTERM`, ele para os servicos locais.
-
-## Estado atual
-
-A migration inicial cria `profiles`, `categories` e `transactions`, alem de constraints e indices. Ela e aplicada automaticamente pelo `npm run dev`.
-
-O nome atual da migration e numerico (`001_create_financial_schema`), por isso o `node-pg-migrate` exibe o aviso `Can't determine timestamp for 001`. A migration funciona, mas novas migrations devem usar nomes com timestamp para evitar esse aviso.
-
-A infraestrutura local usa PostgreSQL puro. Supabase Auth, RLS e variaveis de Preview/Production serao configurados nas etapas de integracao com o Supabase e a Vercel.
+Rode o container local para iterar em constraints e indices. Antes de considerar qualquer regra
+que envolva seguranca — RLS, cascata, `auth.uid()` —, valide em um projeto Supabase separado.

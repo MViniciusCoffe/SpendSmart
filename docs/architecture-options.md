@@ -1,8 +1,14 @@
 # Opcoes de arquitetura
 
+> **Registro de decisao (ADR).** Documento de 2026-09-22, preservado como registro do que foi
+> avaliado e do que foi decidido. Nao descreve a estrutura de pastas atual — essa esta no
+> `README.md`.
+
 ## Contexto
 
-O projeto tem um frontend Next.js e um backend Express legado. O banco AWS antigo nao esta disponivel. O objetivo e revitalizar o produto com Vercel e Supabase sem carregar os problemas de autenticacao e autorizacao da aplicacao antiga.
+O projeto precisava de autenticacao e autorizacao confiaveis sem operacao de backend propria. Foram
+avaliadas tres formas de atender a isso. A Opcao A foi adotada; as opcoes B e C nao foram
+seguidas.
 
 ## Opcao A: Next.js + Supabase direto
 
@@ -22,7 +28,7 @@ Next.js na Vercel
 - Supabase Auth resolve cadastro, login, sessao e logout.
 - RLS aplica isolamento no banco.
 - Deploy simples na Vercel.
-- O Express legado pode ser aposentado depois do inventario.
+- Nenhuma aplicacao adicional para hospedar ou monitorar.
 
 ### Riscos e cuidados
 
@@ -33,7 +39,7 @@ Next.js na Vercel
 
 ### Quando escolher
 
-E a opcao recomendada para o tamanho atual do SpendSmart, desde que o produto nao precise de processamento de longa duracao, filas ou integracoes privadas complexas.
+E a opcao recomendada para o tamanho atual do SpendSmart, desde que o produto nao precise de processamento de longa duracao, filas ou integracoes privadas complexas. **Foi a adotada.**
 
 ## Opcao B: Next.js + Route Handlers/API do proprio Next.js
 
@@ -63,14 +69,14 @@ Next.js na Vercel
 
 ### Quando escolher
 
-Boa opcao se as regras de negocio crescerem, mas ainda nao justificarem um servico Express separado.
+Nao adotada. Boa opcao se as regras de negocio crescerem, mas ainda nao justificarem um servico separado.
 
-## Opcao C: Next.js + Express separado
+## Opcao C: Next.js + backend separado
 
 ```text
-Navegador -> Vercel/Next.js -> API Express -> Supabase PostgreSQL
-                                      |
-                                      +-- Supabase Auth ou validacao de token
+Navegador -> Vercel/Next.js -> API do backend -> Supabase PostgreSQL
+                                          |
+                                          +-- Supabase Auth ou validacao de sessao
 ```
 
 ### Vantagens
@@ -83,12 +89,12 @@ Navegador -> Vercel/Next.js -> API Express -> Supabase PostgreSQL
 
 - Dois deploys e dois conjuntos de variaveis.
 - CORS, observabilidade e erros de rede entre servicos.
-- O Express precisa validar o token do Supabase; nao deve criar um segundo sistema de usuarios.
+- O servico separado precisa validar a sessao do Supabase; nao deve criar um segundo sistema de usuarios.
 - A Vercel nao deve ser tratada como servidor Node persistente sem adaptar o app para serverless.
 
 ### Quando escolher
 
-Somente se houver necessidade concreta de API independente, jobs, integracoes privadas ou futuros clientes alem do frontend web.
+Nao adotada. Somente se houver necessidade concreta de API independente, jobs, integracoes privadas ou futuros clientes alem do frontend web.
 
 ## Decisao adotada
 
@@ -97,86 +103,31 @@ Somente se houver necessidade concreta de API independente, jobs, integracoes pr
 3. Usar o monolito fullstack Next.js com Pages Router.
 4. Preferir acesso direto ao Supabase para operacoes simples.
 5. Usar `pages/api/` para regras server-side, integracoes e operacoes que nao devem ocorrer no navegador.
-6. Manter o Express legado apenas durante a migracao e remove-lo depois.
+6. Nao manter backend separado. **Feito no commit `2599ad9`.**
 7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistencia.
 8. Usar Preview Deployments da Vercel para homologacao e Production para a branch `main`.
 
-Essa decisao foi registrada em 2026-09-22. O uso de `pages/api/` nao significa que todas as operacoes precisarao passar por uma API propria.
+Essa decisao foi registrada em 2026-09-22. O uso de `pages/api/` nao significa que todas as operacoes precisam passar por uma API propria.
 
-## Estrutura de pastas recomendada
+## Estrutura de pastas
 
-### Estrutura de transicao
+Alem da opcao adotada, foram avaliadas duas estruturas de pastas alternativas em 2026-09-22 —
+separar o frontend em `frontend/` com um `backend/` dedicado, e criar `pages/lib/` para
+`supabase/`, `services/` e `validation/`. **Nenhuma foi adotada.**
 
-Esta e a estrutura adequada para o momento atual, antes de reorganizar o backend:
-
-```text
-spendsmart/
-  docs/
-    api-inventory.md
-    database-schema.md
-    architecture-options.md
-    backend-restructure.md
-  pages/
-  public/
-  backend/
-    app.js
-    package.json
-    src/
-  package.json
-  README.md
-```
-
-### Estrutura alvo sem Express
+A estrutura real e a seguinte:
 
 ```text
-spendsmart/
-  docs/
-  infra/
-    compose.yaml
-    scripts/
-  supabase/
-    migrations/
-  tests/
-  pages/
-    api/
-    components/
-    lib/
-      supabase/
-      services/
-      validation/
-  public/
-  .env.development
-  .env.example
-  package.json
-  README.md
+SpendSmart/
+  pages/            interface React
+    api/            createProfile, deleteAccount
+  components/       Navbar, estilos globais, guarda de sessao
+  services/         camada de negocio
+  infra/            cliente Supabase, Docker Compose, scripts
+  supabase/migrations/   schema
+  tests/            suite Jest
+  docs/             documentacao
 ```
 
-### Estrutura alvo com backend separado
-
-```text
-spendsmart/
-  docs/
-  frontend/
-    pages/
-    public/
-    package.json
-  backend/
-    src/
-      config/
-      controllers/
-      middlewares/
-      routes/
-      services/
-      repositories/
-      validators/
-      app.js
-      server.js
-    package.json
-  supabase/
-    migrations/
-    seed.sql
-  package.json
-  README.md
-```
-
-Nao e recomendavel mover o frontend para `frontend/` ou copiar a estrutura inteira do `clone-tabnews`. A arquitetura foi definida, mas a infraestrutura deve ser adicionada em commits pequenos e verificaveis.
+Nao ha `backend/`, e nunca houve `pages/lib/`. Nao mover o frontend para `frontend/`: a
+infraestrutura deve entrar em commits pequenos e verificaveis.
