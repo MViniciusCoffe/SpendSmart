@@ -124,18 +124,19 @@ reporta o numero e nao reprova ninguem.
 
 **Decisao.** `"endOfLine": "lf"` em `.prettierrc`.
 
-**Por que.** O repositorio e FNUE#!/usr/bin/env para
-desenvolvido no Windows e o GitHub Actions roda em Linux. O Git normaliza para CRLF ao checar out
-no Windows, mas o conteudo do commit e LF. Sem a opcao fixada, o Prettier formata diferente
-dependendo da maquina: `prettier --check` passa na sua e falha no CI, e nenhum dos dois esta errado.
+**Por que.** O repositorio e desenvolvido no Windows e o GitHub Actions roda em Linux. O Git
+normaliza para CRLF ao checar out no Windows, mas o conteudo do commit e LF. Sem a opcao fixada, o
+Prettier formata diferente dependendo da maquina: `prettier --check` passa na sua e falha no CI, e
+nenhum dos dois esta errado.
 
 **Alternativa rejeitada.** `"auto"`, que segue o que o editor ja gravou. E exatamente o
 comportamento que produz a divergencia.
 
-**Pendencia.** O `.editorconfig` declara apenas `indent_style = space` e `indent_size = 2`. Faltam
-`end_of_line`, `insert_final_newline`, `trim_trailing_whitespace` e `charset`, que sao as chaves que
-alinhariam o editor com o Prettier. Um editor que respeita o `.editorconfig` pode gravar CRLF em um
-arquivo que o Prettier exigiria em LF. A correcao esta pendente.
+**Alinhamento com o editor.** O `.editorconfig` declara `indent_style`, `indent_size`,
+`end_of_line = lf`, `charset = utf-8`, `trim_trailing_whitespace` e `insert_final_newline`. As
+quatro ultimas foram adicionadas junto com o Prettier, em 2026-09: um editor que respeita o
+`.editorconfig` gravava CRLF em um arquivo que o Prettier exige em LF, e a divergencia reaparecia
+antes de chegar ao commit.
 
 **Reavaliar quando.** Nunca. LF e o padrao correto para um repositorio com CI em Linux.
 
@@ -292,3 +293,74 @@ ingles. `docs: reescreve a documentacao` e Conventional valido, mesmo com a desc
 commitlint nao conheceria os nomes.
 
 **Reavaliar quando.** Nunca. E o padrao da disciplina.
+
+---
+
+## 15. Todo `jest.mock` usa factory, e o falso nasce dentro dela
+
+**Decisao.** Nao existe `jest.mock("caminho")` sem segundo argumento em `tests/`. E a factory nao
+referencia nenhuma variavel declarada no arquivo de teste:
+
+```js
+jest.mock("../../infra/supabase", () => ({
+  supabase: {
+    from: jest.fn(),
+    auth: { getSession: jest.fn() }
+  }
+}))
+
+import { supabase } from "../../infra/supabase"
+```
+
+**Por que.** Duas razoes, ambas verificadas com um sandbox fora do repositorio.
+
+**Razao 1 — sem factory o modulo real executa.** `infra/supabase.js:6` chama `createClient` no
+momento do import. Sem factory o Jest precisa inspecionar o modulo real para gerar o falso
+automatico, e inspecionar significa executar. O resultado e `supabaseUrl is required` e
+`Tests: 0 total` — a suite morre antes da primeira asercao.
+
+**Razao 2 — a factory e hoisted, entao nao pode ler `const` do arquivo.** O
+`babel-plugin-jest-hoist`, que vem com o `babel-jest`, sobe a chamada de `jest.mock` para o topo do
+arquivo, acima dos imports e das declaracoes. Se a factory referenciar uma `const` do proprio
+arquivo, ela ainda esta na zona morta temporal quando roda, e o erro e
+`ReferenceError: Cannot access 'mockSupabase' before initialization`.
+
+O falso e construido dentro da factory justamente para nao ter nada externo a resolver. Depois o
+teste o reconfigura normalmente, com `.mockResolvedValue()`, porque `jest.fn()` e um objeto comum.
+
+**Alternativa rejeitada.** Duas, ambas tentadas. `jest.mock` sem factory, que executa o modulo real.
+E a factory que referencia um `const` externo — compila, e quebra em tempo de execucao.
+
+**Correcao de registro.** Uma versao anterior deste documento afirmava que a variavel precisa se
+chamar `mock*` por exigencia do plugin do Babel. Nao e verdade nesta configuracao: um teste com
+`fakeSupabase` passou sem reclamar. O prefixo `mock` e convencao de leitura, herdada do `automock`
+antigo. O que evita o erro e nao referenciar variavel externa.
+
+**Reavaliar quando.** Nunca. E a forma correta de isolar um modulo com efeito de topo no import.
+
+---
+
+## 16. Gherkin e Cucumber ficam de fora
+
+**Decisao.** Os testes de unidade sao Jest direto. Nao ha `features/`, nem cucumber-js, nem step
+definitions.
+
+**Por que.** Gherkin nao substitui o Jest — soma uma camada de traducao por cima dele. O
+cucumber-js roda sobre o Mocha ou o Jest, entao adicionar nao remove nada do que ja existe. Cada
+caso passa a existir em dois artefatos que precisam concordar: o `.feature` e o step definition em
+JavaScript onde a asercao realmente mora. Se alguem editar o feature e esquecer o JavaScript, o
+teste passa errado — que e o pior defeito que uma suite de teste pode ter.
+
+O que o Gherkin resolve e comunicacao, nao execucao: ele existe para o cliente, o produto ou o
+docente lerem e validarem sem ler codigo. O ganho depende inteiramente de existir essa audiencia.
+
+`docs/test-plan.md` §4 ja cobre a rastreabilidade US / CT / RF em tabela Markdown, que faz o mesmo
+papel de um feature file e e mais barata de manter num projeto com uma unica pessoa escrevendo.
+
+**Alternativa rejeitada.** Gherkin em tudo. Rejeitada por duplicar a informacao sem aumentar a
+cobertura.
+
+**Reavaliar quando.** A disciplina exigir casos em formato `.feature` como entregavel. Nesse caso o
+caminho barato e: manter os testes em Jest, e escrever os `.feature` **depois**, a partir dos testes
+que ja existirem, para IT-01 a IT-10 e para os criterios de aceitacao. Nao reescrever a unidade em
+Gherkin, porque e exatamente onde o ganho vira.prejuizo.
