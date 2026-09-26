@@ -7,11 +7,7 @@ module.exports = {
       { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
     ]
   },
-  collectCoverageFrom: [
-    "services/**/*.js",
-    "!services/categoriaService.js",
-    "!services/authServices.js"
-  ],
+  collectCoverageFrom: ["services/**/*.js"],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "json-summary", "lcov"],
   testTimeout: 30000
