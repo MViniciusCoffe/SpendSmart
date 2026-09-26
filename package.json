@@ -14,8 +14,30 @@
     "migrations:up": "node-pg-migrate -m supabase/migrations --envPath .env.development up",
     "migrations:down": "node-pg-migrate -m supabase/migrations --envPath .env.development down",
     "migrations:supabase:up": "node-pg-migrate -m supabase/migrations --envPath .env.supabase up",
-    "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test": "jest tests/unit",
+    "test:all": "jest",
+    "test:watch": "concurrently -n next,jest --hide next -k -s \"jest tests/unit --watch\" \"next dev\"",
+    "test:watchAll": "jest tests/unit --watchAll",
+    "test:coverage": "jest --coverage tests/unit",
+    "test:integration": "jest tests/integration/postgres",
+    "test:integration:watchAll": "jest tests/integration/postgres --runInBand --watchAll",
+    "test:integration:rls": "jest tests/integration/supabase",
+    "test:integration:rls:watchAll": "jest tests/integration/supabase --runInBand --watchAll",
+    "lint:prettier:check": "prettier --check .",
+    "lint:prettier:write": "prettier --write .",
+    "lint:eslint:check": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "prepare": "husky",
+    "commit": "cz"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   },
   "author": "MViniciusCoffe",
   "dependencies": {
@@ -32,7 +54,22 @@
   "devDependencies": {
     "@babel/core": "^8.0.6",
     "@babel/preset-env": "^8.0.6",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "babel-jest": "^30.5.2",
-    "jest": "^30.5.2"
+    "commitizen": "^4.3.2",
+    "concurrently": "^8.2.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.6",
+    "husky": "^9.1.7",
+    "jest": "^30.5.2",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.9"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
