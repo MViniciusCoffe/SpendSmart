@@ -21,5 +21,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Verificar lint
+        run: npm run lint:eslint:check
+
       - name: Executar testes e cobertura
         run: npm run test:coverage
