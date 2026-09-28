@@ -3,10 +3,10 @@
 Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
 As migrations correspondentes estao em `supabase/migrations/`:
 
-| Migration | O que faz |
-| --- | --- |
-| `001_create_financial_schema.js` | Cria as tres tabelas de dominio, constraints, indices, chaves estrangeiras para `auth.users` e as politicas RLS |
-| `1790304277043_add-rbac-permissions.js` | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequencias |
+| Migration                               | O que faz                                                                                                       |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `001_create_financial_schema.js`        | Cria as tres tabelas de dominio, constraints, indices, chaves estrangeiras para `auth.users` e as politicas RLS |
+| `1790304277043_add-rbac-permissions.js` | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequencias                                |
 
 > A segunda migration so tem efeito no Supabase: como `auth.users` nao existe no PostgreSQL
 > local, todo o seu corpo fica dentro de um `IF` que nao e satisfeito. Ver §7.
@@ -21,12 +21,12 @@ O schema `auth` e gerenciado pelo Supabase Auth. A tabela `auth.users` represent
 
 Informacoes conceituais disponiveis:
 
-| Campo | Funcao |
-| --- | --- |
-| `id` | UUID unico da conta e identidade usada nas politicas RLS |
-| `email` | Email da conta, gerenciado pelo Auth |
-| credenciais | Gerenciadas e protegidas pelo Supabase Auth |
-| sessao | Tokens e estado de autenticacao gerenciados pelo Auth |
+| Campo       | Funcao                                                   |
+| ----------- | -------------------------------------------------------- |
+| `id`        | UUID unico da conta e identidade usada nas politicas RLS |
+| `email`     | Email da conta, gerenciado pelo Auth                     |
+| credenciais | Gerenciadas e protegidas pelo Supabase Auth              |
+| sessao      | Tokens e estado de autenticacao gerenciados pelo Auth    |
 
 A aplicacao nao deve criar `auth.users`, armazenar uma senha paralela ou depender da estrutura interna completa dessa tabela. O contrato usado pela aplicacao e o `id` autenticado e, quando necessario, o email fornecido pelo Auth.
 
@@ -63,14 +63,14 @@ O frontend nunca escolhe nem incrementa `user_id`. O usuario e identificado pela
 
 Perfil complementar da conta autenticada. Nao armazena senha.
 
-| Coluna | Tipo | Regra |
-| --- | --- | --- |
-| `id` | `uuid` | PK; FK para `auth.users.id`, criada apenas no Supabase (ver §7) |
-| `nome_completo` | `text` | Obrigatorio |
-| `data_nascimento` | `date` | Opcional |
-| `telefone` | `text` | Opcional |
-| `created_at` | `timestamptz` | Default `now()` |
-| `updated_at` | `timestamptz` | Default `now()` |
+| Coluna            | Tipo          | Regra                                                           |
+| ----------------- | ------------- | --------------------------------------------------------------- |
+| `id`              | `uuid`        | PK; FK para `auth.users.id`, criada apenas no Supabase (ver §7) |
+| `nome_completo`   | `text`        | Obrigatorio                                                     |
+| `data_nascimento` | `date`        | Opcional                                                        |
+| `telefone`        | `text`        | Opcional                                                        |
+| `created_at`      | `timestamptz` | Default `now()`                                                 |
+| `updated_at`      | `timestamptz` | Default `now()`                                                 |
 
 O `profiles.id` recebe o UUID criado pelo Supabase Auth. Ele nao possui UUID aleatorio automatico.
 
@@ -82,16 +82,16 @@ O `profiles.id` recebe o UUID criado pelo Supabase Auth. Ele nao possui UUID ale
 
 Categorias usadas para classificar transacoes.
 
-| Coluna | Tipo | Regra |
-| --- | --- | --- |
-| `id` | `bigint` | PK gerada pelo banco |
-| `user_id` | `uuid` | FK para `auth.users.id`, obrigatorio |
-| `name` | `text` | Obrigatorio |
-| `type` | `text` | `income` ou `expense` |
-| `description` | `text` | Opcional |
-| `color` | `text` | Cor hexadecimal, default `#FFFFFF` |
-| `created_at` | `timestamptz` | Default `now()` |
-| `updated_at` | `timestamptz` | Default `now()` |
+| Coluna        | Tipo          | Regra                                |
+| ------------- | ------------- | ------------------------------------ |
+| `id`          | `bigint`      | PK gerada pelo banco                 |
+| `user_id`     | `uuid`        | FK para `auth.users.id`, obrigatorio |
+| `name`        | `text`        | Obrigatorio                          |
+| `type`        | `text`        | `income` ou `expense`                |
+| `description` | `text`        | Opcional                             |
+| `color`       | `text`        | Cor hexadecimal, default `#FFFFFF`   |
+| `created_at`  | `timestamptz` | Default `now()`                      |
+| `updated_at`  | `timestamptz` | Default `now()`                      |
 
 Regras:
 
@@ -107,19 +107,19 @@ Um lancamento financeiro. A coluna `type` diferencia entrada e saida:
 - `income`: dinheiro recebido pelo usuario;
 - `expense`: dinheiro pago pelo usuario.
 
-| Coluna | Tipo | Regra |
-| --- | --- | --- |
-| `id` | `bigint` | PK gerada pelo banco |
-| `user_id` | `uuid` | FK para `auth.users.id`, obrigatorio |
-| `category_id` | `bigint` | FK para `categories.id`, obrigatorio |
-| `type` | `text` | `income` ou `expense` |
-| `amount` | `numeric(12,2)` | Maior que zero |
-| `title` | `text` | Nome ou fonte do lancamento |
-| `occurred_on` | `date` | Data do lancamento |
-| `description` | `text` | Opcional |
-| `payment_method` | `text` | Opcional |
-| `created_at` | `timestamptz` | Default `now()` |
-| `updated_at` | `timestamptz` | Default `now()` |
+| Coluna           | Tipo            | Regra                                |
+| ---------------- | --------------- | ------------------------------------ |
+| `id`             | `bigint`        | PK gerada pelo banco                 |
+| `user_id`        | `uuid`          | FK para `auth.users.id`, obrigatorio |
+| `category_id`    | `bigint`        | FK para `categories.id`, obrigatorio |
+| `type`           | `text`          | `income` ou `expense`                |
+| `amount`         | `numeric(12,2)` | Maior que zero                       |
+| `title`          | `text`          | Nome ou fonte do lancamento          |
+| `occurred_on`    | `date`          | Data do lancamento                   |
+| `description`    | `text`          | Opcional                             |
+| `payment_method` | `text`          | Opcional                             |
+| `created_at`     | `timestamptz`   | Default `now()`                      |
+| `updated_at`     | `timestamptz`   | Default `now()`                      |
 
 Regras:
 
@@ -208,7 +208,6 @@ inteira da sua tabela.
 
 ## Indices
 
-
 Indices aceleram consultas frequentes sem alterar os dados. A migration cria:
 
 ```sql
@@ -243,13 +242,13 @@ leitura e escrita, conforme `services/categoryService.js:31,41` e
 
 Registrados aqui para que ninguem os descubra em producao.
 
-| Limite | Consequencia |
-| --- | --- |
-| O RLS so e criado se `auth.users` existir | No PostgreSQL local **nunca** e aplicado. Um banco local tem zero isolamento entre usuarios. |
-| O isolamento entre dois usuarios nunca foi exercitado | Os casos IT-01 e IT-02 do [plano de testes](test-plan.md#22-testes-de-integracao) ainda nao rodaram. |
-| `transactions.type` nao e validado contra `categories.type` | Um lancamento pode apontar para categoria de tipo oposto e corromper o dashboard. |
-| `updated_at` nao tem trigger | A coluna registra apenas o instante da insercao, nunca a ultima alteracao. |
-| `profiles` usa portugues; as outras duas, ingles | Inconsistencia de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8). |
+| Limite                                                      | Consequencia                                                                                         |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| O RLS so e criado se `auth.users` existir                   | No PostgreSQL local **nunca** e aplicado. Um banco local tem zero isolamento entre usuarios.         |
+| O isolamento entre dois usuarios nunca foi exercitado       | Os casos IT-01 e IT-02 do [plano de testes](test-plan.md#22-testes-de-integracao) ainda nao rodaram. |
+| `transactions.type` nao e validado contra `categories.type` | Um lancamento pode apontar para categoria de tipo oposto e corromper o dashboard.                    |
+| `updated_at` nao tem trigger                                | A coluna registra apenas o instante da insercao, nunca a ultima alteracao.                           |
+| `profiles` usa portugues; as outras duas, ingles            | Inconsistencia de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8).   |
 
 As tres primeiras pendencias tem script pronto em [Future Migrations](future-migrations.md).
 

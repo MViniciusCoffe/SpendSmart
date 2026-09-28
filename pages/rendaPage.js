@@ -1,68 +1,66 @@
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import styles from "./rendaPage.module.css";
-import withAuth from "../components/utils/withAuth";
-import Navbar from "../components/Navbar/navbarApp";
-import { transactionService } from "../services/transactionService";
-import { categoryService } from "../services/categoryService";
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import styles from "./rendaPage.module.css"
+import withAuth from "../components/utils/withAuth"
+import Navbar from "../components/Navbar/navbarApp"
+import { transactionService } from "../services/transactionService"
+import { categoryService } from "../services/categoryService"
 
 function RendaPage() {
   // Variáveis para salvar as rendas
-  const [valor, setValor] = useState(0.0);
-  const [nome, setNome] = useState("");
-  const [fonteRenda, setFonteRenda] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [data, setData] = useState();
-  const [formaPagamento, setFormaPagamento] = useState("");
+  const [valor, setValor] = useState(0.0)
+  const [nome, setNome] = useState("")
+  const [fonteRenda, setFonteRenda] = useState("")
+  const [descricao, setDescricao] = useState("")
+  const [data, setData] = useState()
+  const [formaPagamento, setFormaPagamento] = useState("")
 
   // Verificar se o valor é válido
   const checkValorIsValid = () => {
-    return parseFloat(valor) > 0;
-  };
-
+    return parseFloat(valor) > 0
+  }
 
   // Tipos de erros usados em cada "aba"
-  const [addingErrorMessage, setAddingErrorMessage] = useState("");
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [addingErrorMessage, setAddingErrorMessage] = useState("")
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("")
 
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("add")
 
   // Variáveis para categorias e receitas
-  const [categories, setCategories] = useState([]);
-  const [categorySelected, setCategorySelected] = useState("");
-  const [incomes, setIncomes] = useState([]);
-  const [incomeSelected, setIncomeSelected] = useState("");
-  const [incomeDetails, setIncomeDetails] = useState(null);
-
+  const [categories, setCategories] = useState([])
+  const [categorySelected, setCategorySelected] = useState("")
+  const [incomes, setIncomes] = useState([])
+  const [incomeSelected, setIncomeSelected] = useState("")
+  const [incomeDetails, setIncomeDetails] = useState(null)
 
   // Ativa um gatilho
-  const [updateTrigger, setUpdateTrigger] = useState(0);
+  const [updateTrigger, setUpdateTrigger] = useState(0)
 
   // Busca centralizada de categorias e receitas
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const allCategories = await categoryService.getCategories();
-        const receitasCategorias = allCategories.filter((cat) => cat.tipo === "receita");
-        setCategories(receitasCategorias);
+        const allCategories = await categoryService.getCategories()
+        const receitasCategorias = allCategories.filter(cat => cat.tipo === "receita")
+        setCategories(receitasCategorias)
 
-        const allTransactions = await transactionService.getTransactions();
-        const apenasReceitas = allTransactions.filter((t) => t.tipo === "receita");
-        setIncomes(apenasReceitas);
+        const allTransactions = await transactionService.getTransactions()
+        const apenasReceitas = allTransactions.filter(t => t.tipo === "receita")
+        setIncomes(apenasReceitas)
 
-        setAddingErrorMessage("");
-        setDeleteErrorMessage("");
+        setAddingErrorMessage("")
+        setDeleteErrorMessage("")
       } catch (error) {
-        console.error("Erro ao buscar dados da página de rendas:", error);
+        console.error("Erro ao buscar dados da página de rendas:", error)
       }
-    };
+    }
 
-    fetchData();
-  }, [updateTrigger]);
+    fetchData()
+  }, [updateTrigger])
 
   // Função para salvar Receita
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async e => {
+    e.preventDefault()
 
     try {
       // Atenção a umas inconsistências
@@ -73,55 +71,55 @@ function RendaPage() {
         categoria_id: categorySelected,
         data_ocorrencia: data,
         descricao: descricao,
-        metodo_pagamento: formaPagamento,
-      });
+        metodo_pagamento: formaPagamento
+      })
 
-      setAddingErrorMessage("");
-      alert("Receita adicionada com Sucesso!");
+      setAddingErrorMessage("")
+      alert("Receita adicionada com Sucesso!")
 
       // Limpar campos
-      setFonteRenda("");
-      setValor(0.0);
-      setData("");
-      setDescricao("");
-      setFormaPagamento("");
-      setCategorySelected("");
+      setFonteRenda("")
+      setValor(0.0)
+      setData("")
+      setDescricao("")
+      setFormaPagamento("")
+      setCategorySelected("")
 
-      setUpdateTrigger((prev) => prev + 1);
+      setUpdateTrigger(prev => prev + 1)
     } catch (error) {
-      setAddingErrorMessage(error.message);
+      setAddingErrorMessage(error.message)
     }
-  };
+  }
 
   // Função para deletar Receita
-  const handleDelete = async (e) => {
-    e.preventDefault();
+  const handleDelete = async e => {
+    e.preventDefault()
 
     try {
-      await transactionService.deleteTransaction(incomeSelected);
+      await transactionService.deleteTransaction(incomeSelected)
 
-      setDeleteErrorMessage("");
-      alert("Receita removida com sucesso!");
+      setDeleteErrorMessage("")
+      alert("Receita removida com sucesso!")
 
-      setIncomeSelected("");
-      setIncomeDetails(null);
-      setUpdateTrigger((prev) => prev + 1);
+      setIncomeSelected("")
+      setIncomeDetails(null)
+      setUpdateTrigger(prev => prev + 1)
     } catch (error) {
-      setDeleteErrorMessage(error.message);
+      setDeleteErrorMessage(error.message)
     }
-  };
+  }
 
   // Função para formatar o valor para o input
   const formatValor = () => {
     if (valor) {
-      const stringValor = String(valor);
+      const stringValor = String(valor)
       if (!stringValor.includes(".")) {
-        setValor(`${stringValor}.00`);
+        setValor(`${stringValor}.00`)
       } else if (stringValor.split(".")[1]?.length === 1) {
-        setValor(`${stringValor}0`);
+        setValor(`${stringValor}0`)
       }
     }
-  };
+  }
 
   return (
     <>
@@ -157,7 +155,7 @@ function RendaPage() {
                 id="nome"
                 value={nome}
                 placeholder="Ex: Supermercado"
-                onChange={(e) => setNome(e.target.value)}
+                onChange={e => setNome(e.target.value)}
               />
             </div>
 
@@ -171,10 +169,10 @@ function RendaPage() {
                 id="valor"
                 value={valor}
                 placeholder="Ex: 150.00"
-                onChange={(e) => {
-                  const regex = /^\d*(\.\d{0,2})?$/;
+                onChange={e => {
+                  const regex = /^\d*(\.\d{0,2})?$/
                   if (regex.test(e.target.value)) {
-                    setValor(e.target.value);
+                    setValor(e.target.value)
                   }
                 }}
                 onBlur={formatValor}
@@ -193,16 +191,20 @@ function RendaPage() {
                     className={styles.input_data_50}
                     id="categoria"
                     value={categorySelected}
-                    onChange={(e) => setCategorySelected(Number(e.target.value))}
+                    onChange={e => setCategorySelected(Number(e.target.value))}
                   >
-                    <option value="" disabled>Selecionar</option>
-                    {categories.map((categoria) => (
+                    <option value="" disabled>
+                      Selecionar
+                    </option>
+                    {categories.map(categoria => (
                       <option key={categoria.id} value={categoria.id}>
                         {categoria.nome}
                       </option>
                     ))}
                   </select>
-                  <Link href="/categoriaPage" className={styles.category_link}>+</Link>
+                  <Link href="/categoriaPage" className={styles.category_link}>
+                    +
+                  </Link>
                 </div>
               </div>
 
@@ -215,7 +217,7 @@ function RendaPage() {
                   type="date"
                   id="data"
                   value={data}
-                  onChange={(e) => setData(e.target.value)}
+                  onChange={e => setData(e.target.value)}
                   required
                 />
               </div>
@@ -231,7 +233,7 @@ function RendaPage() {
                 id="descricao"
                 value={descricao}
                 placeholder="Descrição (Opcional)"
-                onChange={(e) => setDescricao(e.target.value)}
+                onChange={e => setDescricao(e.target.value)}
               />
             </div>
 
@@ -245,13 +247,11 @@ function RendaPage() {
                 id="forma_pagamento"
                 value={formaPagamento}
                 placeholder="Ex: Cartão de Crédito, Pix (Opcional)"
-                onChange={(e) => setFormaPagamento(e.target.value)}
+                onChange={e => setFormaPagamento(e.target.value)}
               />
             </div>
 
-            {addingErrorMessage && (
-              <p className={styles.error_message}>{addingErrorMessage}</p>
-            )}
+            {addingErrorMessage && <p className={styles.error_message}>{addingErrorMessage}</p>}
 
             <div className={styles.button_group}>
               <button
@@ -277,15 +277,17 @@ function RendaPage() {
                 className={styles.input_data}
                 id="renda"
                 value={incomeSelected}
-                onChange={(e) => {
-                  const selectedId = Number(e.target.value);
-                  setIncomeSelected(selectedId);
-                  const income = incomes.find((exp) => exp.id === selectedId);
-                  setIncomeDetails(income || null);
+                onChange={e => {
+                  const selectedId = Number(e.target.value)
+                  setIncomeSelected(selectedId)
+                  const income = incomes.find(exp => exp.id === selectedId)
+                  setIncomeDetails(income || null)
                 }}
               >
-                <option value="" disabled>Selecionar uma Renda</option>
-                {incomes.map((receita) => (
+                <option value="" disabled>
+                  Selecionar uma Renda
+                </option>
+                {incomes.map(receita => (
                   <option key={receita.id} value={receita.id}>
                     {receita.titulo} {/* No serviço novo usamos titulo */}
                   </option>
@@ -294,29 +296,33 @@ function RendaPage() {
 
               <div className={styles.category_details}>
                 <h2>Detalhes da Renda</h2>
-                <p><strong>Nome:</strong> {incomeDetails?.titulo || "Sem dados"}</p>
-                <p><strong>Valor:</strong> R$ {incomeDetails?.valor || "0.00"}</p>
-                <p><strong>Descrição:</strong> {incomeDetails?.descricao || "Nenhuma descrição fornecida."}</p>
+                <p>
+                  <strong>Nome:</strong> {incomeDetails?.titulo || "Sem dados"}
+                </p>
+                <p>
+                  <strong>Valor:</strong> R$ {incomeDetails?.valor || "0.00"}
+                </p>
+                <p>
+                  <strong>Descrição:</strong>{" "}
+                  {incomeDetails?.descricao || "Nenhuma descrição fornecida."}
+                </p>
                 <p>
                   <strong>Data:</strong>{" "}
                   {incomeDetails?.data
                     ? new Date(incomeDetails.data).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
-                <p><strong>Forma de Pagamento:</strong> {incomeDetails?.metodo_pagamento || "Sem dados"}</p>
+                <p>
+                  <strong>Forma de Pagamento:</strong>{" "}
+                  {incomeDetails?.metodo_pagamento || "Sem dados"}
+                </p>
               </div>
             </div>
 
-            {deleteErrorMessage && (
-              <p className={styles.error_message}>{deleteErrorMessage}</p>
-            )}
+            {deleteErrorMessage && <p className={styles.error_message}>{deleteErrorMessage}</p>}
 
             <div className={styles.button_group}>
-              <button
-                type="submit"
-                className={styles.delete_button}
-                disabled={!incomeSelected}
-              >
+              <button type="submit" className={styles.delete_button} disabled={!incomeSelected}>
                 Excluir Renda
               </button>
             </div>
@@ -324,7 +330,7 @@ function RendaPage() {
         )}
       </div>
     </>
-  );
+  )
 }
 
-export default withAuth(RendaPage);
+export default withAuth(RendaPage)

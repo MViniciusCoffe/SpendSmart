@@ -12,25 +12,25 @@ Matriz de ambientes e de variaveis de ambiente. Este documento e a referencia un
 
 ## 1. Matriz de ambientes
 
-| Ambiente | Banco | Vercel | Finalidade | Estado |
-| --- | --- | --- | --- | --- |
-| **Desenvolvimento** | Supabase remoto (provisorio) | nao | Trabalho local, migrations | Ativo, misturado com producao |
-| **Producao** | Supabase remoto (provisorio) | sim (`main`) | Uso real | Ativo, e o **mesmo** banco do desenvolvimento |
-| **Testes** | — | — | Suite automatizada | **Nao existe** |
-| **Homologacao** | — | Preview da Vercel | Revisao antes de producao | **Nao configurado** |
-| **Local (Docker)** | PostgreSQL 16 | nao | Schema, constraints, indices | Ativo, mas **nao usado** — ver §4 |
+| Ambiente            | Banco                        | Vercel            | Finalidade                   | Estado                                        |
+| ------------------- | ---------------------------- | ----------------- | ---------------------------- | --------------------------------------------- |
+| **Desenvolvimento** | Supabase remoto (provisorio) | nao               | Trabalho local, migrations   | Ativo, misturado com producao                 |
+| **Producao**        | Supabase remoto (provisorio) | sim (`main`)      | Uso real                     | Ativo, e o **mesmo** banco do desenvolvimento |
+| **Testes**          | —                            | —                 | Suite automatizada           | **Nao existe**                                |
+| **Homologacao**     | —                            | Preview da Vercel | Revisao antes de producao    | **Nao configurado**                           |
+| **Local (Docker)**  | PostgreSQL 16                | nao               | Schema, constraints, indices | Ativo, mas **nao usado** — ver §4             |
 
 ---
 
 ## 2. Variaveis por ambiente
 
-| Variavel | Onde e lida | Dev | Preview | Producao |
-| --- | --- | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | `infra/supabase.js:3` | sim | sim | sim |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `infra/supabase.js:4` | sim | sim | sim |
-| `SUPABASE_SERVICE_ROLE_KEY` | `pages/api/createProfile.js:6`, `pages/api/deleteAccount.js:6` | sim | sim | sim |
-| `DATABASE_URL` | `infra/scripts/wait-for-postgres.js:12`, `node-pg-migrate` | sim | nao | nao |
-| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` | `infra/compose.yaml` | nao | nao | nao |
+| Variavel                                                                              | Onde e lida                                                    | Dev | Preview | Producao |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --- | ------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                                                            | `infra/supabase.js:3`                                          | sim | sim     | sim      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                                                | `infra/supabase.js:4`                                          | sim | sim     | sim      |
+| `SUPABASE_SERVICE_ROLE_KEY`                                                           | `pages/api/createProfile.js:6`, `pages/api/deleteAccount.js:6` | sim | sim     | sim      |
+| `DATABASE_URL`                                                                        | `infra/scripts/wait-for-postgres.js:12`, `node-pg-migrate`     | sim | nao     | nao      |
+| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` | `infra/compose.yaml`                                           | nao | nao     | nao      |
 
 ### Sobre o nome da chave publica
 
@@ -49,11 +49,11 @@ que roda no servidor. Ha dois pontos de leitura hoje: `createProfile` e `deleteA
 
 ## 3. Arquivos de ambiente
 
-| Arquivo | Versionado | Conteudo atual | Para que serve |
-| --- | --- | --- | --- |
-| `.env.development` | nao | `DATABASE_URL` (Supabase remoto) + 3 chaves | Fonte do Next.js em desenvolvimento e do `node-pg-migrate` |
-| `.env.supabase` | nao | `DATABASE_URL` (Supabase remoto) + 2 chaves publicas | Alimenta `npm run migrations:supabase:up` |
-| `.env.development.example` | sim | So `POSTGRES_*` do Docker | Modelo do Postgres local |
+| Arquivo                    | Versionado | Conteudo atual                                       | Para que serve                                             |
+| -------------------------- | ---------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `.env.development`         | nao        | `DATABASE_URL` (Supabase remoto) + 3 chaves          | Fonte do Next.js em desenvolvimento e do `node-pg-migrate` |
+| `.env.supabase`            | nao        | `DATABASE_URL` (Supabase remoto) + 2 chaves publicas | Alimenta `npm run migrations:supabase:up`                  |
+| `.env.development.example` | sim        | So `POSTGRES_*` do Docker                            | Modelo do Postgres local                                   |
 
 O `.gitignore` bloqueia `.env*` e libera apenas os arquivos `.example`. Isso esta correto e deve
 permanecer.

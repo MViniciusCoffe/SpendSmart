@@ -46,7 +46,7 @@
   height: 2.5rem;
   width: 2.5rem;
   color: white;
-  background-color: #45A049;
+  background-color: #45a049;
   margin-left: 0.5rem;
   border-radius: 0.25rem;
   transition: all 0.5s ease;
@@ -54,7 +54,7 @@
 
 .category_link:hover {
   transform: scale(110%);
-  background-color: #0E683A;
+  background-color: #0e683a;
 }
 
 .input_data {
@@ -85,8 +85,8 @@
 
 .input_data:focus {
   outline: none;
-  border-color: #0E683A;
-  box-shadow: 0 0 0.2rem #0E683A;
+  border-color: #0e683a;
+  box-shadow: 0 0 0.2rem #0e683a;
 }
 
 .color_picker_container {
@@ -133,7 +133,7 @@
 
 .save_button:hover {
   transform: scale(105%);
-  background-color: #0E683A;
+  background-color: #0e683a;
 }
 
 .edit_button {
@@ -207,12 +207,12 @@
 }
 
 .tab_button:hover {
-  background-color: #0E683A;
+  background-color: #0e683a;
   color: white;
 }
 
 .active_tab {
-  background-color: #45A049;
+  background-color: #45a049;
   color: white;
 }
 

@@ -31,26 +31,28 @@
   gap: 2rem;
 }
 
-.button_group a, .button_group button {
+.button_group a,
+.button_group button {
   padding: 0.5rem 1rem;
-  border: 1px solid #0E683A;
-  color: #0E683A;
+  border: 1px solid #0e683a;
+  color: #0e683a;
   border-radius: 0.5rem;
   transition: all 0.5s ease-in-out;
   cursor: pointer;
 }
 
-.button_group a:hover, .button_group button:hover {
+.button_group a:hover,
+.button_group button:hover {
   border: 1px solid white;
   color: white;
-  background-color: #0E683A;
+  background-color: #0e683a;
 }
 
 .login_button:disabled {
-    background-color: #cccccc;
-    color: gray;
-    cursor: not-allowed;
-    opacity: 0.7;
+  background-color: #cccccc;
+  color: gray;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .input_group {
@@ -62,11 +64,11 @@
 }
 
 .input_group label {
-  color: #0E683A;
+  color: #0e683a;
 }
 
 .input_group input {
-  border: 1px solid #0E683A;
+  border: 1px solid #0e683a;
   padding: 0.2rem 0.5rem;
   border-radius: 0.2rem;
 }

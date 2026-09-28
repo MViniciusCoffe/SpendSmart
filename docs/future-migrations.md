@@ -17,13 +17,13 @@ escrita, nao uma migration executavel: nada aqui roda sozinha.
 
 ## Estado atual do schema
 
-| Tabela | Idioma das colunas de dominio | Observacao |
-| --- | --- | --- |
-| `profiles` | **portugues** — `nome_completo`, `data_nascimento`, `telefone` | Unica tabela assim |
-| `categories` | ingles — `name`, `type`, `description`, `color` | |
-| `transactions` | ingles — `type`, `amount`, `title`, `occurred_on`, `description`, `payment_method` | |
+| Tabela         | Idioma das colunas de dominio                                                      | Observacao         |
+| -------------- | ---------------------------------------------------------------------------------- | ------------------ |
+| `profiles`     | **portugues** — `nome_completo`, `data_nascimento`, `telefone`                     | Unica tabela assim |
+| `categories`   | ingles — `name`, `type`, `description`, `color`                                    |                    |
+| `transactions` | ingles — `type`, `amount`, `title`, `occurred_on`, `description`, `payment_method` |                    |
 
- alem disso, as tres tabelas divergem em consistencia:
+alem disso, as tres tabelas divergem em consistencia:
 
 - `categories.name` e `transactions.title` sao obrigatorios; `description`, `color`,
   `payment_method` e `telefone` sao opcionais.
@@ -43,11 +43,11 @@ Rastreabilidade: issue
 escreve os nomes em portugues; apos a migration, toda leitura e escrita passa a usar os nomes em
 ingles. Nao ha traducao no service layer para amortecer isso.
 
-| Antes | Depois | Tipo |
-| --- | --- | --- |
-| `nome_completo` | `full_name` | `text not null` |
-| `data_nascimento` | `birth_date` | `date` |
-| `telefone` | `phone` | `text` |
+| Antes             | Depois       | Tipo            |
+| ----------------- | ------------ | --------------- |
+| `nome_completo`   | `full_name`  | `text not null` |
+| `data_nascimento` | `birth_date` | `date`          |
+| `telefone`        | `phone`      | `text`          |
 
 ### Script
 
@@ -78,11 +78,11 @@ COMMIT;
 
 ### Impacto no codigo
 
-| Arquivo | Mudanca necessaria |
-| --- | --- |
-| `services/profileService.js` | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone` |
+| Arquivo                      | Mudanca necessaria                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
+| `services/profileService.js` | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`                   |
 | `pages/api/createProfile.js` | o corpo recebido de `register.js` usa os nomes em portugues; precisa de traducao explicita |
-| `pages/accountConfig.js` | se o form mantem os nomes em portugues, a traducao fica no service |
+| `pages/accountConfig.js`     | se o form mantem os nomes em portugues, a traducao fica no service                         |
 
 ### O que verificar depois
 

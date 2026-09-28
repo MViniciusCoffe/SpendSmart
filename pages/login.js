@@ -1,51 +1,51 @@
-import Link from "next/link";
-import styles from "./login.module.css";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { authService } from "../services/authServices";
+import Link from "next/link"
+import styles from "./login.module.css"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/router"
+import { authService } from "../services/authServices"
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [email, setEmail] = useState("");
-  const [senha, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("")
+  const [senha, setPassword] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   // Redireciona o usuário para "/dashboard" caso ele já tenha uma sessão ativa no supabase
   useEffect(() => {
     const checkSession = async () => {
-      const session = await authService.getSession();
+      const session = await authService.getSession()
       if (session) {
-        router.push("/dashboard");
+        router.push("/dashboard")
       }
-    };
-    checkSession();
-  }, [router]);
+    }
+    checkSession()
+  }, [router])
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async e => {
+    e.preventDefault()
 
     if (!email || !senha) {
-      setErrorMessage("Preencha todos os campos obrigatórios");
-      return;
+      setErrorMessage("Preencha todos os campos obrigatórios")
+      return
     }
 
-    setIsLoading(true);
-    setErrorMessage("");
+    setIsLoading(true)
+    setErrorMessage("")
 
     try {
       // Supabase valida credenciais
-      await authService.loginUser({ email, password: senha });
+      await authService.loginUser({ email, password: senha })
 
       // Se passar, redireciona para dashboard. Sessão já está salva no navegador pelo supabase
-      router.push("/dashboard");
+      router.push("/dashboard")
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(error.message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <>
@@ -65,7 +65,7 @@ export default function LoginPage() {
                   name="email"
                   placeholder="Digite seu e-mail"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -78,14 +78,12 @@ export default function LoginPage() {
                   name="password"
                   placeholder="Digite sua senha"
                   value={senha}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
                 />
               </div>
 
-              {errorMessage && (
-                <p className={styles.error_message}>{errorMessage}</p>
-              )}
+              {errorMessage && <p className={styles.error_message}>{errorMessage}</p>}
             </div>
 
             <div className={styles.button_group}>
@@ -104,5 +102,5 @@ export default function LoginPage() {
         </div>
       </div>
     </>
-  );
+  )
 }

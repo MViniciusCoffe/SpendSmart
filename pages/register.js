@@ -1,32 +1,32 @@
-import Link from "next/link";
-import styles from "./register.module.css";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { authService } from "../services/authServices";
+import Link from "next/link"
+import styles from "./register.module.css"
+import { useState } from "react"
+import { useRouter } from "next/router"
+import { authService } from "../services/authServices"
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [nomeCompleto, setNomeCompleto] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
-  const [telefone, setTelefone] = useState("");
+  const [nomeCompleto, setNomeCompleto] = useState("")
+  const [email, setEmail] = useState("")
+  const [senha, setSenha] = useState("")
+  const [dataNascimento, setDataNascimento] = useState("")
+  const [telefone, setTelefone] = useState("")
 
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   // Função para criar usuário
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleRegister = async e => {
+    e.preventDefault()
 
     if (!nomeCompleto || !email || !senha || !dataNascimento) {
-      setErrorMessage("Preencha todos os campos obrigatórios");
-      return;
+      setErrorMessage("Preencha todos os campos obrigatórios")
+      return
     }
 
-    setIsLoading(true);
-    setErrorMessage("");
+    setIsLoading(true)
+    setErrorMessage("")
 
     try {
       await authService.registerUser({
@@ -35,16 +35,16 @@ export default function RegisterPage() {
         nomeCompleto: nomeCompleto,
         dataNascimento: dataNascimento,
         telefone: telefone
-      });
+      })
 
-      alert("Usuário criado com sucesso! Faça login para continuar.");
-      router.push("/login");
+      alert("Usuário criado com sucesso! Faça login para continuar.")
+      router.push("/login")
     } catch (error) {
-      setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`);
+      setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <>
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                   name="nomeCompleto"
                   placeholder="Digite seu nome completo"
                   value={nomeCompleto}
-                  onChange={(e) => setNomeCompleto(e.target.value)}
+                  onChange={e => setNomeCompleto(e.target.value)}
                   required
                 />
               </div>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                   name="email"
                   placeholder="Digite seu e-mail"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -90,7 +90,7 @@ export default function RegisterPage() {
                   name="password"
                   placeholder="Digite sua senha"
                   value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
+                  onChange={e => setSenha(e.target.value)}
                   required
                 />
               </div>
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                   id="dataNascimento"
                   name="dataNascimento"
                   value={dataNascimento}
-                  onChange={(e) => setDataNascimento(e.target.value)}
+                  onChange={e => setDataNascimento(e.target.value)}
                   required
                 />
               </div>
@@ -116,13 +116,11 @@ export default function RegisterPage() {
                   placeholder="Digite seu telefone (opcional)"
                   value={telefone}
                   maxLength={20}
-                  onChange={(e) => setTelefone(e.target.value)}
+                  onChange={e => setTelefone(e.target.value)}
                 />
               </div>
 
-              {errorMessage && (
-                <p className={styles.error_message}>{errorMessage}</p>
-              )}
+              {errorMessage && <p className={styles.error_message}>{errorMessage}</p>}
             </div>
 
             <div className={styles.button_group}>
@@ -141,5 +139,5 @@ export default function RegisterPage() {
         </div>
       </div>
     </>
-  );
+  )
 }

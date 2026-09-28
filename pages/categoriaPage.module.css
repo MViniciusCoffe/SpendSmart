@@ -44,8 +44,8 @@
 
 .input_data:focus {
   outline: none;
-  border-color: #0E683A;
-  box-shadow: 0 0 0.2rem #0E683A;
+  border-color: #0e683a;
+  box-shadow: 0 0 0.2rem #0e683a;
 }
 
 .color_picker_container {
@@ -92,7 +92,7 @@
 
 .save_button:hover {
   transform: scale(105%);
-  background-color: #0E683A;
+  background-color: #0e683a;
 }
 
 .edit_button {
@@ -166,12 +166,12 @@
 }
 
 .tab_button:hover {
-  background-color: #0E683A;
+  background-color: #0e683a;
   color: white;
 }
 
 .active_tab {
-  background-color: #45A049;
+  background-color: #45a049;
   color: white;
 }
 

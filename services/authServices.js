@@ -1,26 +1,26 @@
-import { supabase } from '../infra/supabase';
+import { supabase } from "../infra/supabase"
 
 export const authService = {
   async registerUser({ email, password, nomeCompleto, dataNascimento, telefone }) {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password,
-      });
+        password
+      })
 
       if (authError) {
-        console.error("[Supabase Register Error]", authError.message);
+        console.error("[Supabase Register Error]", authError.message)
 
         if (authError.message.includes("already registered")) {
-          throw new Error("E-mail já cadastrado");
+          throw new Error("E-mail já cadastrado")
         }
-        throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente");
+        throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
       }
 
-      const response = await fetch('/api/createProfile', {
-        method: 'POST',
+      const response = await fetch("/api/createProfile", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           id: authData.user.id,
@@ -28,59 +28,58 @@ export const authService = {
           data_nascimento: dataNascimento,
           telefone: telefone
         })
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Conta criada, mas houve um problema ao salvar dados adicionais");
+        throw new Error("Conta criada, mas houve um problema ao salvar dados adicionais")
       }
 
-      return authData.user;
+      return authData.user
     } catch (error) {
-      throw error;
-    };
+      throw error
+    }
   },
 
   async loginUser({ email, password }) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       })
 
       if (error) {
-        let mensagemAmigavel = "Ocorreu um erro inesperado. Tente novamente mais tarde.";
+        let mensagemAmigavel = "Ocorreu um erro inesperado. Tente novamente mais tarde."
 
         if (error.message === "Invalid login credentials") {
-          mensagemAmigavel = "E-mail ou senha incorretos.";
+          mensagemAmigavel = "E-mail ou senha incorretos."
         } else if (error.status === 429) {
-          mensagemAmigavel = "Muitas tentativas. Aguarde um momento e tente novamente.";
+          mensagemAmigavel = "Muitas tentativas. Aguarde um momento e tente novamente."
         } else if (error.message.includes("Email not confirmed")) {
-          mensagemAmigavel = "Por favor, confirme seu e-mail antes de entrar.";
+          mensagemAmigavel = "Por favor, confirme seu e-mail antes de entrar."
         } else {
-
           // Falhas estruturais ou de banco apenas no console
-          console.error("[Supabase Login Error]:", error.message);
+          console.error("[Supabase Login Error]:", error.message)
         }
 
-        throw new Error(mensagemAmigavel);
+        throw new Error(mensagemAmigavel)
       }
 
-      return data.user;
+      return data.user
     } catch (error) {
-      throw error;
+      throw error
     }
   },
 
   async getSession() {
-    const { data } = await supabase.auth.getSession();
-    return data.session;
+    const { data } = await supabase.auth.getSession()
+    return data.session
   },
 
   async logoutUser() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut()
     if (error) {
-      console.error("[Supabase Logout Error]", error.message);
-      throw new Error("Erro ao sair. Tente novamente.");
+      console.error("[Supabase Logout Error]", error.message)
+      throw new Error("Erro ao sair. Tente novamente.")
     }
   }
-};
+}

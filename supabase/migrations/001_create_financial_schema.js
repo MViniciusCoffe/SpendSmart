@@ -1,6 +1,6 @@
-exports.shorthands = undefined;
+exports.shorthands = undefined
 
-exports.up = (pgm) => {
+exports.up = pgm => {
   pgm.createTable("profiles", {
     id: { type: "uuid", primaryKey: true },
     nome_completo: { type: "text", notNull: true },
@@ -9,14 +9,14 @@ exports.up = (pgm) => {
     created_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
+      default: pgm.func("current_timestamp")
     },
     updated_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
-    },
-  });
+      default: pgm.func("current_timestamp")
+    }
+  })
 
   pgm.createTable("categories", {
     id: { type: "bigserial", primaryKey: true },
@@ -28,21 +28,21 @@ exports.up = (pgm) => {
     created_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
+      default: pgm.func("current_timestamp")
     },
     updated_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
-    },
-  });
+      default: pgm.func("current_timestamp")
+    }
+  })
 
   pgm.addConstraint("categories", "categories_type_check", {
-    check: "type IN ('income', 'expense')",
-  });
+    check: "type IN ('income', 'expense')"
+  })
   pgm.addConstraint("categories", "categories_user_name_type_unique", {
-    unique: ["user_id", "name", "type"],
-  });
+    unique: ["user_id", "name", "type"]
+  })
 
   pgm.createTable("transactions", {
     id: { type: "bigserial", primaryKey: true },
@@ -57,41 +57,41 @@ exports.up = (pgm) => {
     created_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
+      default: pgm.func("current_timestamp")
     },
     updated_at: {
       type: "timestamptz",
       notNull: true,
-      default: pgm.func("current_timestamp"),
-    },
-  });
+      default: pgm.func("current_timestamp")
+    }
+  })
 
   pgm.addConstraint("transactions", "transactions_type_check", {
-    check: "type IN ('income', 'expense')",
-  });
+    check: "type IN ('income', 'expense')"
+  })
   pgm.addConstraint("transactions", "transactions_amount_positive", {
-    check: "amount > 0",
-  });
+    check: "amount > 0"
+  })
   pgm.addConstraint("transactions", "transactions_category_fk", {
     foreignKeys: {
       columns: "category_id",
       references: "categories(id)",
-      onDelete: "RESTRICT",
-    },
-  });
+      onDelete: "RESTRICT"
+    }
+  })
 
   pgm.createIndex("categories", "user_id", {
-    name: "categories_user_id_idx",
-  });
+    name: "categories_user_id_idx"
+  })
   pgm.createIndex("transactions", ["user_id", "occurred_on"], {
-    name: "transactions_user_date_idx",
-  });
+    name: "transactions_user_date_idx"
+  })
   pgm.createIndex("transactions", ["user_id", "type"], {
-    name: "transactions_user_type_idx",
-  });
+    name: "transactions_user_type_idx"
+  })
   pgm.createIndex("transactions", "category_id", {
-    name: "transactions_category_idx",
-  });
+    name: "transactions_category_idx"
+  })
 
   // O PostgreSQL local nao possui auth.users/auth.uid(). No Supabase, esta
   // etapa liga os registros ao usuario autenticado e ativa o RLS.
@@ -121,11 +121,11 @@ exports.up = (pgm) => {
       END IF;
     END
     $$;
-  `);
-};
+  `)
+}
 
-exports.down = (pgm) => {
-  pgm.dropTable("transactions");
-  pgm.dropTable("categories");
-  pgm.dropTable("profiles");
-};
+exports.down = pgm => {
+  pgm.dropTable("transactions")
+  pgm.dropTable("categories")
+  pgm.dropTable("profiles")
+}
