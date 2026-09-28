@@ -1,26 +1,26 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
-import styles from "./accountConfig.module.css";
-import Navbar from "../components/Navbar/navbarApp";
-import withAuth from "../components/utils/withAuth";
-import { profileService } from "../services/profileService";
-import { supabase } from "../infra/supabase"; // Apenas para o logout
+import { useState } from "react"
+import { useRouter } from "next/router"
+import styles from "./accountConfig.module.css"
+import Navbar from "../components/Navbar/navbarApp"
+import withAuth from "../components/utils/withAuth"
+import { profileService } from "../services/profileService"
+import { authService } from "../services/authServices"
 
 function AccountConfig() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const [nome, setNome] = useState("");
-  const [senha, setSenha] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
-  const [telefone, setTelefone] = useState("");
+  const [nome, setNome] = useState("")
+  const [senha, setSenha] = useState("")
+  const [dataNascimento, setDataNascimento] = useState("")
+  const [telefone, setTelefone] = useState("")
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("")
 
-  const isSaveDisabled = !nome && !senha && !dataNascimento && !telefone;
+  const isSaveDisabled = !nome && !senha && !dataNascimento && !telefone
 
   // Função para editar o usuário
-  const handleEdit = async (e) => {
-    e.preventDefault();
+  const handleEdit = async e => {
+    e.preventDefault()
 
     try {
       await profileService.updateProfile({
@@ -28,46 +28,59 @@ function AccountConfig() {
         senha: senha,
         dataNascimento: dataNascimento,
         telefone: telefone
-      });
+      })
 
-      setErrorMessage("");
-      alert("Alterações salvas com sucesso!");
+      setErrorMessage("")
+      alert("Alterações salvas com sucesso!")
 
       // Limpar os campos para o usuário saber que foi salvo
-      setNome("");
-      setSenha("");
-      setDataNascimento("");
-      setTelefone("");
+      setNome("")
+      setSenha("")
+      setDataNascimento("")
+      setTelefone("")
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(error.message)
     }
-  };
+  }
 
   // Função para deletar o usuário
-  const handleDelete = async (e) => {
-    e.preventDefault();
+  const handleDelete = async e => {
+    e.preventDefault()
 
-    const confirmacao = window.confirm("Tem certeza que deseja excluir sua conta? Todos os seus dados serão apagados para sempre.");
-    if (!confirmacao) return;
+    const confirmacao = window.confirm(
+      "Tem certeza que deseja excluir sua conta? Todos os seus dados serão apagados para sempre."
+    )
+    if (!confirmacao) return
 
     try {
       // A tela só dá a ordem para o serviço. Zero HTTP aqui!
-      await profileService.deleteAccount();
-
-      alert("Conta excluída com sucesso.");
-
-      // Limpa a sessão local e manda pro login
-      await supabase.auth.signOut();
-      router.replace("/login");
+      await profileService.deleteAccount()
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(error.message)
+      return
     }
-  };
+
+    alert("Conta excluída com sucesso.")
+
+    // A conta já não existe mais, então falhar ao limpar a sessão local
+    // não desfaz o sucesso da exclusão nem deve virar mensagem de erro
+    try {
+      await authService.logoutUser()
+    } catch (error) {
+      console.error("[Supabase Logout Error]", error.message)
+    }
+
+    router.replace("/login")
+  }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace("/login");
-  };
+    try {
+      await authService.logoutUser()
+      router.replace("/login")
+    } catch (error) {
+      setErrorMessage(error.message)
+    }
+  }
 
   return (
     <>
@@ -88,7 +101,7 @@ function AccountConfig() {
               id="nome_completo"
               value={nome}
               placeholder="Seu nome completo"
-              onChange={(e) => setNome(e.target.value)}
+              onChange={e => setNome(e.target.value)}
             />
           </div>
 
@@ -102,7 +115,7 @@ function AccountConfig() {
               id="senha"
               value={senha}
               placeholder="Sua nova senha"
-              onChange={(e) => setSenha(e.target.value)}
+              onChange={e => setSenha(e.target.value)}
             />
           </div>
 
@@ -115,7 +128,7 @@ function AccountConfig() {
               type="date"
               id="data_nascimento"
               value={dataNascimento}
-              onChange={(e) => setDataNascimento(e.target.value)}
+              onChange={e => setDataNascimento(e.target.value)}
             />
           </div>
 
@@ -130,42 +143,41 @@ function AccountConfig() {
               value={telefone}
               placeholder="Seu telefone"
               maxLength={20}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={e => setTelefone(e.target.value)}
             />
           </div>
 
-          {errorMessage && (
-            <p className={styles.error_message}>{errorMessage}</p>
-          )}
+          {errorMessage && <p className={styles.error_message}>{errorMessage}</p>}
 
           <div className={styles.button_group}>
-            <button
-              type="submit"
-              className={styles.save_button}
-              disabled={isSaveDisabled}
-            >
+            <button type="submit" className={styles.save_button} disabled={isSaveDisabled}>
               Salvar Alterações
             </button>
-            <button
-              type="button"
-              className={styles.delete_button}
-              onClick={handleDelete}
-            >
+            <button type="button" className={styles.delete_button} onClick={handleDelete}>
               Excluir Conta
             </button>
           </div>
 
           {/* Um botão de logout amigável é sempre bom nas configurações */}
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <button type="button" onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#666', textDecoration: 'underline', cursor: 'pointer' }}>
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#666",
+                textDecoration: "underline",
+                cursor: "pointer"
+              }}
+            >
               Sair da minha conta
             </button>
           </div>
-
         </form>
       </div>
     </>
-  );
+  )
 }
 
-export default withAuth(AccountConfig);
+export default withAuth(AccountConfig)

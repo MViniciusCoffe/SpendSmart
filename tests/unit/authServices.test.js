@@ -1,5 +1,7 @@
 jest.mock("../../infra/supabase", () => ({
   supabase: {
+    // Mocka apenas métodos que authServices usa
+    // SignOut não é usado ainda
     auth: {
       signUp: jest.fn(),
       signInWithPassword: jest.fn(),
@@ -177,5 +179,21 @@ describe("getSession", () => {
     const resultado = await authService.getSession()
 
     expect(resultado).toBeNull()
+  })
+})
+
+// Testes para o método logoutUser do serviço de autenticação
+describe("logoutUser", () => {
+  it("encerra a sessao com sucesso", async () => {
+    supabase.auth.signOut.mockResolvedValue({ error: null })
+
+    // O método não devolve nada quando dá certo, só não lança
+    await expect(authService.logoutUser()).resolves.toBeUndefined()
+  })
+
+  it("traduz falha ao encerrar a sessao", async () => {
+    supabase.auth.signOut.mockResolvedValue({ error: { message: "network error" } })
+
+    await expect(authService.logoutUser()).rejects.toThrow("Erro ao sair. Tente novamente.")
   })
 })
