@@ -184,9 +184,9 @@ por criterio de aceitacao esta em [user-stories.md](user-stories.md).
 | US-015 Excluir despesa   | x     |              | x     |                                                       |
 | US-016 Dashboard         |       | IT-07        | x     | Agregacao hoje e no cliente                           |
 
-**Total: 16 User Stories, 10 casos de integracao, 4 arquivos de service e 13 metodos sob teste.**
+**Total: 16 User Stories, 10 casos de integracao, 4 arquivos de service e 14 metodos sob teste.**
 
-O 14o metodo e `authService.logoutUser`, sem consumidor em `pages/`. Registrado na issue #26.
+Os 14 metodos de `services/` tem 100% de cobertura. O `logoutUser` deixou de ser codigo morto em 2026-09: `pages/accountConfig.js` e `components/Navbar/navbarApp.js` passaram a chamar o service em vez de `supabase.auth.signOut()` direto. Ver #26.
 
 ---
 
