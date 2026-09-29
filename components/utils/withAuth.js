@@ -3,7 +3,7 @@ import { useRouter } from "next/router"
 import { authService } from "../../services/authServices"
 
 const withAuth = WrappedComponent => {
-  return props => {
+  const AuthenticatedPage = props => {
     const router = useRouter()
     const [isAuthorized, setIsAuthorized] = useState(false)
 
@@ -32,6 +32,12 @@ const withAuth = WrappedComponent => {
 
     return <WrappedComponent {...props} />
   }
+
+  // Define um nome de exibição para facilitar a depuração
+  const componentName = WrappedComponent.displayName || WrappedComponent.name || "Component"
+  AuthenticatedPage.displayName = `withAuth(${componentName})`
+
+  return AuthenticatedPage
 }
 
 export default withAuth
