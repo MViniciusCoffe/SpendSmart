@@ -113,19 +113,19 @@ A separacao de responsabilidades adotada:
 Isto importa mais do que qualquer checklist antigo: o repositorio esta em **revitalizacao** e varios
 itens que pareciam prontos nao estao.
 
-| Item                                        | Estado                                         |
-| ------------------------------------------- | ---------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                    |
-| Categorias: criar, listar, alterar, excluir | Funcionando                                    |
-| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos           |
-| Dashboard com graficos                      | Funcionando                                    |
-| Excluir conta                               | Funcionando                                    |
-| Testes de unidade                           | **Nenhum sobre o codigo vivo**                 |
-| Testes de integracao                        | **Nenhum**                                     |
-| `npm test`                                  | **Falha** — ver abaixo                         |
-| CI no GitHub Actions                        | **Quebrado** — aponta para um servico removido |
-| RLS aplicado e validado                     | **Nunca foi validado** com dois usuarios       |
-| Ambientes separados                         | **Nao existem** — um unico banco para tudo     |
+| Item                                        | Estado                                       |
+| ------------------------------------------- | -------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                  |
+| Categorias: criar, listar, alterar, excluir | Funcionando                                  |
+| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos         |
+| Dashboard com graficos                      | Funcionando                                  |
+| Excluir conta                               | Funcionando                                  |
+| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**        |
+| Testes de integracao                        | **Nenhum**                                   |
+| `npm test`                                  | **Passa** — 65/65, sem erro                  |
+| CI no GitHub Actions                        | **Dois workflows** — `test.yml` e `lint.yml` |
+| RLS aplicado e validado                     | **Nunca foi validado** com dois usuarios     |
+| Ambientes separados                         | **Nao existem** — um unico banco para tudo   |
 
 ### Defeitos conhecidos
 
@@ -136,7 +136,6 @@ itens que pareciam prontos nao estao.
 | [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                                                            |
 | [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas publicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente                                |
 | [#25](https://github.com/MViniciusCoffe/SpendSmart/issues/25) | Cadastro sem rollback: se o perfil falhar, sobra uma conta no Auth sem perfil                                               |
-| [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26) | `npm test` falha e exercita `services/categoriaService.js`, que e codigo morto e nao e importado por nenhuma pagina         |
 
 ### Sobre o RLS nunca ter sido validado
 
@@ -183,17 +182,15 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependencia:
 
-| #                                                             | Assunto                        | Bloqueia      |
-| ------------------------------------------------------------- | ------------------------------ | ------------- |
-| [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26) | Corrigir a suite e o CI        | #15, #16, #18 |
-| [#15](https://github.com/MViniciusCoffe/SpendSmart/issues/15) | Testes de unidade              | #17           |
-| [#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16) | Testes de integracao           | #17           |
-| [#17](https://github.com/MViniciusCoffe/SpendSmart/issues/17) | Cobertura LCOV                 | #19           |
-| [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS               | Tarefa 01     |
-| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e ambiente local  | #24           |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Protecao server-side e headers | —             |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | #18           |
-| [#18](https://github.com/MViniciusCoffe/SpendSmart/issues/18) | Workflow de CI                 | Tarefa 01     |
+| #                                                             | Assunto                        | Bloqueia  |
+| ------------------------------------------------------------- | ------------------------------ | --------- |
+| [#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16) | Testes de integracao           | #17       |
+| [#17](https://github.com/MViniciusCoffe/SpendSmart/issues/17) | Cobertura LCOV                 | #19       |
+| [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS               | Tarefa 01 |
+| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e ambiente local  | #24       |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Protecao server-side e headers | —         |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | #18       |
+| [#18](https://github.com/MViniciusCoffe/SpendSmart/issues/18) | Workflow de CI                 | Tarefa 01 |
 
 ---
 

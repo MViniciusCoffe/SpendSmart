@@ -13,6 +13,8 @@ module.exports = {
   },
   collectCoverageFrom: ["services/**/*.js"],
   coverageDirectory: "coverage",
-  coverageReporters: ["text", "json-summary", "lcov"],
+  // "html" gera coverage/index.html, que mostra linha a linha e nomeia as funcoes sem
+  // cobertura. O "text" so agrega por arquivo: diz 3 de 4 funcoes, mas nao diz quais
+  coverageReporters: ["text", "html", "json-summary", "lcov"],
   testTimeout: 30000
 }
