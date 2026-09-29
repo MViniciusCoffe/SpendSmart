@@ -245,21 +245,129 @@ cobre: mensagem escrita a mao, `git commit --amend`, e merge.
 
 ---
 
-## 12. CI em Node 24
+## 12. CI em Node 24, e `engines` no `package.json`
 
-**Decisao.** Todos os workflows usam Node 24.
+**Decisao.** Todos os workflows usam `node-version: 24`, e o `package.json` declara
+`"engines": { "node": ">=24.11.0" }`.
 
-**Por que.** `@babel/core@8.0.6` declara `engines: { node: "^22.18.0 || >=24.11.0" }`. O workflow
-anterior fixava Node 20, que esta fora da faixa. Alem disso, Node 20 saiu de manutencao.
+**Por que.** Sem `engines`, cada ambiente escolhe a propria versao de Node e eles divergem: o
+`setup-node` dos workflows, a maquina de desenvolvimento, e a Vercel. O motivo da escolha nao foi
+teorico — 366 pacotes do `package-lock.json` declaram `engines.node` e o CI estava rodando em Node
+20, fora da faixa da maioria deles:
 
-**Alternativa rejeitada.** Node 22, que satisfaz a faixa. Fica mais perto do fim de vida do Node 24 e
-nao traz vantagem aqui.
+| Pacote                    | `engines.node`            | Consequencia em Node 20      |
+| ------------------------- | ------------------------- | ---------------------------- |
+| `@babel/core@8.0.6`       | `^22.18.0 \|\| >=24.11.0` | O preset que o Jest usa      |
+| `@supabase/supabase-js@2` | `>=22.0.0`                | **Dependencia de producao**  |
+| `lint-staged@17.5.1`      | `>=22.22.1`               | Roda no `pre-commit`         |
+| `next@16.3.5`             | `>=20.9.0`                | O unico que aceitava Node 20 |
 
-**Reavaliar quando.** O Babel ou o Jest mudarem de requisito de engine.
+O `npm ci` emitia cerca de 99 avisos `EBADENGINE` e completava assim mesmo: o aviso nao impede a
+instalacao, entao nada quebra e nada aponta a causa. O caso do `@supabase/supabase-js` e o mais
+serio, porque e dependencia de **producao** — o CI nao falha por rodar Node 20, mas o primeiro
+teste de integracao que invocar o cliente real (issue
+[#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16)) falha por engine.
+
+Declarar `engines` faz tres coisas de uma vez: documenta o minimo, faz o npm avisar quem instala
+fora da faixa, e passa a ser a fonte que a Vercel respeita. O limite `>=24.11.0` e o piso do
+`@babel/core@8` transcrito, nao um numero escolhido: Babel 8 exige `24.11`, nao `24.0`.
+
+**Alternativa rejeitada.** Node 22, que satisfaz a faixa do Babel. Fica mais proximo do fim de vida
+e nao traz vantagem aqui. Tambem rejeitado: nao declarar `engines` e confiar no `setup-node` de
+cada workflow — e o que permitia a divergencia entre os ambientes.
+
+**Reavaliar quando.** O Babel ou o Jest mudarem de requisito de engine. Se `engines` deixar de
+cobrir a versao que a Vercel usa, o numero tem de mudar nos tres lugares juntos:
+`package.json`, `test.yml` e `lint.yml`.
 
 ---
 
-## 13. Regra de conteudo nao vira regra de ferramenta
+## 13. Os avisos de `npm ci` sobre Babel e glob sao aceitaveis
+
+**Decisao.** Nao ha `overrides` no `package.json`, nao ha `legacy-peer-deps`, e a saida do
+`npm ci` e deixada como esta. Os avisos nao sao limpos.
+
+**Por que.** Ha tres grupos de aviso, e nenhum deles e problema do projeto. Registrar e o que
+evita que alguem tente "resolver" da proxima vez.
+
+### `ERESOLVE` — `@babel/core` 8 contra plugins do Babel 7 (cerca de 12 avisos)
+
+O `babel-preset-current-node-syntax@1.2.0` chega como dependencia do Jest 30 e declara
+`peerDependencies: { "@babel/core": "^7.0.0-0" }`. O `package.json` declara
+`"@babel/core": "^8.0.6"`, e o `@babel/preset-env` 8 usado no `jest.config.js:56` exige a 8. Sao
+incompativeis por declaracao.
+
+As duas versoes **coexistem e funcionam**. O `npm` aninha a 7 onde o Jest precisa dela
+(`node_modules/@jest/transform/node_modules/@babel/core@7.29.7`) e mantem a 8 na raiz, que e a que
+o `preset-env` resolve. Os 65 testes passam com essa configuracao, entao nao ha defeito, e apenas
+declaracao conflitante.
+
+A causa e externa: o Jest 30 ainda nao suporta Babel 8, e o plugin de sintaxe ainda declara peer
+dependente da 7. Corrigir aqui significaria forcar a 7 por `overrides`, o que rebaixaria o
+`@babel/preset-env` da raiz e poderia mudar a transpilacao dos testes — um risco real de regressao
+em troca de silenciar log.
+
+### `deprecated` — `inflight@1.0.6` e `glob` versoes antigas
+
+Todas as versoes citadas sao **transitivas** e nenhuma esta no `package.json`. `inflight` vem pelo
+Jest; as varias versoes de `glob` vem de dependencias com faixas diferentes entre si. Um projeto com
+942 pacotes e sete copias de `glob` e o estado normal do ecossistema Jest, nao um descuido. O
+`package.json` ja tem `glob@^13.0.6` na raiz, que e a versao atual.
+
+### `deprecated` — `eslint@9.39.5` sem suporte
+
+Este e o unico aviso que **nao** pode ser resolvido hoje. A serie 9 esta em manutencao e o `latest`
+e `10.11.0`. O bloqueio e o mesmo descrito na secao 1 deste documento:
+`typescript-eslint@8.70.1` nao implementa `scopeManager.addGlobals`, exigido pelo ESLint 10. Como o
+`peerDependencies` dele declara suporte a `^10.0.0`, **nao ha aviso de conflito que indique o
+problema** — a combinacao esta declarada como suportada e quebra em tempo de execucao.
+
+**Alternativa rejeitada.** `overrides` forcando `@babel/core: 7.x` para eliminar os `ERESOLVE`.
+Rejeitada porque mexe em transpilacao funcionando para ganho puramente estetico. Tambem
+rejeitada: `legacy-peer-deps=true`, que desliga o aviso sem resolver a causa e Tourna qualquer
+incompatibilidade futura silenciosa. Tambem rejeitada: subir o ESLint 10 com `overrides` no
+`typescript-eslint`, que repete o mesmo problema em outra dependencia.
+
+**Reavaliar quando.** O Jest 30 declarar suporte a Babel 8, ou o `eslint-config-next` relaxar a
+faixa de `typescript-eslint` para uma versao estavel com suporte funcional ao ESLint 10. Ate la,
+verificar se a suite continua verde e o unico criterio. E o aviso nao e vermelho: o `npm ci`
+termina com codigo 0 e `found 0 vulnerabilities`.
+
+---
+
+## 14. A Vercel faz o deploy, o GitHub Actions so verifica
+
+**Decisao.** Nao ha `vercel.json` no repositorio. O deploy e configurado no painel da Vercel, e o
+GitHub Actions nao participa do deploy.
+
+**Por que.** Vale registrar porque os dois nomes se confundem. A Vercel **nao usa GitHub Actions**.
+O que aparece no repositorio GitHub depois de um push sao _checks_ — o resultado do build da Vercel
+reportado no GitHub — e nao arquivos de workflow. Os dois arquivos em `.github/workflows/`,
+`test.yml` e `lint.yml`, sao do GitHub Actions e existem para verificar qualidade antes do deploy.
+
+Nao ha `vercel.json` porque a configuracao esta no painel, e a configuracao padrao da Vercel para
+Next.js ja detecta o framework e o build command. Um arquivo so seria necessario para algo que o
+padrao nao faz: `headers`, `rewrites`, `redirects`, ou uma funcao serverless. Nada disso existe no
+projeto hoje.
+
+A separacao de ambientes e feita pelo nome da branch, de forma implicita: `main` vira Production, e
+qualquer outra branch vira Preview com URL propria.
+
+**Alternativa rejeitada.** `vercel.json` com o build command explicito, so para tornar o
+deploy legivel no repositorio. Rejeitada porque duplica a configuracao do painel em dois lugares,
+que e o modo classico de divergirem.
+
+**Reavaliar quando.** Surgir necessidade de `headers`, `rewrites` ou `redirects`. Ate la, o painel
+e a fonte e o repositorio fica limpo. Se a configuracao do painel passar a ser relevante para
+alguem que so tem acesso ao repositorio, ai entao vale exportar um `vercel.json`.
+
+O que a Vercel **nao** resolve esta documentado em
+[environments.md](environments.md): Production, Preview e desenvolvimento local apontam para o
+mesmo projeto Supabase provisorio, e o mesmo `SUPABASE_SERVICE_ROLE_KEY` vale para os tres.
+
+---
+
+## 15. Regra de conteudo nao vira regra de ferramenta
 
 **Decisao.** Nao ha linter para Markdown. As regras de conteudo dos documentos ficam escritas e
 aplicadas por revisao.
@@ -280,7 +388,7 @@ de revisar justificar uma ferramenta.
 
 ---
 
-## 14. O `cz` e o Conventional Commit sao o mesmo padrao
+## 16. O `cz` e o Conventional Commit sao o mesmo padrao
 
 **Decisao.** O `commitlint.config.js` estende apenas `@commitlint/config-conventional`.
 
@@ -296,7 +404,7 @@ commitlint nao conheceria os nomes.
 
 ---
 
-## 15. Todo `jest.mock` usa factory, e o falso nasce dentro dela
+## 17. Todo `jest.mock` usa factory, e o falso nasce dentro dela
 
 **Decisao.** Nao existe `jest.mock("caminho")` sem segundo argumento em `tests/`. E a factory nao
 referencia nenhuma variavel declarada no arquivo de teste:
@@ -340,7 +448,7 @@ antigo. O que evita o erro e nao referenciar variavel externa.
 
 ---
 
-## 16. Gherkin e Cucumber ficam de fora
+## 18. Gherkin e Cucumber ficam de fora
 
 **Decisao.** Os testes de unidade sao Jest direto. Nao ha `features/`, nem cucumber-js, nem step
 definitions.
