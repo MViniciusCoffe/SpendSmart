@@ -305,8 +305,8 @@ describe("deleteTransaction", () => {
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
   })
 
-  it("traduz qualquer erro", async () => {
-    supabase.from.mockReturnValue(criarBuilder({ error: { code: "23503", message: "fk" } }))
+  it("traduz erro genérico quando não há branch específico", async () => {
+    supabase.from.mockReturnValue(criarBuilder({ error: { code: "08006", message: "fk" } }))
 
     await expect(transactionService.deleteTransaction(1)).rejects.toThrow(
       "Não foi possível deletar a transação."
