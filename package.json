@@ -40,6 +40,9 @@
     ]
   },
   "author": "MViniciusCoffe",
+  "engines": {
+    "node": ">=24.11.0"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
     "chart.js": "^4.5.1",
