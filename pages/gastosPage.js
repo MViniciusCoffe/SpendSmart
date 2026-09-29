@@ -1,72 +1,73 @@
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import styles from "./gastosPage.module.css";
-import withAuth from "../components/utils/withAuth";
-import Navbar from "../components/Navbar/navbarApp";
-import { transactionService } from "../services/transactionService";
-import { categoryService } from "../services/categoryService";
-
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import styles from "./gastosPage.module.css"
+import withAuth from "../components/utils/withAuth"
+import Navbar from "../components/Navbar/navbarApp"
+import { transactionService } from "../services/transactionService"
+import { categoryService } from "../services/categoryService"
 
 function GastosPage() {
   // Variáveis para salvar as Gastos
-  const [valor, setValor] = useState(0.0);
-  const [nome, setNome] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [data, setData] = useState();
-  const [formaPagamento, setFormaPagamento] = useState("");
+  const [valor, setValor] = useState(0.0)
+  const [nome, setNome] = useState("")
+  const [descricao, setDescricao] = useState("")
+  const [data, setData] = useState()
+  const [formaPagamento, setFormaPagamento] = useState("")
 
   // Verificar se o valor é válido
   const checkValorIsValid = () => {
-    return parseFloat(valor) > 0;
-  };
+    return parseFloat(valor) > 0
+  }
 
   // Tipos de erros usados em cada "aba"
-  const [addingErrorMessage, setAddingErrorMessage] = useState("");
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [addingErrorMessage, setAddingErrorMessage] = useState("")
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("")
 
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("add")
 
   // Variáveis para categorias e gastos
-  const [categories, setCategories] = useState([]);
-  const [categorySelected, setCategorySelected] = useState("");
-  const [expenses, setExpenses] = useState([]);
-  const [expenseSelected, setExpenseSelected] = useState("");
-  const [expenseDetails, setExpenseDetails] = useState(null);
+  const [categories, setCategories] = useState([])
+  const [categorySelected, setCategorySelected] = useState("")
+  const [expenses, setExpenses] = useState([])
+  const [expenseSelected, setExpenseSelected] = useState("")
+  const [expenseDetails, setExpenseDetails] = useState(null)
 
   // Ativa o useEffect para atualizar a lista de categorias e gastos
-  const [updateTrigger, setUpdateTrigger] = useState(0);
+  const [updateTrigger, setUpdateTrigger] = useState(0)
 
   useEffect(() => {
     const fetchDados = async () => {
       try {
         // Filtra categorias por despesas
-        const allCategories = await categoryService.getCategories();
-        const expensesCategories = allCategories.filter((cat) => cat.tipo === 'despesa');
-        setCategories(expensesCategories);
+        const allCategories = await categoryService.getCategories()
+        const expensesCategories = allCategories.filter(cat => cat.tipo === "despesa")
+        setCategories(expensesCategories)
 
         if (expensesCategories.length === 0 && activeTab === "add") {
-          alert("Não há categorias de despesa disponíveis. Por favor, adicione uma categoria antes de adicionar uma despesa.");
+          alert(
+            "Não há categorias de despesa disponíveis. Por favor, adicione uma categoria antes de adicionar uma despesa."
+          )
           // Substituir esses alerts depois
         }
 
         // Filtra transações por despesas
-        const allTransactions = await transactionService.getTransactions();
-        const expensesTransactions = allTransactions.filter((trans) => trans.tipo === 'despesa');
-        setExpenses(expensesTransactions);
+        const allTransactions = await transactionService.getTransactions()
+        const expensesTransactions = allTransactions.filter(trans => trans.tipo === "despesa")
+        setExpenses(expensesTransactions)
 
-        setAddingErrorMessage("");
-        setDeleteErrorMessage("");
+        setAddingErrorMessage("")
+        setDeleteErrorMessage("")
       } catch (error) {
-        console.error("Erro ao buscar categorias ou transações:", error);
+        console.error("Erro ao buscar categorias ou transações:", error)
       }
     }
 
-    fetchDados();
-  }, [updateTrigger]);
+    fetchDados()
+  }, [updateTrigger])
 
   // Função para salvar Despesas
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async e => {
+    e.preventDefault()
 
     try {
       await transactionService.createTransaction({
@@ -76,56 +77,56 @@ function GastosPage() {
         categoria_id: categorySelected,
         data_ocorrencia: data,
         descricao: descricao,
-        metodo_pagamento: formaPagamento,
-      });
+        metodo_pagamento: formaPagamento
+      })
 
-      setAddingErrorMessage("");
-      alert("Gasto adicionada com sucesso!");
+      setAddingErrorMessage("")
+      alert("Gasto adicionada com sucesso!")
 
       // Limpa campos
-      setNome("");
-      setValor(0.0);
-      setDescricao("");
-      setData("");
-      setFormaPagamento("");
-      setCategorySelected("");
+      setNome("")
+      setValor(0.0)
+      setDescricao("")
+      setData("")
+      setFormaPagamento("")
+      setCategorySelected("")
 
       // Roda o useEffect novamente, já que o valor de updateTrigger mudou
-      setUpdateTrigger((prev) => prev + 1);
+      setUpdateTrigger(prev => prev + 1)
     } catch (error) {
-      setAddingErrorMessage(error.message);
+      setAddingErrorMessage(error.message)
     }
-  };
+  }
 
   // Função para deletar Gastos
-  const handleDelete = async (e) => {
-    e.preventDefault();
+  const handleDelete = async e => {
+    e.preventDefault()
 
     try {
-      await transactionService.deleteTransaction(expenseSelected);
+      await transactionService.deleteTransaction(expenseSelected)
 
-      setDeleteErrorMessage("");
-      alert("Gasto excluída com sucesso!");
+      setDeleteErrorMessage("")
+      alert("Gasto excluída com sucesso!")
 
-      setExpenseSelected("");
-      setExpenseDetails(null);
-      setUpdateTrigger((prev) => prev + 1);
+      setExpenseSelected("")
+      setExpenseDetails(null)
+      setUpdateTrigger(prev => prev + 1)
     } catch (error) {
-      setDeleteErrorMessage(error.message);
+      setDeleteErrorMessage(error.message)
     }
-  };
+  }
 
   // Função para formatar o valor para o input
   const formatValor = () => {
     if (valor) {
-      const stringValor = String(valor);
+      const stringValor = String(valor)
       if (!stringValor.includes(".")) {
-        setValor(`${stringValor}.00`);
+        setValor(`${stringValor}.00`)
       } else if (stringValor.split(".")[1]?.length === 1) {
-        setValor(`${stringValor}0`);
+        setValor(`${stringValor}0`)
       }
     }
-  };
+  }
 
   return (
     <>
@@ -161,7 +162,7 @@ function GastosPage() {
                 id="nome"
                 value={nome}
                 placeholder="Ex: Supermercado"
-                onChange={(e) => setNome(e.target.value)}
+                onChange={e => setNome(e.target.value)}
               />
             </div>
 
@@ -175,10 +176,10 @@ function GastosPage() {
                 id="valor"
                 value={valor}
                 placeholder="Ex: 150.00"
-                onChange={(e) => {
-                  const regex = /^\d*(\.\d{0,2})?$/;
+                onChange={e => {
+                  const regex = /^\d*(\.\d{0,2})?$/
                   if (regex.test(e.target.value)) {
-                    setValor(e.target.value);
+                    setValor(e.target.value)
                   }
                 }}
                 onBlur={formatValor}
@@ -197,16 +198,20 @@ function GastosPage() {
                     className={styles.input_data_50}
                     id="categoria"
                     value={categorySelected}
-                    onChange={(e) => setCategorySelected(Number(e.target.value))}
+                    onChange={e => setCategorySelected(Number(e.target.value))}
                   >
-                    <option value="" disabled>Selecionar</option>
-                    {categories.map((categoria) => (
+                    <option value="" disabled>
+                      Selecionar
+                    </option>
+                    {categories.map(categoria => (
                       <option key={categoria.id} value={categoria.id}>
                         {categoria.nome}
                       </option>
                     ))}
                   </select>
-                  <Link href="/categoriaPage" className={styles.category_link}>+</Link>
+                  <Link href="/categoriaPage" className={styles.category_link}>
+                    +
+                  </Link>
                 </div>
               </div>
 
@@ -219,7 +224,7 @@ function GastosPage() {
                   type="date"
                   id="data"
                   value={data}
-                  onChange={(e) => setData(e.target.value)}
+                  onChange={e => setData(e.target.value)}
                   required
                 />
               </div>
@@ -235,7 +240,7 @@ function GastosPage() {
                 id="descricao"
                 value={descricao}
                 placeholder="Descrição (Opcional)"
-                onChange={(e) => setDescricao(e.target.value)}
+                onChange={e => setDescricao(e.target.value)}
               />
             </div>
 
@@ -249,13 +254,11 @@ function GastosPage() {
                 id="forma_pagamento"
                 value={formaPagamento}
                 placeholder="Ex: Cartão de Crédito, Pix (Opcional)"
-                onChange={(e) => setFormaPagamento(e.target.value)}
+                onChange={e => setFormaPagamento(e.target.value)}
               />
             </div>
 
-            {addingErrorMessage && (
-              <p className={styles.error_message}>{addingErrorMessage}</p>
-            )}
+            {addingErrorMessage && <p className={styles.error_message}>{addingErrorMessage}</p>}
 
             <div className={styles.button_group}>
               <button
@@ -281,15 +284,17 @@ function GastosPage() {
                 className={styles.input_data}
                 id="despesa"
                 value={expenseSelected}
-                onChange={(e) => {
-                  const selectedId = Number(e.target.value);
-                  setExpenseSelected(selectedId);
-                  const expense = expenses.find((exp) => exp.id === selectedId);
-                  setExpenseDetails(expense || null);
+                onChange={e => {
+                  const selectedId = Number(e.target.value)
+                  setExpenseSelected(selectedId)
+                  const expense = expenses.find(exp => exp.id === selectedId)
+                  setExpenseDetails(expense || null)
                 }}
               >
-                <option value="" disabled>Selecionar uma Despesa</option>
-                {expenses.map((gasto) => (
+                <option value="" disabled>
+                  Selecionar uma Despesa
+                </option>
+                {expenses.map(gasto => (
                   <option key={gasto.id} value={gasto.id}>
                     {gasto.titulo} {/* No serviço novo usamos titulo */}
                   </option>
@@ -298,29 +303,33 @@ function GastosPage() {
 
               <div className={styles.category_details}>
                 <h2>Detalhes da Despesa</h2>
-                <p><strong>Nome:</strong> {expenseDetails?.titulo || "Sem dados"}</p>
-                <p><strong>Valor:</strong> R$ {expenseDetails?.valor || "0.00"}</p>
-                <p><strong>Descrição:</strong> {expenseDetails?.descricao || "Nenhuma descrição fornecida."}</p>
+                <p>
+                  <strong>Nome:</strong> {expenseDetails?.titulo || "Sem dados"}
+                </p>
+                <p>
+                  <strong>Valor:</strong> R$ {expenseDetails?.valor || "0.00"}
+                </p>
+                <p>
+                  <strong>Descrição:</strong>{" "}
+                  {expenseDetails?.descricao || "Nenhuma descrição fornecida."}
+                </p>
                 <p>
                   <strong>Data:</strong>{" "}
                   {expenseDetails?.data
                     ? new Date(expenseDetails.data).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
-                <p><strong>Forma de Pagamento:</strong> {expenseDetails?.forma_pagamento || "Sem dados"}</p>
+                <p>
+                  <strong>Forma de Pagamento:</strong>{" "}
+                  {expenseDetails?.forma_pagamento || "Sem dados"}
+                </p>
               </div>
             </div>
 
-            {deleteErrorMessage && (
-              <p className={styles.error_message}>{deleteErrorMessage}</p>
-            )}
+            {deleteErrorMessage && <p className={styles.error_message}>{deleteErrorMessage}</p>}
 
             <div className={styles.button_group}>
-              <button
-                type="submit"
-                className={styles.delete_button}
-                disabled={!expenseSelected}
-              >
+              <button type="submit" className={styles.delete_button} disabled={!expenseSelected}>
                 Excluir Despesa
               </button>
             </div>
@@ -328,7 +337,7 @@ function GastosPage() {
         )}
       </div>
     </>
-  );
+  )
 }
 
-export default withAuth(GastosPage);
+export default withAuth(GastosPage)

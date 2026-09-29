@@ -46,15 +46,15 @@ cp .env.development.example .env.development
 
 ## Comandos
 
-| Comando | Efeito |
-| --- | --- |
-| `npm run services:up` | Sobe o container em background |
-| `npm run services:wait:database` | Aguarda a conexao usando `DATABASE_URL` |
-| `npm run services:stop` | Para o container, preserva o volume |
-| `npm run services:down` | Remove container, rede e volume |
-| `npm run migrations:up` | Aplica as migrations de `supabase/migrations/` |
-| `npm run migrations:down` | Desfaz a ultima migration |
-| `npm run migrations:create` | Cria um arquivo de migration com timestamp |
+| Comando                          | Efeito                                                  |
+| -------------------------------- | ------------------------------------------------------- |
+| `npm run services:up`            | Sobe o container em background                          |
+| `npm run services:wait:database` | Aguarda a conexao usando `DATABASE_URL`                 |
+| `npm run services:stop`          | Para o container, preserva o volume                     |
+| `npm run services:down`          | Remove container, rede e volume                         |
+| `npm run migrations:up`          | Aplica as migrations de `supabase/migrations/`          |
+| `npm run migrations:down`        | Desfaz a ultima migration                               |
+| `npm run migrations:create`      | Cria um arquivo de migration com timestamp              |
 | `npm run migrations:supabase:up` | Aplica as migrations no Supabase, lendo `.env.supabase` |
 
 `migrations:up` e `migrations:down` leem `.env.development`; `migrations:supabase:up` le
@@ -63,14 +63,14 @@ cp .env.development.example .env.development
 
 ## O que o Postgres local valida e o que nao valida
 
-| Valida | Nao valida |
-| --- | --- |
-| Criacao das tres tabelas e suas constraints | RLS — depende de `auth.users`, que nao existe aqui |
-| `check (type in ('income','expense'))` | Politicas de `auth.uid()` |
-| `check (amount > 0)` | `GRANT` de `service_role` e `authenticated` |
-| `unique (user_id, name, type)` | FK para `auth.users` e o `on delete cascade` |
-| `on delete restrict` de `transactions.category_id` | |
-| Os quatro indices | |
+| Valida                                             | Nao valida                                         |
+| -------------------------------------------------- | -------------------------------------------------- |
+| Criacao das tres tabelas e suas constraints        | RLS — depende de `auth.users`, que nao existe aqui |
+| `check (type in ('income','expense'))`             | Politicas de `auth.uid()`                          |
+| `check (amount > 0)`                               | `GRANT` de `service_role` e `authenticated`        |
+| `unique (user_id, name, type)`                     | FK para `auth.users` e o `on delete cascade`       |
+| `on delete restrict` de `transactions.category_id` |                                                    |
+| Os quatro indices                                  |                                                    |
 
 O guard `IF to_regclass('auth.users') IS NOT NULL` em `001_create_financial_schema.js:101` faz o
 PostgreSQL local pular silenciosamente toda a parte de Supabase. Consequencia: **um banco local

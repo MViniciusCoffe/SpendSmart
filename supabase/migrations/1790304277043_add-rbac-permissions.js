@@ -1,6 +1,6 @@
-exports.shorthands = undefined;
+exports.shorthands = undefined
 
-exports.up = (pgm) => {
+exports.up = pgm => {
   pgm.sql(`
     DO $$
     BEGIN
@@ -19,10 +19,10 @@ exports.up = (pgm) => {
       END IF;
     END
     $$;
-  `);
-};
+  `)
+}
 
-exports.down = (pgm) => {
+exports.down = pgm => {
   pgm.sql(`
     DO $$
     BEGIN
@@ -37,5 +37,5 @@ exports.down = (pgm) => {
       END IF;
     END
     $$;
-  `);
-};
+  `)
+}

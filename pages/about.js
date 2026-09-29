@@ -1,10 +1,7 @@
-import React from "react";
+import React from "react"
 
 function Sobre() {
-  return (
-    <>
-    </>
-  );
+  return <></>
 }
 
-export default Sobre;
+export default Sobre

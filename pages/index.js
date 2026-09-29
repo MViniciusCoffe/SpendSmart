@@ -1,7 +1,7 @@
-import React from "react";
-import Navbar from "../components/Navbar/navbar";
-import styles from "./index.module.css";
-import Link from "next/link";
+import React from "react"
+import Navbar from "../components/Navbar/navbar"
+import styles from "./index.module.css"
+import Link from "next/link"
 
 function Home() {
   return (
@@ -36,7 +36,8 @@ function Home() {
           <div className={styles.slide_text}>
             <span>Bem vindo a SpendSmart</span>
             <h1>
-            Organize seus gastos,<br /> realize seus sonhos.
+              Organize seus gastos,
+              <br /> realize seus sonhos.
             </h1>
             <div className={styles.slide_buttons}>
               <Link href="/about">Saiba Mais!</Link>
@@ -58,7 +59,7 @@ function Home() {
         </div>
       </div>
     </>
-  );
+  )
 }
 
-export default Home;
+export default Home

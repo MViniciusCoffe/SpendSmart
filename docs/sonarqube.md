@@ -11,14 +11,14 @@ LABENS (UFRN). Cobre a Tarefa 01 da disciplina de Testes de Software.
 
 ## 1. Servidor
 
-| Item | Valor |
-| --- | --- |
-| URL do servidor | `http://labens.dct.ufrn.br/sonarqube` |
-| Versao | SonarQube Community Build v25.12.0.117093 |
-| Autenticacao | GitHub OAuth (`Log in with GitHub`) |
-| Organizacao obrigatoria | `EngSoft-BSI-Hub` |
+| Item                       | Valor                                      |
+| -------------------------- | ------------------------------------------ |
+| URL do servidor            | `http://labens.dct.ufrn.br/sonarqube`      |
+| Versao                     | SonarQube Community Build v25.12.0.117093  |
+| Autenticacao               | GitHub OAuth (`Log in with GitHub`)        |
+| Organizacao obrigatoria    | `EngSoft-BSI-Hub`                          |
 | Grupo concedido apos login | `es2-users` (permite rodar o SonarScanner) |
-| Funcao extra da disciplina | Nao compoe a nota da T1 |
+| Funcao extra da disciplina | Nao compoe a nota da T1                    |
 
 ---
 
@@ -54,12 +54,12 @@ Este passo ainda nao foi executado. Uma vez, no navegador:
 O exemplo distribuido pela disciplina e para **Python** (Django + `coverage.xml`). O SpendSmart e
 **JavaScript**, entao tres linhas mudam:
 
-| Chave | Exemplo Python | Versao deste projeto |
-| --- | --- | --- |
-| `sonar.language` | `py` | `js` |
-| `sonar.sources.inclusions` | `**/**.py` | removida — desnecessaria em JS |
-| `sonar.test.inclusions` | `**/test_**.py` | `**/*.test.js` |
-| Relatorio de cobertura | `sonar.python.coverage.reportPaths=coverage.xml` | `sonar.javascript.lcov.reportPaths=coverage/lcov.info` |
+| Chave                      | Exemplo Python                                   | Versao deste projeto                                   |
+| -------------------------- | ------------------------------------------------ | ------------------------------------------------------ |
+| `sonar.language`           | `py`                                             | `js`                                                   |
+| `sonar.sources.inclusions` | `**/**.py`                                       | removida — desnecessaria em JS                         |
+| `sonar.test.inclusions`    | `**/test_**.py`                                  | `**/*.test.js`                                         |
+| Relatorio de cobertura     | `sonar.python.coverage.reportPaths=coverage.xml` | `sonar.javascript.lcov.reportPaths=coverage/lcov.info` |
 
 Conteudo adapted, a ser gravado na raiz do repositorio:
 
@@ -158,11 +158,11 @@ Configurar o workflow com um passo adicional usando o token como secret:
 3. O passo do workflow:
 
 ```yaml
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v6
-        env:
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+- name: SonarQube Scan
+  uses: sonarsource/sonarqube-scan-action@v6
+  env:
+    SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 ```
 
 > Use a **Actions secret** para o token, nunca uma variavel de ambiente do repositorio — variaveis
@@ -172,16 +172,16 @@ Configurar o workflow com um passo adicional usando o token como secret:
 
 ## 7. Pendencias
 
-| Item | Estado | Issue |
-| --- | --- | --- |
-| Projeto criado no painel do LABENS | Nao feito | — |
-| `sonar-project.properties` na raiz | Nao criado | #19 |
-| Token como secret no repositorio | Nao feito | #19 |
-| `sonar-project.properties` adaptado a JS (exemplo acima) | Pronta para aplicar | #19 |
-| Workflow com passo do SonarQube | Nao feito | #19 |
-| Suite de testes executando | Nao funciona | #26 |
-| `babel.config.js` | Ausente | #26 |
-| `lcov` gerado em `coverage/lcov.info` | Nao gerado | #17 |
+| Item                                                     | Estado              | Issue |
+| -------------------------------------------------------- | ------------------- | ----- |
+| Projeto criado no painel do LABENS                       | Nao feito           | —     |
+| `sonar-project.properties` na raiz                       | Nao criado          | #19   |
+| Token como secret no repositorio                         | Nao feito           | #19   |
+| `sonar-project.properties` adaptado a JS (exemplo acima) | Pronta para aplicar | #19   |
+| Workflow com passo do SonarQube                          | Nao feito           | #19   |
+| Suite de testes executando                               | Nao funciona        | #26   |
+| `babel.config.js`                                        | Ausente             | #26   |
+| `lcov` gerado em `coverage/lcov.info`                    | Nao gerado          | #17   |
 
 A ordem importa: **#26 antes de #17 antes de #19**. Sem suite executando nao ha cobertura, e sem
 cobertura a analise do Sonar so mede o vazio.

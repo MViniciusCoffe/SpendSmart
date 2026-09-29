@@ -41,8 +41,8 @@
 
 .input_data:focus {
   outline: none;
-  border-color: #0E683A;
-  box-shadow: 0 0 0.2rem #0E683A;
+  border-color: #0e683a;
+  box-shadow: 0 0 0.2rem #0e683a;
 }
 
 .button_group {
@@ -55,7 +55,7 @@
 
 .save_button {
   padding: 0.75rem;
-  background-color: #0E683A;
+  background-color: #0e683a;
   color: white;
   font-size: 1rem;
   border: none;
@@ -86,7 +86,7 @@
 
 .save_button:hover {
   transform: scale(105%);
-  background-color: #0E683A;
+  background-color: #0e683a;
 }
 
 .delete_button {

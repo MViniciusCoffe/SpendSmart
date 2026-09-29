@@ -1,5 +1,5 @@
-import Link from "next/link";
-import styles from "./navbar.module.css";
+import Link from "next/link"
+import styles from "./navbar.module.css"
 
 function navbar() {
   return (
@@ -24,7 +24,7 @@ function navbar() {
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
-export default navbar;
+export default navbar

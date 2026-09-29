@@ -1,18 +1,23 @@
-import Link from "next/link";
-import styles from "./navbarApp.module.css";
-import { useRouter } from "next/router";
-import { supabase } from "../../infra/supabase";
+import Link from "next/link"
+import styles from "./navbarApp.module.css"
+import { useRouter } from "next/router"
+import { authService } from "../../services/authServices"
 
 function NavbarApp() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const handleLogout = async (e) => {
-    e.preventDefault();
+  const handleLogout = async e => {
+    e.preventDefault()
 
-    // Desloga do Supabase
-    await supabase.auth.signOut(); 
-    router.replace("/login"); 
-  };
+    try {
+      await authService.logoutUser()
+      router.replace("/login")
+    } catch (error) {
+      // A navbar não tem onde exibir erro, então registra e fica na tela.
+      // Redirecionar apesar da falha jogaria o usuário no login sem sessão
+      console.error("[Supabase Logout Error]", error.message)
+    }
+  }
 
   return (
     <div className={styles.navbar}>
@@ -21,23 +26,30 @@ function NavbarApp() {
       </div>
       <div className={styles.navigation}>
         <ul className={styles.links}>
-          <li><Link href="/dashboard">Dashboard</Link></li>
-          <li><Link href="/rendaPage">Configurar Receitas</Link></li>
-          <li><Link href="/gastosPage">Configurar Despesas</Link></li>
-          <li><Link href="/categoriaPage">Configurar Categorias</Link></li>
-          <li><Link href="/accountConfig">Configurações da conta</Link></li>
           <li>
-            <button
-              className={styles.exit_button}
-              onClick={(e) => handleLogout(e)}
-            >
+            <Link href="/dashboard">Dashboard</Link>
+          </li>
+          <li>
+            <Link href="/rendaPage">Configurar Receitas</Link>
+          </li>
+          <li>
+            <Link href="/gastosPage">Configurar Despesas</Link>
+          </li>
+          <li>
+            <Link href="/categoriaPage">Configurar Categorias</Link>
+          </li>
+          <li>
+            <Link href="/accountConfig">Configurações da conta</Link>
+          </li>
+          <li>
+            <button className={styles.exit_button} onClick={e => handleLogout(e)}>
               Sair
             </button>
           </li>
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
-export default NavbarApp;
+export default NavbarApp

@@ -83,12 +83,12 @@ SpendSmart/
 
 A separacao de responsabilidades adotada:
 
-| Camada | Arquivo | Responsabilidade |
-| --- | --- | --- |
-| Interface | `pages/` | React, validacao de formulario, chamada ao service |
-| Negocio | `services/` | Regra de negocio, traducao PT/EN, mensagem de erro em portugues |
-| Cliente | `infra/supabase.js` | Instancia unica do `createClient` |
-| Privilegiado | `pages/api/` | Unico lugar que le `SUPABASE_SERVICE_ROLE_KEY` |
+| Camada       | Arquivo             | Responsabilidade                                                |
+| ------------ | ------------------- | --------------------------------------------------------------- |
+| Interface    | `pages/`            | React, validacao de formulario, chamada ao service              |
+| Negocio      | `services/`         | Regra de negocio, traducao PT/EN, mensagem de erro em portugues |
+| Cliente      | `infra/supabase.js` | Instancia unica do `createClient`                               |
+| Privilegiado | `pages/api/`        | Unico lugar que le `SUPABASE_SERVICE_ROLE_KEY`                  |
 
 ---
 
@@ -113,30 +113,29 @@ A separacao de responsabilidades adotada:
 Isto importa mais do que qualquer checklist antigo: o repositorio esta em **revitalizacao** e varios
 itens que pareciam prontos nao estao.
 
-| Item | Estado |
-| --- | --- |
-| Cadastro, login, logout, perfil | Funcionando |
-| Categorias: criar, listar, alterar, excluir | Funcionando |
-| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos |
-| Dashboard com graficos | Funcionando |
-| Excluir conta | Funcionando |
-| Testes de unidade | **Nenhum sobre o codigo vivo** |
-| Testes de integracao | **Nenhum** |
-| `npm test` | **Falha** — ver abaixo |
-| CI no GitHub Actions | **Quebrado** — aponta para um servico removido |
-| RLS aplicado e validado | **Nunca foi validado** com dois usuarios |
-| Ambientes separados | **Nao existem** — um unico banco para tudo |
+| Item                                        | Estado                                       |
+| ------------------------------------------- | -------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                  |
+| Categorias: criar, listar, alterar, excluir | Funcionando                                  |
+| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos         |
+| Dashboard com graficos                      | Funcionando                                  |
+| Excluir conta                               | Funcionando                                  |
+| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**        |
+| Testes de integracao                        | **Nenhum**                                   |
+| `npm test`                                  | **Passa** — 65/65, sem erro                  |
+| CI no GitHub Actions                        | **Dois workflows** — `test.yml` e `lint.yml` |
+| RLS aplicado e validado                     | **Nunca foi validado** com dois usuarios     |
+| Ambientes separados                         | **Nao existem** — um unico banco para tudo   |
 
 ### Defeitos conhecidos
 
-| # | Problema |
-| --- | --- |
-| [#10](https://github.com/MViniciusCoffe/SpendSmart/issues/10) | Receitas salvas sem titulo: o input esta ligado a `nome`, o envio usa `fonteRenda` |
+| #                                                             | Problema                                                                                                                    |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [#10](https://github.com/MViniciusCoffe/SpendSmart/issues/10) | Receitas salvas sem titulo: o input esta ligado a `nome`, o envio usa `fonteRenda`                                          |
 | [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21) | Detalhe de transacao sempre vazio: a UI le `data`/`forma_pagamento`, o service devolve `data_ocorrencia`/`metodo_pagamento` |
-| [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas |
-| [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas publicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente |
-| [#25](https://github.com/MViniciusCoffe/SpendSmart/issues/25) | Cadastro sem rollback: se o perfil falhar, sobra uma conta no Auth sem perfil |
-| [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26) | `npm test` falha e exercita `services/categoriaService.js`, que e codigo morto e nao e importado por nenhuma pagina |
+| [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                                                            |
+| [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas publicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente                                |
+| [#25](https://github.com/MViniciusCoffe/SpendSmart/issues/25) | Cadastro sem rollback: se o perfil falhar, sobra uma conta no Auth sem perfil                                               |
 
 ### Sobre o RLS nunca ter sido validado
 
@@ -158,42 +157,40 @@ arquivos abaixo, em Markdown.
 
 ### Requisitos e testes
 
-| Documento | Conteudo |
-| --- | --- |
+| Documento                            | Conteudo                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------- |
 | [User Stories](docs/user-stories.md) | `US-001` a `US-016`, derivadas de RF01 a RF16, com criterios de aceitacao |
-| [Plano de testes](docs/test-plan.md) | niveis de teste, 10 casos de integracao, matriz US/RF, riscos |
+| [Plano de testes](docs/test-plan.md) | niveis de teste, 10 casos de integracao, matriz US/RF, riscos             |
 
 ### Arquitetura e dados
 
-| Documento | Conteudo |
-| --- | --- |
-| [Esquema do banco](docs/database-schema.md) | tabelas, constraints, indices, 3FN, RLS, limites conhecidos |
-| [Opcoes de arquitetura](docs/architecture-options.md) | ADR de 2026-09-22: as opcoes avaliadas e a adotada |
-| [Migracoes futuras](docs/future-migrations.md) | propostas em SQL para `profiles` em ingles, `updated_at` e coerencia de `type` |
-| [Infraestrutura local](docs/local-infrastructure.md) | Docker Compose, comandos e o que o Postgres local nao valida |
+| Documento                                             | Conteudo                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [Esquema do banco](docs/database-schema.md)           | tabelas, constraints, indices, 3FN, RLS, limites conhecidos                    |
+| [Opcoes de arquitetura](docs/architecture-options.md) | ADR de 2026-09-22: as opcoes avaliadas e a adotada                             |
+| [Migracoes futuras](docs/future-migrations.md)        | propostas em SQL para `profiles` em ingles, `updated_at` e coerencia de `type` |
+| [Infraestrutura local](docs/local-infrastructure.md)  | Docker Compose, comandos e o que o Postgres local nao valida                   |
 
 ### Operacao
 
-| Documento | Conteudo |
-| --- | --- |
-| [Ambientes](docs/environments.md) | matriz de ambientes, variaveis, o problema do `npm run dev` |
-| [SonarQube](docs/sonarqube.md) | analise estatica no LABENS, com `sonar-project.properties` adapted a JS |
+| Documento                         | Conteudo                                                                |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| [Ambientes](docs/environments.md) | matriz de ambientes, variaveis, o problema do `npm run dev`             |
+| [SonarQube](docs/sonarqube.md)    | analise estatica no LABENS, com `sonar-project.properties` adapted a JS |
 
 ## Trabalho academico em andamento
 
 Issues abertas, em ordem de dependencia:
 
-| # | Assunto | Bloqueia |
-| --- | --- | --- |
-| [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26) | Corrigir a suite e o CI | #15, #16, #18 |
-| [#15](https://github.com/MViniciusCoffe/SpendSmart/issues/15) | Testes de unidade | #17 |
-| [#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16) | Testes de integracao | #17 |
-| [#17](https://github.com/MViniciusCoffe/SpendSmart/issues/17) | Cobertura LCOV | #19 |
-| [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS | Tarefa 01 |
-| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2) | Supabase CLI e ambiente local | #24 |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Protecao server-side e headers | — |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes | #18 |
-| [#18](https://github.com/MViniciusCoffe/SpendSmart/issues/18) | Workflow de CI | Tarefa 01 |
+| #                                                             | Assunto                        | Bloqueia  |
+| ------------------------------------------------------------- | ------------------------------ | --------- |
+| [#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16) | Testes de integracao           | #17       |
+| [#17](https://github.com/MViniciusCoffe/SpendSmart/issues/17) | Cobertura LCOV                 | #19       |
+| [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS               | Tarefa 01 |
+| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e ambiente local  | #24       |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Protecao server-side e headers | —         |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | #18       |
+| [#18](https://github.com/MViniciusCoffe/SpendSmart/issues/18) | Workflow de CI                 | Tarefa 01 |
 
 ---
 
@@ -206,5 +203,5 @@ docs:    feat:    fix:    refactor:    test:    chore:
 ```
 
 Regra dura: **nao misturar migracao de banco, refactor visual e infra no mesmo commit.** O corpo
-do commit explica o *por que*, nao o *o que*. Nenhum commit deve afirmar que algo funciona sem dizer
+do commit explica o _por que_, nao o _o que_. Nenhum commit deve afirmar que algo funciona sem dizer
 como foi verificado.
