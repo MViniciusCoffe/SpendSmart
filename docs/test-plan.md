@@ -245,26 +245,26 @@ A separacao e em dois niveis, porque nao toda verificacao precisa de Auth:
 - [ ] Todos os casos de aceitacao executados
 - [ ] Nenhum defeito de prioridade alta ou critica aberto
 - [ ] Testes de unidade e integracao concluidos
-- [ ] Relatorio de cobertura gerado em formato `lcov`
+- [x] Relatorio de cobertura gerado em formato `lcov` — `coverage/lcov.info`, 100% em `services/`
 - [ ] As User Stories atendem aos proprios criterios de aceitacao
 
 ---
 
 ## 8. Ferramentas
 
-| Categoria            | Ferramenta                                               | Uso                                                                     |
-| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Testes unitarios     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                    |
-| Transformacao        | `babel-jest` com `preset-env` inline no `jest.config.js` | Converte ESM. Nao existe `babel.config.js` no repositorio, de proposito |
-| Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatorio consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)   |
-| Testes de integracao | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                           |
-| Gestao de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                            |
-| Lint                 | ESLint 9, flat config                                    | `eslint.config.js`. Erro e aviso                                        |
-| Formatacao           | Prettier 3                                               | Arquivos de staged, via `lint-staged` no `pre-commit`                   |
-| Padrao de commit     | Commitlint + Husky                                       | Conventional Commits                                                    |
-| Analise estatica     | SonarQube Community Build (LABENS)                       | Analise e cobertura — ver [sonarqube.md](sonarqube.md)                  |
-| Execucao continua    | GitHub Actions                                           | `install` -> `test` -> `coverage` -> `sonar`                            |
-| Banco                | PostgreSQL 16                                            | Persistencia e verificacao de constraints                               |
+| Categoria            | Ferramenta                                               | Uso                                                                                                         |
+| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Testes unitarios     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                        |
+| Transformacao        | `babel-jest` com `preset-env` inline no `jest.config.js` | Converte ESM. Nao existe `babel.config.js` no repositorio, de proposito                                     |
+| Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatorio consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                       |
+| Testes de integracao | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                               |
+| Gestao de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                                                                |
+| Lint                 | ESLint 9, flat config                                    | `eslint.config.js`. Erro e aviso                                                                            |
+| Formatacao           | Prettier 3                                               | Arquivos de staged, via `lint-staged` no `pre-commit`                                                       |
+| Padrao de commit     | Commitlint + Husky                                       | Conventional Commits                                                                                        |
+| Analise estatica     | SonarQube Community Build (LABENS), projeto `spendsmart` | Analise, cobertura LCOV e code smells — ver [sonarqube.md](sonarqube.md)                                    |
+| Execucao continua    | GitHub Actions                                           | `install` -> `test` -> `coverage` -> `sonar`. Tres workflows separados: `lint.yml`, `test.yml`, `sonar.yml` |
+| Banco                | PostgreSQL 16                                            | Persistencia e verificacao de constraints                                                                   |
 
 **Por que o ESLint esta na serie 9 e nao na 10.** O `typescript-eslint@8.70.1` que vem no
 `eslint-config-next` nao implementa `scopeManager.addGlobals`, exigido pelo ESLint 10. Como o
