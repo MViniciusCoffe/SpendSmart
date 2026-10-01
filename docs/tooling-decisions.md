@@ -7,8 +7,9 @@ projeto esta configurado assim.
 Cada entrada tem quatro partes: a decisao, o motivo, a alternativa que foi descartada e a condicao
 para rever. Onde a decisao veio de um problema concreto, o erro original esta citado.
 
-Nomes de arquivo em ingles, conteudo em portugues, sem acentos — a mesma convencao de
-[test-plan.md](test-plan.md) e do [README](../README.md).
+Nomes de arquivo em ingles, conteudo em portugues. A ausencia de acentos neste arquivo **nao e uma
+convencao adotada** — e residuo de geracao automatica que nao foi revisado. Os demais documentos
+devem seguir a mesma forma ate que a correcao seja feita de proposito.
 
 ---
 
@@ -472,3 +473,97 @@ cobertura.
 caminho barato e: manter os testes em Jest, e escrever os `.feature` **depois**, a partir dos testes
 que ja existirem, para IT-01 a IT-10 e para os criterios de aceitacao. Nao reescrever a unidade em
 Gherkin, porque e exatamente onde o ganho vira.prejuizo.
+
+---
+
+## 19. O SonarQube mede so `services/`, e os testes rodam antes do scan
+
+**Decisao.** `sonar.sources=services`, sem `sonar.exclusions`, e `.github/workflows/sonar.yml` roda
+`npm ci` e `npm run test:coverage` antes de chamar o `sonarqube-scan-action@v7`.
+
+**Por que o escopo.** O `jest.config.js` mede apenas `services/` (`collectCoverageFrom`, entrada 4).
+A entrada 4 ja havia registrado por que medir so a unidade: o artefato de cobertura nao pode depender
+de um job que sobe Docker. A consequencia no Sonar e aritmetica, e ela precisa ficar escrita porque
+o painel mostra 100% e isso sozinho nao prova nada.
+
+| Diretorio    | Arquivos | Linhas | No LCOV |
+| ------------ | -------- | ------ | ------- |
+| `services`   | 4        | 348    | sim     |
+| `pages`      | 12       | 1.834  | nao     |
+| `components` | 3        | 112    | nao     |
+| `infra`      | 3        | 82     | nao     |
+| `supabase`   | 2        | 155    | nao     |
+
+Com o repositorio inteiro em `sonar.sources`, o painel mostraria 348 / 2.531, ou seja cerca de 14%.
+Nao e defeito de medicao: e pedir para medir 2.531 linhas e entregar prova de 348. Um relatorio que
+so descreve o que foi testado e defensavel; um relatorio que mistura "codigo nao testado" com "codigo
+que ninguem pediu para testar ainda" produz um numero que nao descreve nem um nem outro.
+
+O efeito colateral e o **0% de duplicacao** no painel. A duplicacao real existe, cerca de 1.100
+linhas repetidas entre `pages/gastosPage.js` e `pages/rendaPage.js`, e esta em #6 e #22. Ela nao
+aparece porque `pages/` esta fora do escopo. Quem apresentar o resultado precisa dizer isso, senao o
+0% e lido como "o projeto nao tem duplicacao".
+
+**Por que rodar os testes antes do scan.** O SonarQube nao executa teste nenhum: e analisador
+estatico, e `sonar.javascript.lcov.reportPaths` e um caminho para ele abrir e ler. Sem o arquivo, ele
+avisa e segue:
+
+```text
+WARN: No coverage information will be saved because all LCOV files cannot be found.
+```
+
+`coverage/` esta no `.gitignore` e nunca foi versionado (`git log --all -- coverage` retorna vazio).
+Um workflow que so faz checkout e chama o scanner produz uma analise **verde** com 0% de cobertura — o
+modo de falha mais ingrata possivel, porque nada no log indica que o numero principal nao foi medido.
+
+Rodar a cobertura no mesmo job tem dois efeitos colaterais desejados: cada relatorio corresponde ao
+codigo exato analisado, e um commit com teste quebrado interrompe o pipeline antes da analise. O
+custo e de cerca de 40 segundos de CI, porque o `npm ci` domina.
+
+**Por que sem `sonar.exclusions`.** O exemplo da disciplina tem nove padroes especificos de Django
+(`sigarte`, `manage.py`, `__init__.*`). Com `sonar.sources=services`, os quatro arquivos `.js` da
+pasta sao tudo que existe no escopo, entao as nove exclusoes seriam inertes. Padrao que nao faz nada
+e pior que padrao ausente: sugere uma configuracao mais cuidadosa do que a real. Vale registrar que
+o Sonar ja respeita o `.gitignore` sozinho, entao `node_modules/` e `coverage/` vem de graca.
+
+**Alternativa rejeitada.** `sonar.sources` com o repositorio inteiro. Numericamente correto e
+descritivamente inutil.
+
+**Reavaliar quando.** #33 for fechada. Ampliar o escopo e entao um commit isolado em dois arquivos
+(`sonar.sources` e `collectCoverageFrom`), porque a cobertura do projeto cai para a faixa real e a
+duplicacao de `pages/` passa a ser medida como nao coberta.
+
+---
+
+## 20. `sonarqube-scan-action@v7`, `checkout@v5`, e o host como secret
+
+**Decisao.** `sonarqube-scan-action@v7` e `actions/checkout@v5`, com `fetch-depth: 0` e
+`SONAR_HOST_URL` lido de `secrets.`, nao de `vars.`.
+
+**Por que `@v7` e nao `@v6`.** A `v6` foi reescrita de Bash para JavaScript e passou a parsear `args`
+de forma diferente, o que quebra workflow que passa argumentos. O LABENS roda a serie 26, e a
+documentacao da serie 26.2 usa `v7`. A `v8.2.1` existe, mas nao ha ganho conhecido para um projeto
+com quatro arquivos no escopo.
+
+**Por que `checkout@v5` e nao `@v6`.** A `v6` move as credenciais para `$RUNNER_TEMP` e passa a exigir
+runner `>= 2.327.1`. O changelog e explicito de que nao ha mudanca necessaria no workflow. Os jobs
+sao Ubuntu, sem container e sem `git push`, entao nao ha ganho em subir. Este e o caso concreto do
+`AGENTS.md` §8: dependencia nova sem justificativa.
+
+**Por que `fetch-depth: 0`.** Sem clone completo o Sonar nao le o historico Git, e sem ele nao ha blame
+nem calculo de codigo novo. O log da analise confirma: `SCM Publisher 8/8 source files have been
+analyzed`.
+
+**Por que `secrets.` e nao `vars.` para o host.** O template do SonarSource usa `vars.` para
+`SONAR_HOST_URL` e `secrets.` para `SONAR_TOKEN`. No LABENS os dois foram gravados como secret, entao
+`${{ vars.SONAR_HOST_URL }}` resolveria para string vazia e o scanner falharia com erro de URL
+invalida — mensagem que nao aponta a causa, e custa uma execucao de CI para diagnosticar. Ambos os
+prefixos funcionam com o que esta gravado; host nao e dado sensivel. A distincao importa para o token,
+que precisa permanecer mascarado nos logs.
+
+**Alternativa rejeitada.** Gravar `SONAR_HOST_URL` como repository variable para seguir o template ao
+pe da letra. Custa um passo extra no setup e nao muda nada no resultado.
+
+**Reavaliar quando.** O LABENS migrar de serie, ou a analise passar a rodar em pipeline que use
+`args` com aspas — nesse caso conferir a sintaxe da documentacao da action vigente, porque mudou na
+`v6` e pode mudar de novo.

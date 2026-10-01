@@ -173,10 +173,10 @@ arquivos abaixo, em Markdown.
 
 ### Operacao
 
-| Documento                         | Conteudo                                                                |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| [Ambientes](docs/environments.md) | matriz de ambientes, variaveis, o problema do `npm run dev`             |
-| [SonarQube](docs/sonarqube.md)    | analise estatica no LABENS, com `sonar-project.properties` adapted a JS |
+| Documento                         | Conteudo                                                                     |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| [Ambientes](docs/environments.md) | matriz de ambientes, variaveis, o problema do `npm run dev`                  |
+| [SonarQube](docs/sonarqube.md)    | analise estatica no LABENS: escopo medido, cobertura, resultado e pendencias |
 
 ## Trabalho academico em andamento
 
@@ -189,8 +189,11 @@ Issues abertas, em ordem de dependencia:
 | [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS               | Tarefa 01 |
 | [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e ambiente local  | #24       |
 | [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Protecao server-side e headers | —         |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | #18       |
-| [#18](https://github.com/MViniciusCoffe/SpendSmart/issues/18) | Workflow de CI                 | Tarefa 01 |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —         |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —         |
+| [#29](https://github.com/MViniciusCoffe/SpendSmart/issues/29) | `createProfile` sem token      | —         |
+
+Resolvidos pela frente de testes, CI e SonarQube: #15, #17, #18, #19, #26 e #31.
 
 ---
 
