@@ -1,16 +1,16 @@
-# Opcoes de arquitetura
+# Opções de arquitetura
 
-> **Registro de decisao (ADR).** Documento de 2026-09-22, preservado como registro do que foi
-> avaliado e do que foi decidido. Nao descreve a estrutura de pastas atual — essa esta no
+> **Registro de decisão (ADR).** Documento de 2026-09-22, preservado como registro do que foi
+> avaliado e do que foi decidido. Não descreve a estrutura de pastas atual — essa está no
 > `README.md`.
 
 ## Contexto
 
-O projeto precisava de autenticacao e autorizacao confiaveis sem operacao de backend propria. Foram
-avaliadas tres formas de atender a isso. A Opcao A foi adotada; as opcoes B e C nao foram
+O projeto precisava de autenticação e autorização confiáveis sem operação de backend própria. Foram
+avaliadas três formas de atender a isso. A Opção A foi adotada; as opções B e C não foram
 seguidas.
 
-## Opcao A: Next.js + Supabase direto
+## Opção A: Next.js + Supabase direto
 
 ```text
 Navegador
@@ -24,24 +24,24 @@ Next.js na Vercel
 
 ### Vantagens
 
-- Menor quantidade de aplicacoes para operar.
-- Supabase Auth resolve cadastro, login, sessao e logout.
+- Menor quantidade de aplicações para operar.
+- Supabase Auth resolve cadastro, login, sessão e logout.
 - RLS aplica isolamento no banco.
 - Deploy simples na Vercel.
-- Nenhuma aplicacao adicional para hospedar ou monitorar.
+- Nenhuma aplicação adicional para hospedar ou monitorar.
 
 ### Riscos e cuidados
 
-- As regras de negocio precisam ficar bem organizadas em uma camada de servicos no frontend/server.
-- Operacoes privilegiadas nao podem usar a chave service role no navegador.
-- Agregacoes complexas podem exigir funcoes SQL ou rotas server-side.
-- A politica RLS precisa ser testada com mais de um usuario.
+- As regras de negócio precisam ficar bem organizadas em uma camada de serviços no frontend/server.
+- Operações privilegiadas não podem usar a chave service role no navegador.
+- Agregações complexas podem exigir funções SQL ou rotas server-side.
+- A política RLS precisa ser testada com mais de um usuário.
 
 ### Quando escolher
 
-E a opcao recomendada para o tamanho atual do SpendSmart, desde que o produto nao precise de processamento de longa duracao, filas ou integracoes privadas complexas. **Foi a adotada.**
+É a opção recomendada para o tamanho atual do SpendSmart, desde que o produto não precise de processamento de longa duração, filas ou integrações privadas complexas. **Foi a adotada.**
 
-## Opcao B: Next.js + Route Handlers/API do proprio Next.js
+## Opção B: Next.js + Route Handlers/API do próprio Next.js
 
 ```text
 Navegador
@@ -56,78 +56,78 @@ Next.js na Vercel
 
 ### Vantagens
 
-- Mantem uma camada server-side para validacao e regras de negocio.
+- Mantém uma camada server-side para validação e regras de negócio.
 - Evita CORS entre frontend e backend.
-- Continua com um unico deploy.
-- Facilita esconder operacoes que nao devem ocorrer no navegador.
+- Continua com um único deploy.
+- Facilita esconder operações que não devem ocorrer no navegador.
 
 ### Riscos e cuidados
 
 - Exige migrar o Pages Router atual ou adicionar endpoints de forma compatível.
-- Route Handlers na Vercel sao serverless; nao devem depender de estado em memoria.
-- Ainda e necessario configurar corretamente a sessao do Supabase no servidor.
+- Route Handlers na Vercel são serverless; não devem depender de estado em memória.
+- Ainda é necessário configurar corretamente a sessão do Supabase no servidor.
 
 ### Quando escolher
 
-Nao adotada. Boa opcao se as regras de negocio crescerem, mas ainda nao justificarem um servico separado.
+Não adotada. Boa opção se as regras de negócio crescerem, mas ainda não justificarem um serviço separado.
 
-## Opcao C: Next.js + backend separado
+## Opção C: Next.js + backend separado
 
 ```text
 Navegador -> Vercel/Next.js -> API do backend -> Supabase PostgreSQL
                                           |
-                                          +-- Supabase Auth ou validacao de sessao
+                                          +-- Supabase Auth ou validação de sessão
 ```
 
 ### Vantagens
 
 - Fronteira clara entre frontend e backend.
-- Boa opcao para regras de negocio reutilizadas por outros clientes.
+- Boa opção para regras de negócio reutilizadas por outros clientes.
 - Facilita evoluir a API sem depender do ciclo de deploy do frontend.
 
 ### Custos
 
-- Dois deploys e dois conjuntos de variaveis.
-- CORS, observabilidade e erros de rede entre servicos.
-- O servico separado precisa validar a sessao do Supabase; nao deve criar um segundo sistema de usuarios.
-- A Vercel nao deve ser tratada como servidor Node persistente sem adaptar o app para serverless.
+- Dois deploys e dois conjuntos de variáveis.
+- CORS, observabilidade e erros de rede entre serviços.
+- O serviço separado precisa validar a sessão do Supabase; não deve criar um segundo sistema de usuários.
+- A Vercel não deve ser tratada como servidor Node persistente sem adaptar o app para serverless.
 
 ### Quando escolher
 
-Nao adotada. Somente se houver necessidade concreta de API independente, jobs, integracoes privadas ou futuros clientes alem do frontend web.
+Não adotada. Somente se houver necessidade concreta de API independente, jobs, integrações privadas ou futuros clientes além do frontend web.
 
-## Decisao adotada
+## Decisão adotada
 
-1. Adotar Supabase Auth como unica autenticacao.
+1. Adotar Supabase Auth como única autenticação.
 2. Adotar Supabase PostgreSQL com RLS.
 3. Usar o monolito fullstack Next.js com Pages Router.
-4. Preferir acesso direto ao Supabase para operacoes simples.
-5. Usar `pages/api/` para regras server-side, integracoes e operacoes que nao devem ocorrer no navegador.
-6. Nao manter backend separado. **Feito no commit `2599ad9`.**
-7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistencia.
-8. Usar Preview Deployments da Vercel para homologacao e Production para a branch `main`.
+4. Preferir acesso direto ao Supabase para operações simples.
+5. Usar `pages/api/` para regras server-side, integrações e operações que não devem ocorrer no navegador.
+6. Não manter backend separado. **Feito no commit `2599ad9`.**
+7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistência.
+8. Usar Preview Deployments da Vercel para homologação e o de Production para a branch `main`.
 
-Essa decisao foi registrada em 2026-09-22. O uso de `pages/api/` nao significa que todas as operacoes precisam passar por uma API propria.
+Essa decisão foi registrada em 2026-09-22. O uso de `pages/api/` não significa que todas as operações precisam passar por uma API própria.
 
 ## Estrutura de pastas
 
-Alem da opcao adotada, foram avaliadas duas estruturas de pastas alternativas em 2026-09-22 —
+Além da opção adotada, foram avaliadas duas estruturas de pastas alternativas em 2026-09-22 —
 separar o frontend em `frontend/` com um `backend/` dedicado, e criar `pages/lib/` para
 `supabase/`, `services/` e `validation/`. **Nenhuma foi adotada.**
 
-A estrutura real e a seguinte:
+A estrutura real é a seguinte:
 
 ```text
 SpendSmart/
   pages/            interface React
     api/            createProfile, deleteAccount
-  components/       Navbar, estilos globais, guarda de sessao
-  services/         camada de negocio
+  components/       Navbar, estilos globais, guarda de sessão
+  services/         camada de negócio
   infra/            cliente Supabase, Docker Compose, scripts
   supabase/migrations/   schema
-  tests/            suite Jest
-  docs/             documentacao
+  tests/            suíte Jest
+  docs/             documentação
 ```
 
-Nao ha `backend/`, e nunca houve `pages/lib/`. Nao mover o frontend para `frontend/`: a
-infraestrutura deve entrar em commits pequenos e verificaveis.
+Não há `backend/`, e nunca houve `pages/lib/`. Não mover o frontend para `frontend/`: a
+infraestrutura deve entrar em commits pequenos e verificáveis.

@@ -1,47 +1,47 @@
-# Migracoes futuras
+# Migrações futuras
 
-Propostas de mudanca de schema que **nao foram aplicadas**. Este arquivo e uma especificacao
-escrita, nao uma migration executavel: nada aqui roda sozinha.
+Propostas de mudança de schema que **não foram aplicadas**. Este arquivo é uma especificação
+escrita, não uma migration executável: nada aqui roda sozinho.
 
-> **Por que nao criar os arquivos ainda.** `npm run dev` encadeia `migrations:up` de forma
-> automatica e esse script le `DATABASE_URL` de `.env.development`, que aponta para o Supabase
-> remoto. Um arquivo novo em `supabase/migrations/` seria aplicado no banco real no proximo
-> `npm run dev` de quem clonar o repositorio. Ver [environments.md](environments.md#4-o-problema-do-npm-run-dev)
+> **Por que não criar os arquivos ainda.** `npm run dev` encadeia `migrations:up` de forma
+> automática e esse script lê `DATABASE_URL` de `.env.development`, que aponta para o Supabase
+> remoto. Um arquivo novo em `supabase/migrations/` seria aplicado no banco real no próximo
+> `npm run dev` de quem clonar o repositório. Ver [environments.md](environments.md#4-o-problema-do-npm-run-dev)
 > e issue [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20).
 >
-> As migrations ja aplicadas tambem nao devem ser reescritas. `001_create_financial_schema.js` e
-> `1790304277043_add-rbac-permissions.js` estao registradas na tabela `pgmigrations`; alterar o
-> arquivo faz o estado real do banco divergir do codigo versionado.
+> As migrations já aplicadas também não devem ser reescritas. `001_create_financial_schema.js` e
+> `1790304277043_add-rbac-permissions.js` estão registradas na tabela `pgmigrations`; alterar o
+> arquivo faz o estado real do banco divergir do código versionado.
 
 ---
 
 ## Estado atual do schema
 
-| Tabela         | Idioma das colunas de dominio                                                      | Observacao         |
+| Tabela         | Idioma das colunas de domínio                                                      | Observação         |
 | -------------- | ---------------------------------------------------------------------------------- | ------------------ |
-| `profiles`     | **portugues** — `nome_completo`, `data_nascimento`, `telefone`                     | Unica tabela assim |
-| `categories`   | ingles — `name`, `type`, `description`, `color`                                    |                    |
-| `transactions` | ingles — `type`, `amount`, `title`, `occurred_on`, `description`, `payment_method` |                    |
+| `profiles`     | **português** — `nome_completo`, `data_nascimento`, `telefone`                     | Única tabela assim |
+| `categories`   | inglês — `name`, `type`, `description`, `color`                                    |                    |
+| `transactions` | inglês — `type`, `amount`, `title`, `occurred_on`, `description`, `payment_method` |                    |
 
-alem disso, as tres tabelas divergem em consistencia:
+Além disso, as três tabelas divergem em consistência:
 
-- `categories.name` e `transactions.title` sao obrigatorios; `description`, `color`,
-  `payment_method` e `telefone` sao opcionais.
-- `profiles` nao tem `user_id`: o proprio `id` e a chave estrangeira.
+- `categories.name` e `transactions.title` são obrigatórios; `description`, `color`,
+  `payment_method` e `telefone` são opcionais.
+- `profiles` não tem `user_id`: o próprio `id` é a chave estrangeira.
 - Nenhuma tabela tem trigger de `updated_at`.
 
-As colunas de negocio estao documentadas em [database-schema.md](database-schema.md).
+As colunas de negócio estão documentadas em [database-schema.md](database-schema.md).
 
 ---
 
-## Proposta 1 — Padronizar `profiles` para ingles
+## Proposta 1 — Padronizar `profiles` para inglês
 
 Rastreabilidade: issue
-[#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8) (padronizacao de nomenclatura e colunas).
+[#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8) (padronização de nomenclatura e colunas).
 
-**Decisao a tomar antes de implementar:** isto quebra a API. `services/profileService.js` le e
-escreve os nomes em portugues; apos a migration, toda leitura e escrita passa a usar os nomes em
-ingles. Nao ha traducao no service layer para amortecer isso.
+**Decisão a tomar antes de implementar:** isto quebra a API. `services/profileService.js` lê e
+escreve os nomes em português; após a migration, toda leitura e escrita passa a usar os nomes em
+inglês. Não há tradução no service layer para amortecer isso.
 
 | Antes             | Depois       | Tipo            |
 | ----------------- | ------------ | --------------- |
@@ -61,10 +61,10 @@ ALTER TABLE public.profiles RENAME COLUMN telefone TO phone;
 COMMIT;
 ```
 
-`profiles` tem no maximo uma linha por conta e o volume e da ordem das dezenas, entao o
-`ALTER TABLE ... RENAME COLUMN` nao bloqueia leitura de forma relevante.
+`profiles` tem no máximo uma linha por conta e o volume é da ordem das dezenas, então o
+`ALTER TABLE ... RENAME COLUMN` não bloqueia leitura de forma relevante.
 
-### Script reversivel
+### Script reversível
 
 ```sql
 BEGIN;
@@ -76,21 +76,21 @@ ALTER TABLE public.profiles RENAME COLUMN phone TO telefone;
 COMMIT;
 ```
 
-### Impacto no codigo
+### Impacto no código
 
-| Arquivo                      | Mudanca necessaria                                                                         |
+| Arquivo                      | Mudança necessária                                                                         |
 | ---------------------------- | ------------------------------------------------------------------------------------------ |
 | `services/profileService.js` | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`                   |
-| `pages/api/createProfile.js` | o corpo recebido de `register.js` usa os nomes em portugues; precisa de traducao explicita |
-| `pages/accountConfig.js`     | se o form mantem os nomes em portugues, a traducao fica no service                         |
+| `pages/api/createProfile.js` | o corpo recebido de `register.js` usa os nomes em português; precisa de tradução explícita |
+| `pages/accountConfig.js`     | se o form mantém os nomes em português, a tradução fica no service                         |
 
 ### O que verificar depois
 
 - [ ] Login e leitura de perfil com conta existente
-- [ ] Edicao de perfil salvando os tres campos
-- [ ] Cadastro novo, confirmando que o perfil e criado com os nomes novos
-- [ ] RLS de `profiles` continua valendo (o RLS compara `id`, nao as colunas)
-- [ ] Delecao de conta remove o perfil
+- [ ] Edição de perfil salvando os três campos
+- [ ] Cadastro novo, confirmando que o perfil é criado com os nomes novos
+- [ ] RLS de `profiles` continua valendo (o RLS compara `id`, não as colunas)
+- [ ] Deleção de conta remove o perfil
 
 ---
 
@@ -99,19 +99,14 @@ COMMIT;
 Rastreabilidade: risco "updated_at nunca atualizado" em
 [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
-As tres tabelas tem `updated_at` com `default current_timestamp`, mas nenhuma atualiza o valor em
-`UPDATE`. Hoje toda a coluna registra apenas o instante da insercao.
+As três tabelas têm `updated_at` com `default current_timestamp`, mas nenhuma atualiza o valor em
+`UPDATE`. Hoje toda a coluna registra apenas o instante da inserção.
 
 ### Script
 
 ```sql
 CREATE OR REPLACE FUNCTION public.set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = current_timestamp;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+RETURNS TRIGGER AS \[ BEGIN   NEW.updated_at = current_timestamp;   RETURN NEW; END; \] LANGUAGE plpgsql;
 
 CREATE TRIGGER profiles_set_updated_at
   BEFORE UPDATE ON public.profiles
@@ -126,7 +121,7 @@ CREATE TRIGGER transactions_set_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 ```
 
-### Script reversivel
+### Script reversível
 
 ```sql
 DROP TRIGGER IF EXISTS profiles_set_updated_at ON public.profiles;
@@ -135,7 +130,7 @@ DROP TRIGGER IF EXISTS transactions_set_updated_at ON public.transactions;
 DROP FUNCTION IF EXISTS public.set_updated_at();
 ```
 
-### Impacto no codigo
+### Impacto no código
 
 Nenhum. O trigger age no servidor; nenhuma chamada no frontend precisa mudar.
 
@@ -146,14 +141,14 @@ Nenhum. O trigger age no servidor; nenhuma chamada no frontend precisa mudar.
 Rastreabilidade: RF12 do plano de testes (IT-07) e o registro em
 [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
-Hoje as duas colunas aceitam `income` ou `expense` de forma independente, e o comentario em
-`001_create_financial_schema.js` apenas informa que "a aplicacao deve garantir" a coerencia.
-Nenhum codigo faz essa verificacao. O resultado possivel e um lancamento de despesa apontando
-para uma categoria de receita, o que corrompe a agregacao do dashboard.
+Hoje as duas colunas aceitam `income` ou `expense` de forma independente, e o comentário em
+`001_create_financial_schema.js` apenas informa que "a aplicação deve garantir" a coerência.
+Nenhum código faz essa verificação. O resultado possível é um lançamento de despesa apontando
+para uma categoria de receita, o que corrompe a agregação do dashboard.
 
-### Opcao A — trigger (recomendada)
+### Opção A — trigger (recomendada)
 
-Um trigger e preferivel a uma constraint porque uma constraint `CHECK` nao pode consultar outra
+Um trigger é preferível a uma constraint porque uma constraint `CHECK` não pode consultar outra
 tabela.
 
 ```sql
@@ -167,13 +162,13 @@ BEGIN
   WHERE id = NEW.category_id;
 
   IF categoria_type IS NULL THEN
-    RAISE EXCEPTION 'Categoria % nao existe', NEW.category_id
+    RAISE EXCEPTION 'Categoria % não existe', NEW.category_id
       USING ERRCODE = '23503';
   END IF;
 
   IF categoria_type <> NEW.type THEN
     RAISE EXCEPTION
-      'Tipo do lancamento (%) diverge do tipo da categoria (%)', NEW.type, categoria_type
+      'Tipo do lançamento (%) diverge do tipo da categoria (%)', NEW.type, categoria_type
       USING ERRCODE = '23514';
   END IF;
 
@@ -186,20 +181,20 @@ CREATE TRIGGER transactions_category_type_check
   FOR EACH ROW EXECUTE FUNCTION public.check_transaction_category_type();
 ```
 
-### Script reversivel
+### Script reversível
 
 ```sql
 DROP TRIGGER IF EXISTS transactions_category_type_check ON public.transactions;
 DROP FUNCTION IF EXISTS public.check_transaction_category_type();
 ```
 
-### Impacto no codigo
+### Impacto no código
 
-`services/transactionService.js:31` passa a poder receber erro `23514` alem de `23503` e `23505`.
-O mapeamento de mensagens em `transactionService.js:48` deve tratar esse codigo, com texto em
-portugues voltado ao usuario, no mesmo padrao de `categoryService.js:48,88`.
+`services/transactionService.js:31` passa a poder receber erro `23514` além de `23503` e `23505`.
+O mapeamento de mensagens em `transactionService.js:48` deve tratar esse código, com texto em
+português voltado ao usuário, no mesmo padrão de `categoryService.js:48,88`.
 
-Antes de aplicar, e preciso verificar se ja existem lancamentos incoerentes no banco:
+Antes de aplicar, é preciso verificar se já existem lançamentos incoerentes no banco:
 
 ```sql
 SELECT t.id, t.type AS lancamento, c.type AS categoria
@@ -208,25 +203,25 @@ JOIN public.categories c ON c.id = t.category_id
 WHERE t.type <> c.type;
 ```
 
-Se a consulta devolver linhas, a migration falha ate que elas sejam corrigidas.
+Se a consulta devolver linhas, a migration falha até que elas sejam corrigidas.
 
 ---
 
 ## Ordem sugerida
 
-1. **Proposta 3** primeiro: bloqueia dado corrompido e tem reversivel simples.
-2. **Proposta 2**: sem impacto de codigo, resolve dado historico.
-3. **Proposta 1** por ultimo: e a unica que quebra a API e exige mudar `profileService.js`,
+1. **Proposta 3** primeiro: bloqueia dado corrompido e tem reversível simples.
+2. **Proposta 2**: sem impacto de código, resolve dado histórico.
+3. **Proposta 1** por último: é a única que quebra a API e exige mudar `profileService.js`,
    `createProfile.js` e `accountConfig.js` juntos.
 
 ---
 
-## Como aplicar quando a separacao de ambientes existir
+## Como aplicar quando a separação de ambientes existir
 
-1. Issue aberta com o SQL e o criterio de verificacao.
-2. Rodar o script de verificacao de dados incoerentes (Proposta 3).
+1. Issue aberta com o SQL e o critério de verificação.
+2. Rodar o script de verificação de dados incoerentes (Proposta 3).
 3. Aplicar em ambiente de teste.
-4. Executar o checklist de verificacao da proposta.
-5. Aplicar em producao com backup antes.
-6. **So entao** mover o arquivo para `supabase/migrations/` com timestamp via
+4. Executar o checklist de verificação da proposta.
+5. Aplicar em produção com backup antes.
+6. **Só então** mover o arquivo para `supabase/migrations/` com timestamp via
    `node-pg-migrate create`, e ajustar o encadeamento de `npm run dev` para exigir flag.
