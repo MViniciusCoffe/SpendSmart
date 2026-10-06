@@ -8,6 +8,17 @@ Software (BSI, UFRN, 2026). Os identificadores são preservados para que a rastr
 requisito, User Story e caso de teste continue estável. As User Stories estão em
 [user-stories.md](user-stories.md).
 
+### Objetivos
+
+- Definir a estratégia e os níveis de teste (unidade, integração, sistema e aceitação) que cobrem os
+  16 requisitos funcionais e os 7 requisitos não funcionais do SpendSmart.
+- Estabelecer a matriz de rastreabilidade entre requisito, User Story e caso de teste, e os critérios
+  de entrada e saída de cada iteração.
+- Registrar riscos e contingências que afetam a confiabilidade da evidência de testes, em especial o
+  isolamento entre usuários via RLS.
+- Orientar a execução das iterações pelo modelo BSI/YP-Agentic, com ao menos 1 User Story por membro
+  por iteração e teste de aceitação escrito pelo colega que não desenvolveu a história.
+
 ---
 
 ## 1. Escopo
@@ -270,3 +281,37 @@ A separação é em dois níveis, porque nem toda verificação precisa de Auth:
 `eslint-config-next` não implementa `scopeManager.addGlobals`, exigido pelo ESLint 10. Como o
 `peerDependencies` declara suporte a 10, não há aviso de conflito na instalação e o erro só
 aparece ao lintar um arquivo nomeado. Demais detalhes em [tooling-decisions.md](tooling-decisions.md).
+
+---
+
+## 9. Papéis e responsabilidades
+
+| Membro                           | Papel no projeto | Responsabilidade nos testes                                                                                    |
+| :------------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------- |
+| José Samuel Silva Lima           | Gerente / QA     | Aceitação das iterações, execução e relatório dos casos de aceitação da US do colega, decisão de entrada/saída |
+| Marcus Vinícius de Souza Azevedo | Desenvolvedor    | Testes de unidade e integração da própria implementação, cobertura, correção dos achados do SonarQube          |
+
+Distribuição por nível:
+
+| Nível             | Responsável      | Quem revisa                                 |
+| :---------------- | :--------------- | :------------------------------------------ |
+| Unidade           | Desenvolvedor    | QA executa `npm test` e confere a cobertura |
+| Integração        | Desenvolvedor    | QA confere o resultado no PR                |
+| Sistema/Aceitação | QA (José Samuel) | Product Owner / cliente                     |
+
+Regra de dupla verificação: **ninguém aprova a própria US.** O relatório de Testes de Aceitação de
+cada iteração é sempre escrito pelo colega que não desenvolveu a história, conforme
+[iteration-plan.md](iteration-plan.md) §3.
+
+---
+
+## 10. Referências
+
+- Modelo BSI - Doc 004 - Plano de Testes. Processo de Desenvolvimento BSI, UFRN, CERS, DCT.
+- Modelo YP-Agentic - Plano Geral de Testes (`tacianosilva/engenharia-software/yp-agentic/templates/plano-geral-testes.md`).
+- [vision.md](vision.md) — escopo, requisitos funcionais (RF01 a RF16) e não funcionais (RNF01 a RNF07).
+- [user-stories.md](user-stories.md) — US-001 a US-016 com critérios de aceitação.
+- [test-state-report.md](test-state-report.md) — estado atual da suíte e historico de falhas.
+- [environments.md](environments.md) — ambientes local, de desenvolvimento e de produção.
+- [sonarqube.md](sonarqube.md) - configuração do SonarQube e explicação dos painéis.
+- Enunciados da disciplina: `softwaretesting/20262/tarefas/P2.md` e `P3.md` (`tacianosilva/bsi-tasks`).
