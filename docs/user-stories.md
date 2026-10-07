@@ -31,6 +31,48 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 > **Limite conhecido:** se a gravação do perfil falhar, a conta permanece criada no Auth sem
 > perfil e sem caminho de recuperação. Ver issue [#25](https://github.com/MViniciusCoffe/SpendSmart/issues/25).
 
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-001 — Criar conta
+
+  Contexto:
+    Dado que sou um visitante no formulário de cadastro
+
+  Cenário: CA-001.01 — Cadastro com dados válidos
+    Quando submeto nome, um e-mail ainda não cadastrado, senha válida,
+      data de nascimento e telefone
+    Então a conta é criada no Supabase Auth
+    E o perfil é gravado na tabela profiles com o mesmo id da conta
+
+  Cenário: CA-001.02 — E-mail já cadastrado
+    Dado que já existe uma conta com o e-mail "duplicado@exemplo.com"
+    Quando submeto o cadastro com esse e-mail
+    Então vejo a mensagem "E-mail já cadastrado"
+    E nenhuma conta nova é criada
+
+  Cenário: CA-001.03 — Senha com menos de 6 caracteres
+    Quando submeto o cadastro com uma senha de menos de 6 caracteres
+    Então o envio é bloqueado no cliente antes de qualquer chamada à rede
+    E sou orientado sobre o tamanho mínimo da senha
+
+  Cenário: CA-001.04 — Cadastro concluído sem erros visíveis
+    Dado que o cadastro foi concluído com sucesso
+    Quando a tela seguinte carrega
+    Então nenhum erro aparece ao usuário
+
+  Cenário: CT01.04 — Falha na gravação do perfil exige rollback
+    Dado que o Auth cria a conta, mas a gravação do perfil falha
+    Quando o fluxo de cadastro termina
+    Então a conta criada é desfeita (rollback total)
+    E vejo uma mensagem de erro, sem caminho de conta órfã
+
+  # PENDENTE: CA-001.03 não tem bloqueio no cliente hoje e CT01.04 não faz
+  # rollback (issue #25) — a conta permanece no Auth sem perfil. Os cenários
+  # acima descrevem o comportamento esperado após a correção da Iteração 1.
+```
+
 ---
 
 ### US-002 — Entrar na conta
@@ -130,6 +172,39 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 | CA-006.02 | Dado nome, tipo e cor ausentes, quando submeto, então o navegador impede o envio                                                      |
 | CA-006.03 | Dado uma categoria com o mesmo nome, tipo e usuário, quando tento criar, então recebo "Categoria já existe" (código Postgres `23505`) |
 
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-006 — Criar categoria
+
+  Contexto:
+    Dado que estou autenticado
+    E estou na tela "Categorias", aba "Adicionar"
+
+  Cenário: CA-006.01 — Criar categoria com dados completos
+    Quando preencho o nome "Salário", seleciono o tipo "Receita",
+      a descrição "Renda mensal" e a cor "#00AA55"
+    E aciono "Salvar Categoria"
+    Então a categoria é gravada vinculada ao meu usuário
+    E ela passa a aparecer na listagem de categorias
+    E fica disponível no seletor de categorias da tela de receitas
+
+  Cenário: CA-006.02 — Envio bloqueado sem os campos obrigatórios
+    Quando deixo o nome em branco
+    Então o botão "Salvar Categoria" permanece desabilitado
+    E nenhuma requisição é enviada ao servidor
+
+  # Nota de especificação: tipo e cor têm valores padrão ("receita" e "#FFFFFF"),
+  # portanto o campo efetivamente obrigatório na tela é o nome.
+
+  Cenário: CA-006.03 — Nome duplicado para o mesmo tipo e usuário
+    Dado que já existe uma categoria minha chamada "Salário" do tipo "Receita"
+    Quando tento criar outra categoria "Salário" do tipo "Receita"
+    Então o banco rejeita por unicidade (código Postgres 23505)
+    E vejo a mensagem "Categoria já existe. Escolha outro nome."
+```
+
 ---
 
 ### US-007 — Listar categorias
@@ -147,6 +222,36 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 
 > CA-007.02 não é atendido hoje: a tela não tem estado vazio. Registrado em
 > [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-007 — Listar categorias
+
+  Contexto:
+    Dado que estou autenticado
+
+  Cenário: CA-007.01 — Apenas as minhas categorias aparecem
+    Dado que existem categorias cadastradas por mim
+    E existem categorias cadastradas por outro usuário
+    Quando abro a tela "Categorias"
+    Então somente as minhas categorias são exibidas
+
+  Cenário: CA-007.02 — Estado vazio informado ao usuário
+    Dado que não tenho nenhuma categoria cadastrada
+    Quando abro a tela "Categorias"
+    Então a interface informa que não há registros
+    E sugere a criação da primeira categoria
+
+  # PENDENTE: a tela atual não tem estado vazio — os seletores exibem apenas
+  # o placeholder desabilitado. Registrado no plano de testes, seção 6.
+
+  Cenário: CA-007.03 — Tipo exibido em português
+    Dado que tenho uma categoria do tipo "income" e outra do tipo "expense" no banco
+    Quando a listagem é exibida
+    Então os tipos aparecem traduzidos como "receita" e "despesa"
+```
 
 ---
 
@@ -168,6 +273,40 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 > lançamentos, o que deixa o gráfico do dashboard inconsistente. Registrado em
 > [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-008 — Alterar categoria
+
+  Contexto:
+    Dado que estou autenticado
+    E estou na tela "Categorias", aba "Editar"
+
+  Cenário: CA-008.01 — Alteração persistida
+    Dado que seleciono uma categoria minha na lista
+    Quando altero o nome para "Mercado", a descrição e a cor
+    E aciono "Editar Categoria"
+    Então as mudanças são persistidas
+    E a listagem passa a exibir os novos dados
+
+  Cenário: CA-008.02 — Nome duplicado com outra categoria minha
+    Dado que já tenho as categorias "Mercado" e "Feira", ambas do tipo "Despesa"
+    Quando altero o nome de "Feira" para "Mercado" mantendo o tipo "Despesa"
+    E aciono "Editar Categoria"
+    Então o banco rejeita por unicidade (código Postgres 23505)
+    E vejo a mensagem "Já existe outra categoria com este nome."
+
+  Cenário: CA-008.03 — Mudar o tipo de categoria com lançamentos vinculados
+    Dado que a categoria "Mercado" do tipo "Despesa" tem transações vinculadas
+    Quando tento alterar seu tipo para "Receita"
+    Então a aplicação impede a mudança
+    E explica que existem lançamentos vinculados e o impacto no dashboard
+
+  # PENDENTE: hoje a mudança de tipo é permitida e corrompe os gráficos do
+  # dashboard. O cenário acima descreve o comportamento esperado.
+```
+
 ---
 
 ### US-009 — Excluir categoria
@@ -186,6 +325,37 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 
 > CA-009.03 não é atendido: a tela exibe "Quantidade de usos: 0" fixo. Registrado em
 > [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-009 — Excluir categoria
+
+  Contexto:
+    Dado que estou autenticado
+    E estou na tela "Categorias", aba "Excluir"
+
+  Cenário: CA-009.01 — Excluir categoria sem transações
+    Dado que a categoria "Viagem" não tem nenhuma transação vinculada
+    Quando a seleciono e aciono "Excluir Categoria"
+    Então a linha é removida do banco
+    E ela some da listagem
+
+  Cenário: CA-009.02 — Excluir categoria com transações vinculadas
+    Dado que a categoria "Mercado" tem transações vinculadas
+    Quando a seleciono e aciono "Excluir Categoria"
+    Então o banco rejeita a exclusão (código Postgres 23503)
+    E vejo a mensagem "Não é possível deletar esta categoria pois existem transações usando ela."
+
+  Cenário: CA-009.03 — Contagem de usos corresponde aos lançamentos reais
+    Dado que a categoria "Mercado" tem 3 transações vinculadas
+    Quando a seleciono na aba "Excluir"
+    Então o detalhe exibe "Quantidade de usos: 3"
+
+  # PENDENTE: o detalhe exibe "Quantidade de usos: 0" fixo para qualquer
+  # categoria (pages/categoriaPage.js). O cenário acima descreve o esperado.
+```
 
 ---
 
