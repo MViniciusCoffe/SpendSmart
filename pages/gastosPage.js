@@ -16,7 +16,7 @@ function GastosPage() {
 
   // Verificar se o valor é válido
   const checkValorIsValid = () => {
-    return parseFloat(valor) > 0
+    return Number(valor) > 0
   }
 
   // Tipos de erros usados em cada "aba"
@@ -71,8 +71,8 @@ function GastosPage() {
 
     try {
       await transactionService.createTransaction({
-        titulo: nome, // A tela usa nome, mas o serviço, titulo
-        valor: parseFloat(valor),
+        titulo: nome,
+        valor: Number(valor),
         tipo: "despesa",
         categoria_id: categorySelected,
         data_ocorrencia: data,
@@ -315,13 +315,13 @@ function GastosPage() {
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
-                  {expenseDetails?.data
-                    ? new Date(expenseDetails.data).toISOString().split("T")[0]
+                  {expenseDetails?.data_ocorrencia
+                    ? new Date(expenseDetails.data_ocorrencia).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
                 <p>
                   <strong>Forma de Pagamento:</strong>{" "}
-                  {expenseDetails?.forma_pagamento || "Sem dados"}
+                  {expenseDetails?.metodo_pagamento || "Sem dados"}
                 </p>
               </div>
             </div>

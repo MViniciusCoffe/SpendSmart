@@ -45,12 +45,21 @@ export const transactionService = {
       } = await supabase.auth.getSession()
       if (!session) throw new Error("Usuário não autenticado.")
 
+      if (!titulo || titulo.trim() === "") {
+        throw new Error("Título é obrigatório")
+      }
+
+      const valorNum = Number(valor)
+      if (!Number.isFinite(valorNum)) {
+        throw new Error("Valor inválido: deve ser um número válido")
+      }
+
       const { data: newTransaction, error } = await supabase
         .from("transactions")
         .insert([
           {
             title: titulo,
-            amount: parseFloat(valor),
+            amount: valorNum,
             type: tipo === "receita" ? "income" : "expense",
             category_id: categoria_id,
             occurred_on: data_ocorrencia,
@@ -84,11 +93,20 @@ export const transactionService = {
     metodo_pagamento
   }) {
     try {
+      if (!titulo || titulo.trim() === "") {
+        throw new Error("Título é obrigatório")
+      }
+
+      const valorNum = Number(valor)
+      if (!Number.isFinite(valorNum)) {
+        throw new Error("Valor inválido: deve ser um número válido")
+      }
+
       const { data: updatedTransaction, error } = await supabase
         .from("transactions")
         .update({
           title: titulo,
-          amount: parseFloat(valor),
+          amount: valorNum,
           type: tipo === "receita" ? "income" : "expense",
           category_id: categoria_id,
           occurred_on: data_ocorrencia,
