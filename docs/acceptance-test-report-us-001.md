@@ -6,7 +6,7 @@
 **Responsável pela implementação:** José Samuel
 **QA Executado por:** Marcus Vinícius (MViniciusCoffe)
 **Data:** 2026-10-07
-**Branch testada:** `task/468` (PR #468 do SpendSmart)
+**Branch testada:** `task/468` (PR #42 do SpendSmart)
 
 ---
 
@@ -160,7 +160,7 @@ A **US-001 (Criar conta)** está **APROVADA** para merge na `main`.
 
 ## 7. Anexos
 
-- [PR da implementação no SpendSmart](https://github.com/MViniciusCoffe/SpendSmart/pull/XX) — _a ser preenchido após push_
+- [PR da implementação no SpendSmart](https://github.com/MViniciusCoffe/SpendSmart/pull/42)
 - [Testes unitários authServices](https://github.com/MViniciusCoffe/SpendSmart/blob/task/468/tests/unit/authServices.test.js)
 - [Testes de integração profileConstraints](https://github.com/MViniciusCoffe/SpendSmart/blob/task/468/tests/integration/postgres/profileConstraints.test.js)
 - [SonarQube do projeto](https://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart)
