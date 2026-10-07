@@ -18,6 +18,15 @@ código atual.
 
 ---
 
+## Equipe
+
+| Membro                           | Papel                   | GitHub                                                   |
+| :------------------------------- | :---------------------- | :------------------------------------------------------- |
+| José Samuel Silva Lima           | Gerente / Testador (QA) | [@José-Samuel-Lima](https://github.com/Jose-Samuel-Lima) |
+| Marcus Vinícius de Souza Azevedo | Desenvolvedor principal | [@MViniciusCoffe](https://github.com/MViniciusCoffe)     |
+
+---
+
 ## Como executar
 
 Requisitos: Node.js compatível com o Next.js 16, npm e Docker.
@@ -157,10 +166,20 @@ arquivos abaixo, em Markdown.
 
 ### Requisitos e testes
 
-| Documento                            | Conteúdo                                                                  |
-| :----------------------------------- | :------------------------------------------------------------------------ |
-| [User Stories](docs/user-stories.md) | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação |
-| [Plano de testes](docs/test-plan.md) | Níveis de teste, 10 casos de integração, matriz US/RF, riscos             |
+| Documento                                                          | Conteúdo                                                                               |
+| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| [Documento de Visão](docs/vision.md)                               | Escopo, personas, RF01–RF16, RNF01–RNF07, riscos e equipe                              |
+| [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação              |
+| [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                  |
+| [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin   |
+| [Estado atual dos testes](docs/test-state-report.md)               | Diagnóstico formal: 65 testes unitários, cobertura, integração ausente, débito técnico |
+
+### Planejamento de iterações
+
+| Documento                                    | Conteúdo                                                             |
+| :------------------------------------------- | :------------------------------------------------------------------- |
+| [Plano de iterações](docs/iteration-plan.md) | 6 iterações no semestre, com distribuição de US por membro e período |
+| [Plano da iteração 1](docs/iteration-1.md)   | Tarefas detalhadas, cronograma e critérios de entrada/saída (I1)     |
 
 ### Arquitetura e dados
 
@@ -173,10 +192,11 @@ arquivos abaixo, em Markdown.
 
 ### Operação
 
-| Documento                         | Conteúdo                                                                     |
-| :-------------------------------- | :--------------------------------------------------------------------------- |
-| [Ambientes](docs/environments.md) | Matriz de ambientes, variáveis, o problema do `npm run dev`                  |
-| [SonarQube](docs/sonarqube.md)    | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências |
+| Documento                                           | Conteúdo                                                                     |
+| :-------------------------------------------------- | :--------------------------------------------------------------------------- |
+| [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                  |
+| [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências |
+| [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar    |
 
 ## Trabalho acadêmico em andamento
 
