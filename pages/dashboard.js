@@ -76,15 +76,9 @@ function DashboardPage() {
         setSpends(fetchedSpends)
 
         // 4. Calcula os totais e o saldo
-        const totalReceitas = fetchedIncomes.reduce(
-          (acc, item) => acc + parseFloat(item.valor || 0),
-          0
-        )
+        const totalReceitas = fetchedIncomes.reduce((acc, item) => acc + Number(item.valor || 0), 0)
 
-        const totalGastos = fetchedSpends.reduce(
-          (acc, item) => acc + parseFloat(item.valor || 0),
-          0
-        )
+        const totalGastos = fetchedSpends.reduce((acc, item) => acc + Number(item.valor || 0), 0)
 
         const saldo = totalReceitas - totalGastos
 
@@ -119,7 +113,7 @@ function DashboardPage() {
     const despesasPorCategoria = categories.map(categoria => {
       const valorTotalCategoria = spends
         .filter(gasto => gasto.categoria_id === categoria.id)
-        .reduce((acc, gasto) => acc + parseFloat(gasto.valor), 0)
+        .reduce((acc, gasto) => acc + Number(gasto.valor), 0)
 
       return {
         nome: categoria.nome,
@@ -150,7 +144,7 @@ function DashboardPage() {
       const categoria = categories.find(cat => cat.id === gasto.categoria_id)
       return {
         nome: gasto.titulo || "Sem nome",
-        valor: parseFloat(gasto.valor),
+        valor: Number(gasto.valor),
         cor: categoria?.cor || "#FFFFFF"
       }
     })
@@ -176,7 +170,7 @@ function DashboardPage() {
     const receitasPorCategoria = categories.map(categoria => {
       const valorTotalCategoria = incomes
         .filter(receita => receita.categoria_id === categoria.id)
-        .reduce((acc, receita) => acc + parseFloat(receita.valor), 0)
+        .reduce((acc, receita) => acc + Number(receita.valor), 0)
 
       return {
         nome: categoria.nome,
@@ -207,7 +201,7 @@ function DashboardPage() {
       const categoria = categories.find(cat => cat.id === receita.categoria_id)
       return {
         nome: receita.titulo || "Sem nome",
-        valor: parseFloat(receita.valor),
+        valor: Number(receita.valor),
         cor: categoria?.cor || "#FFFFFF"
       }
     })
@@ -233,12 +227,12 @@ function DashboardPage() {
     const combinedData = [
       ...spends.map(gasto => ({
         nome: gasto.titulo || "Sem nome",
-        valor: parseFloat(gasto.valor),
+        valor: Number(gasto.valor),
         tipo: "Gasto"
       })),
       ...incomes.map(receita => ({
         nome: receita.titulo || "Sem nome",
-        valor: parseFloat(receita.valor),
+        valor: Number(receita.valor),
         tipo: "Receita"
       }))
     ]

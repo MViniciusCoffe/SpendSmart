@@ -165,18 +165,16 @@ describe("createTransaction", () => {
     expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
   })
 
-  it("limite do contrato: nao formata pt-BR, quem chama deve normalizar", async () => {
+  it("limite do contrato: rejeita valor inválido (não numérico)", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha(), error: null })
-    supabase.from.mockReturnValue(builder)
 
-    await transactionService.createTransaction({
-      titulo: "Aluguel",
-      valor: "1.234,56",
-      tipo: "despesa"
-    })
-
-    expect(builder.insert.mock.calls[0][0][0].amount).toBe(1.234)
+    await expect(
+      transactionService.createTransaction({
+        titulo: "Aluguel",
+        valor: "1.234,56",
+        tipo: "despesa"
+      })
+    ).rejects.toThrow("Valor inválido: deve ser um número válido")
   })
 
   it("devolve o DTO em portugues, nao a linha crua", async () => {
@@ -311,5 +309,129 @@ describe("deleteTransaction", () => {
     await expect(transactionService.deleteTransaction(1)).rejects.toThrow(
       "Não foi possível deletar a transação."
     )
+  })
+})
+
+// Testes de regressão para issues #10 e #21
+describe("Regressão #10 e #21 — contrato de DTO e validação de título", () => {
+  it("#10: createTransaction rejeita título vazio na fronteira", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    await expect(
+      transactionService.createTransaction({ titulo: "", valor: 100, tipo: "receita" })
+    ).rejects.toThrow("Título é obrigatório")
+  })
+
+  it("#10: updateTransaction rejeita título vazio na fronteira", async () => {
+    await expect(
+      transactionService.updateTransaction({ id: 1, titulo: "", valor: 100, tipo: "receita" })
+    ).rejects.toThrow("Título é obrigatório")
+  })
+
+  it("#21: createTransaction devolve DTO com data_ocorrencia e metodo_pagamento", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({
+        data: linha({
+          title: "Salário",
+          occurred_on: "2026-10-01",
+          payment_method: "pix"
+        }),
+        error: null
+      })
+    )
+
+    const resultado = await transactionService.createTransaction({
+      titulo: "Salário",
+      valor: 5000,
+      tipo: "receita",
+      data_ocorrencia: "2026-10-01",
+      metodo_pagamento: "pix"
+    })
+
+    expect(resultado).toEqual(
+      expect.objectContaining({
+        titulo: "Salário",
+        data_ocorrencia: "2026-10-01",
+        metodo_pagamento: "pix"
+      })
+    )
+  })
+
+  it("#21: updateTransaction devolve DTO com data_ocorrencia e metodo_pagamento", async () => {
+    supabase.from.mockReturnValue(
+      criarBuilder({
+        data: linha({
+          title: "Freelance",
+          occurred_on: "2026-10-05",
+          payment_method: "transferencia"
+        }),
+        error: null
+      })
+    )
+
+    const resultado = await transactionService.updateTransaction({
+      id: 1,
+      titulo: "Freelance",
+      valor: 1200,
+      tipo: "receita",
+      data_ocorrencia: "2026-10-05",
+      metodo_pagamento: "transferencia"
+    })
+
+    expect(resultado).toEqual(
+      expect.objectContaining({
+        titulo: "Freelance",
+        data_ocorrencia: "2026-10-05",
+        metodo_pagamento: "transferencia"
+      })
+    )
+  })
+
+  it("#21: createTransaction com receita traduz tipo para income na escrita", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await transactionService.createTransaction({
+      titulo: "Salário",
+      valor: 5000,
+      tipo: "receita"
+    })
+
+    expect(builder.insert.mock.calls[0][0][0].type).toBe("income")
+  })
+
+  it("#21: createTransaction com despesa traduz tipo para expense na escrita", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: linha({ type: "expense" }), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await transactionService.createTransaction({
+      titulo: "Mercado",
+      valor: 150,
+      tipo: "despesa"
+    })
+
+    expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
+  })
+
+  it("#10/#21: createTransaction rejeita valor inválido (NaN)", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    await expect(
+      transactionService.createTransaction({ titulo: "Teste", valor: "abc", tipo: "receita" })
+    ).rejects.toThrow("Valor inválido: deve ser um número válido")
+  })
+
+  it("#10/#21: updateTransaction rejeita valor inválido (NaN)", async () => {
+    await expect(
+      transactionService.updateTransaction({
+        id: 1,
+        titulo: "Teste",
+        valor: "abc",
+        tipo: "receita"
+      })
+    ).rejects.toThrow("Valor inválido: deve ser um número válido")
   })
 })

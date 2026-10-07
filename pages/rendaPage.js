@@ -10,14 +10,13 @@ function RendaPage() {
   // Variáveis para salvar as rendas
   const [valor, setValor] = useState(0.0)
   const [nome, setNome] = useState("")
-  const [fonteRenda, setFonteRenda] = useState("")
   const [descricao, setDescricao] = useState("")
   const [data, setData] = useState()
   const [formaPagamento, setFormaPagamento] = useState("")
 
   // Verificar se o valor é válido
   const checkValorIsValid = () => {
-    return parseFloat(valor) > 0
+    return Number(valor) > 0
   }
 
   // Tipos de erros usados em cada "aba"
@@ -63,10 +62,9 @@ function RendaPage() {
     e.preventDefault()
 
     try {
-      // Atenção a umas inconsistências
       await transactionService.createTransaction({
-        titulo: fonteRenda, // A tela usa fonteRenda, o serviço espera titulo
-        valor: parseFloat(valor),
+        titulo: nome,
+        valor: Number(valor),
         tipo: "receita",
         categoria_id: categorySelected,
         data_ocorrencia: data,
@@ -78,7 +76,7 @@ function RendaPage() {
       alert("Receita adicionada com Sucesso!")
 
       // Limpar campos
-      setFonteRenda("")
+      setNome("")
       setValor(0.0)
       setData("")
       setDescricao("")
@@ -308,8 +306,8 @@ function RendaPage() {
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
-                  {incomeDetails?.data
-                    ? new Date(incomeDetails.data).toISOString().split("T")[0]
+                  {incomeDetails?.data_ocorrencia
+                    ? new Date(incomeDetails.data_ocorrencia).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
                 <p>
