@@ -9,4 +9,5 @@ coverage/
 
 # Contexto local de agente (nao versionado por decisao do projeto)
 AGENTS.md
+CLAUDE.md
 .claude/
