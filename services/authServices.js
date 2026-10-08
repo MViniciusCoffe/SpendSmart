@@ -1,4 +1,4 @@
-import { supabase } from "../infra/supabase"
+﻿import { supabase } from "../infra/supabase"
 
 export const authService = {
   async registerUser({ email, password, nomeCompleto, dataNascimento, telefone }) {
@@ -12,18 +12,22 @@ export const authService = {
         console.error("[Supabase Register Error]", authError.message)
 
         if (authError.message.includes("already registered")) {
-          throw new Error("E-mail já cadastrado")
+          throw new Error("E-mail jÃ¡ cadastrado")
         }
-        throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
+        throw new Error("Erro ao registrar usuÃ¡rio. Verifique os dados e tente novamente")
       }
 
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
       const response = await fetch("/api/createProfile", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: accessToken ? `Bearer ${accessToken}` : ""
         },
         body: JSON.stringify({
-          id: authData.user.id,
           nome_completo: nomeCompleto,
           data_nascimento: dataNascimento,
           telefone: telefone
