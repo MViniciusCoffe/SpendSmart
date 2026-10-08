@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import styles from "./register.module.css"
 import { useState } from "react"
 import { useRouter } from "next/router"
@@ -16,12 +16,16 @@ export default function RegisterPage() {
   const [errorMessage, setErrorMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  // Função para criar usuário
+  // FunÃ§Ã£o para criar usuÃ¡rio
   const handleRegister = async e => {
     e.preventDefault()
 
     if (!nomeCompleto || !email || !senha || !dataNascimento) {
-      setErrorMessage("Preencha todos os campos obrigatórios")
+      if (senha.length < 6) {
+        setErrorMessage("A senha deve ter pelo menos 6 caracteres")
+        return
+      }
+      setErrorMessage("Preencha todos os campos obrigatÃ³rios")
       return
     }
 
@@ -37,10 +41,10 @@ export default function RegisterPage() {
         telefone: telefone
       })
 
-      alert("Usuário criado com sucesso! Faça login para continuar.")
+      alert("UsuÃ¡rio criado com sucesso! FaÃ§a login para continuar.")
       router.push("/login")
     } catch (error) {
-      setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`)
+      setErrorMessage(`Erro ao criar usuÃ¡rio. Tente novamente. ${error.message}`)
     } finally {
       setIsLoading(false)
     }
@@ -53,7 +57,7 @@ export default function RegisterPage() {
           <Link href="/" className={styles.back_button}>
             Voltar
           </Link>
-          <h2>Criar Usuário</h2>
+          <h2>Criar UsuÃ¡rio</h2>
           <form onSubmit={handleRegister}>
             <div>
               <div className={styles.input_group}>
@@ -91,6 +95,7 @@ export default function RegisterPage() {
                   placeholder="Digite sua senha"
                   value={senha}
                   onChange={e => setSenha(e.target.value)}
+                  minLength={6}
                   required
                 />
               </div>
