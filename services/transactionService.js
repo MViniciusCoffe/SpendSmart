@@ -51,7 +51,7 @@ export const transactionService = {
 
       const valorNum = Number(valor)
       if (!Number.isFinite(valorNum)) {
-        throw new Error("Valor inválido: deve ser um número válido")
+        throw new TypeError("Valor inválido: deve ser um número válido")
       }
 
       const { data: newTransaction, error } = await supabase
@@ -99,7 +99,7 @@ export const transactionService = {
 
       const valorNum = Number(valor)
       if (!Number.isFinite(valorNum)) {
-        throw new Error("Valor inválido: deve ser um número válido")
+        throw new TypeError("Valor inválido: deve ser um número válido")
       }
 
       const { data: updatedTransaction, error } = await supabase
