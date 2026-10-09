@@ -112,6 +112,65 @@ describe("registerUser", () => {
       authService.registerUser({ email: "joao@email.com", password: "senha123" })
     ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
   })
+
+  it("lança erro se getSession retornar null após signUp (email confirmation on)", async () => {
+    // Arrange: signUp OK, mas getSession retorna null
+    supabase.auth.signUp.mockResolvedValue({
+      data: { user: { id: "u1", email: "a@b.com" } },
+      error: null
+    })
+    supabase.auth.getSession.mockResolvedValue({ data: { session: null } })
+    // não deve ser chamado
+    global.fetch.mockResolvedValue({ ok: true })
+
+    // Act & Assert
+    await expect(
+      authService.registerUser({
+        email: "a@b.com",
+        password: "senha123",
+        nomeCompleto: "João",
+        dataNascimento: "2000-01-01",
+        telefone: "11999999999"
+      })
+    ).rejects.toThrow("Sessão não iniciada após cadastro.") // mensagem que vamos definir
+
+    // fetch NÃO deve ter sido chamado
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("lança erro se /api/createProfile falhar", async () => {
+    supabase.auth.signUp.mockResolvedValue({
+      data: { user: { id: "u1" } },
+      error: null
+    })
+    supabase.auth.getSession.mockResolvedValue({
+      data: { session: { user: { id: "u1" }, access_token: "token123" } }
+    })
+    global.fetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ message: "Erro no banco" })
+    })
+
+    await expect(
+      authService.registerUser({
+        email: "a@b.com",
+        password: "senha123",
+        nomeCompleto: "João",
+        dataNascimento: "2000-01-01",
+        telefone: "11999999999"
+      })
+    ).rejects.toThrow("Erro no banco")
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/createProfile",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer token123"
+        })
+      })
+    )
+  })
 })
 
 // Testes para o método loginUser do serviço de autenticação
