@@ -110,7 +110,7 @@ describe("registerUser", () => {
 
     await expect(
       authService.registerUser({ email: "joao@email.com", password: "senha123" })
-    ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
+    ).rejects.toThrow("sem token")
   })
 
   it("lança erro se getSession retornar null após signUp (email confirmation on)", async () => {

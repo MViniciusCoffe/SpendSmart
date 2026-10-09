@@ -19,7 +19,9 @@ export const authService = {
     const {
       data: { session }
     } = await supabase.auth.getSession()
-    const accessToken = session?.access_token
+    if (!session) throw new Error("Sessão não iniciada após cadastro.")
+    const accessToken = session.access_token
+
     const response = await fetch("/api/createProfile", {
       method: "POST",
       headers: {
@@ -34,7 +36,10 @@ export const authService = {
     })
 
     if (!response.ok) {
-      throw new Error("Conta criada, mas houve um problema ao salvar dados adicionais")
+      const errorData = await response.json()
+      throw new Error(
+        errorData.message || "Conta criada, mas houve um problema ao salvar dados adicionais"
+      )
     }
 
     return authData.user
