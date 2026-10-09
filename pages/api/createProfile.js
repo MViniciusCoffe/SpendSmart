@@ -1,6 +1,6 @@
 ﻿import { createClient } from "@supabase/supabase-js"
 
-// Usamos a chave SERVICE_ROLE (Admin) para ignorar o RLS e for��ar a inser��ǜo
+// Usamos a chave SERVICE_ROLE (Admin) para ignorar o RLS e forçar a inserção
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const { nome_completo, data_nascimento, telefone } = req.body
 
   try {
-    // 1. Descobrir quem �� o dono desse token usando a chave p��blica
+    // 1. Descobrir quem é o dono desse token usando a chave pública
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
