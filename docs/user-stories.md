@@ -212,7 +212,7 @@ Funcionalidade: US-006 — Criar categoria
 > Como usuário autenticado, quero ver minhas categorias, para escolhê-las nos lançamentos.
 
 **Derivada de:** RF07
-**Service:** `services/categoryService.js:6`
+**Service:** `services/categoryService.js:12`
 
 | ID        | Critério de aceitação                                                                                      |
 | :-------- | :--------------------------------------------------------------------------------------------------------- |
@@ -220,8 +220,8 @@ Funcionalidade: US-006 — Criar categoria
 | CA-007.02 | Dado um usuário sem categorias, quando abro a tela, então a interface informa que não há registros         |
 | CA-007.03 | Dado as categorias carregadas, quando as exibo, então o tipo aparece traduzido para "receita" ou "despesa" |
 
-> CA-007.02 não é atendido hoje: a tela não tem estado vazio. Registrado em
-> [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+> A listagem filtra por `user_id` da sessão no próprio `categoryService` (além do RLS) e a tela
+> exibe estado vazio quando não há registros — CA-007.01 e CA-007.02 atendidos na Iteração 2.
 
 **Cenários formais (Gherkin):**
 
@@ -243,9 +243,6 @@ Funcionalidade: US-007 — Listar categorias
     Quando abro a tela "Categorias"
     Então a interface informa que não há registros
     E sugere a criação da primeira categoria
-
-  # PENDENTE: a tela atual não tem estado vazio — os seletores exibem apenas
-  # o placeholder desabilitado. Registrado no plano de testes, seção 6.
 
   Cenário: CA-007.03 — Tipo exibido em português
     Dado que tenho uma categoria do tipo "income" e outra do tipo "expense" no banco
