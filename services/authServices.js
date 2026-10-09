@@ -17,13 +17,17 @@ export const authService = {
         throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
       }
 
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+      const accessToken = session?.access_token
       const response = await fetch("/api/createProfile", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: accessToken ? `Bearer ${accessToken}` : ""
         },
         body: JSON.stringify({
-          id: authData.user.id,
           nome_completo: nomeCompleto,
           data_nascimento: dataNascimento,
           telefone: telefone

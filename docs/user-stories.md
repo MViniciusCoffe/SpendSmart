@@ -432,6 +432,48 @@ Funcionalidade: US-009 — Excluir categoria
 > `data_ocorrencia` e `metodo_pagamento`. Ver issue
 > [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21).
 
+**Cenários formais (Gherkin):**
+
+```gherkin
+# language: pt
+Funcionalidade: US-013 — Registrar despesa
+
+  Contexto:
+    Dado que sou um usuário autenticado na tela de despesas
+
+  Cenário: CA-013.01 — Registro válido
+    Dado que selecionei uma categoria de despesa
+    Quando preencho valor, título, data e forma de pagamento
+      e clico em salvar
+    Então a despesa aparece na listagem
+    E o total de saídas e o saldo são recalculados
+
+  Cenário: CA-013.02 — Valor ausente, não numérico ou negativo
+    Quando submeto o formulário com valor vazio, não numérico ou negativo
+    Então o navegador bloqueia o envio
+    E nada é persistido
+
+  Cenário: CA-013.03 — Detalhe preenchido (regressão #21)
+    Dado que registrei uma despesa com data e forma de pagamento
+    Quando abro o detalhe dessa despesa
+    Então data e forma de pagamento aparecem preenchidas
+
+  Cenário: CA-013.04 — Formatação monetária
+    Dado que registrei uma despesa com valor "1234,5"
+    Quando consulto a listagem ou o dashboard
+    Então o valor é exibido com duas casas decimais, em R$
+
+  Cenário: CT13.05 — Coerência categoria/transação
+    Dado que selecionei uma categoria de receita
+    Quando tento registrar uma despesa vinculada a essa categoria
+    Então o sistema rejeita o registro
+    E nenhuma transação é persistida
+
+  # PENDENTE: CA-013.03 não é atendido hoje (issue #21) — a UI lê data/forma_pagamento
+  # mas o service devolve data_ocorrencia/metodo_pagamento. CT13.05 descreve o
+  # comportamento esperado após a correção da invariante categoria/transação.
+```
+
 ---
 
 ### US-014 — Listar despesas
