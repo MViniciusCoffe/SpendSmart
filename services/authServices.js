@@ -1,4 +1,4 @@
-﻿import { supabase } from "../infra/supabase"
+import { supabase } from "../infra/supabase"
 
 export const authService = {
   async registerUser({ email, password, nomeCompleto, dataNascimento, telefone }) {
@@ -12,9 +12,9 @@ export const authService = {
         console.error("[Supabase Register Error]", authError.message)
 
         if (authError.message.includes("already registered")) {
-          throw new Error("E-mail jÃ¡ cadastrado")
+          throw new Error("E-mail já cadastrado")
         }
-        throw new Error("Erro ao registrar usuÃ¡rio. Verifique os dados e tente novamente")
+        throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
       }
 
       const {
