@@ -42,7 +42,7 @@ CT13.01–CT13.05 de [test-plan-iterations.md](test-plan-iterations.md).
 
 **Limitações declaradas (e o que falta executar manualmente):**
 
-- **⏭️ Cenários que exigem sessão autêntica real** não foram executados de ponta a ponta: o
+- ** Cenários que exigem sessão autêntica real** não foram executados de ponta a ponta: o
   ambiente de QA não tem `.env.development` nem credenciais Supabase (o projeto só versiona
   `.env.development.example`). A persistência foi validada em nível de integração (pg-mem) e o
   fluxo de UI por inspeção. **Precisam ser executados manualmente em navegador com credenciais
@@ -55,14 +55,14 @@ CT13.01–CT13.05 de [test-plan-iterations.md](test-plan-iterations.md).
 
 ## 3. Resumo da execução
 
-| ✅ Passaram | ❌ Falharam | ⏭️ Não executados |
-| :---------- | :---------- | :---------------- |
-| 2           | 1           | 2                 |
+| Passaram | Falharam | Não executados |
+| :------- | :------- | :------------- |
+| 2        | 1        | 2              |
 
 > **Bloqueio transversal:** além dos cenários abaixo, a **suíte de testes da branch está
 > vermelha** (5 falhas em `authServices` — BUG-09), o que por si só impede o aceite.
 
-Legenda: ✅ Passou · ❌ Falhou · ⏭️ Não executado
+Legenda: Passou · Falhou · Não executado
 
 ---
 
@@ -70,13 +70,13 @@ Legenda: ✅ Passou · ❌ Falhou · ⏭️ Não executado
 
 Tela: `pages/gastosPage.js` · Service: `services/transactionService.js`
 
-| ID      | Cenário / Descrição                 | Resultado obtido                                                                                                                                                                                                     | Status | Evidência                                                                                                              |
-| :------ | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :--------------------------------------------------------------------------------------------------------------------- |
-| CT13.01 | Registro válido aparece na listagem | Persistência validada (pg-mem): a despesa é gravada com título, valor, tipo, categoria, data e pagamento corretos. Exibição na listagem e recálculo de saldo no dashboard apenas por inspeção (sessão indisponível). | ⏭️     | `tests/integration/postgres/expenseRegistration.test.js` (CT13.01); `pages/gastosPage.js:74`; ⏭️ sistema não executado |
-| CT13.02 | Valor vazio ou negativo             | Cliente bloqueia envio sem valor positivo; o banco rejeita `amount <= 0` pela constraint `transactions_amount_positive`. **Ressalva crítica**: a máscara rejeita vírgula (BUG-03/#32).                               | ✅     | `pages/gastosPage.js:18-20, 179-184, 267`; teste CT13.02; BUG-03 (#32)                                                 |
-| CT13.03 | Detalhe preenchido (regressão #21)  | **Corrigido na base da branch:** a UI lê `data_ocorrencia` e `metodo_pagamento`, que coincidem com o DTO do service. Evidência de persistência no teste de integração; execução final em navegador pendente.         | ⏭️     | `pages/gastosPage.js:318, 324` ↔ `services/transactionService.js:9, 11`; teste CT13.03                                 |
-| CT13.04 | Formatação monetária                | Valor persistido com precisão decimal correta (`1234.5` → `1234.50`); formatação `pt-BR`/`BRL` na listagem e no dashboard por inspeção.                                                                              | ✅     | Teste CT13.04; `pages/gastosPage.js:119-129`; `docs/database-schema.md`                                                |
-| CT13.05 | Coerência categoria/transação       | **Invariante não existe:** o banco aceita despesa vinculada a categoria de receita (não há constraint cruzando `transactions.type` com `categories.type`). Defeito conhecido do plano (`test-plan.md` §6).           | ❌     | `tests/integration/db.js` (DDL); `docs/test-plan-iterations.md:192`                                                    |
+| ID      | Cenário / Descrição                 | Resultado obtido                                                                                                                                                                                                     | Status | Evidência                                                                                                           |
+| :------ | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
+| CT13.01 | Registro válido aparece na listagem | Persistência validada (pg-mem): a despesa é gravada com título, valor, tipo, categoria, data e pagamento corretos. Exibição na listagem e recálculo de saldo no dashboard apenas por inspeção (sessão indisponível). |        | `tests/integration/postgres/expenseRegistration.test.js` (CT13.01); `pages/gastosPage.js:74`; sistema não executado |
+| CT13.02 | Valor vazio ou negativo             | Cliente bloqueia envio sem valor positivo; o banco rejeita `amount <= 0` pela constraint `transactions_amount_positive`. **Ressalva crítica**: a máscara rejeita vírgula (BUG-03/#32).                               |        | `pages/gastosPage.js:18-20, 179-184, 267`; teste CT13.02; BUG-03 (#32)                                              |
+| CT13.03 | Detalhe preenchido (regressão #21)  | **Corrigido na base da branch:** a UI lê `data_ocorrencia` e `metodo_pagamento`, que coincidem com o DTO do service. Evidência de persistência no teste de integração; execução final em navegador pendente.         |        | `pages/gastosPage.js:318, 324` ↔ `services/transactionService.js:9, 11`; teste CT13.03                              |
+| CT13.04 | Formatação monetária                | Valor persistido com precisão decimal correta (`1234.5` → `1234.50`); formatação `pt-BR`/`BRL` na listagem e no dashboard por inspeção.                                                                              |        | Teste CT13.04; `pages/gastosPage.js:119-129`; `docs/database-schema.md`                                             |
+| CT13.05 | Coerência categoria/transação       | **Invariante não existe:** o banco aceita despesa vinculada a categoria de receita (não há constraint cruzando `transactions.type` com `categories.type`). Defeito conhecido do plano (`test-plan.md` §6).           |        | `tests/integration/db.js` (DDL); `docs/test-plan-iterations.md:192`                                                 |
 
 **Caso de regressão:** CT13.03 é a regressão da issue #21. No estado testado, os campos da UI e do
 DTO **estão alinhados** — o defeito não se reproduz mais na base da branch. Falta apenas a
@@ -132,7 +132,7 @@ confirmação visual em navegador com sessão real.
 
 **Esperado:** `"E-mail já cadastrado"` e `"Erro ao registrar usuário. Verifique os dados e tente novamente"`.
 
-**Obtido:** `"E-mail jÃ¡ cadastrado"` e `"Erro ao registrar usuÃ¡rio. Verifique os dados e tente novamente"` (mojibake). A branch também adiciona um BOM (`\uFEFF`) no início do arquivo.
+**Obtido:** `"E-mail já cadastrado"` e `"Erro ao registrar usuário. Verifique os dados e tente novamente"` (mojibake). A branch também adiciona um BOM (`\uFEFF`) no início do arquivo.
 
 **Evidência:** `services/authServices.js:15, 17` (na branch `task/497`).
 
@@ -172,17 +172,14 @@ o mock de `supabase.auth` não define `getSession`, então o destructuring em
 - **Sugestão:** separar as correções de US-001 em PR/branch próprios, ou ao menos isolar os testes
   correspondentes.
 
-### MEL-09 — `TypeError` para valor inválido
+> **Correção de achado (revisão):** a primeira versão deste relatório registrou como melhoria a
+> troca de `Error` por `TypeError` em `transactionService` (MEL-09). A troca é, na verdade,
+> **exigida pela regra `S7786`** do SonarQube ("Generic `Error` should be `TypeError` when thrown
+> after type checking") — os dois `throw` vêm logo após `Number.isFinite(...)`. Não é defeito; é o
+> comportamento correto, e a mesma correção foi aplicada no `categoryService`/`transactionService`
+> da Tarefa 03.
 
-- **User Story:** US-013
-- **Observação:** a branch troca `throw new Error(...)` por `throw new TypeError(...)` para valor
-  inválido em `createTransaction`/`updateTransaction` (`services/transactionService.js:54, 102`).
-  O restante do projeto usa `Error`; consumidores que capturam `Error` continuam funcionando, mas a
-  mudança é de contrato e não tem justificativa registrada.
-- **Sugestão:** voltar a `Error` por consistência, ou documentar a intenção (ex.: distinguir erro
-  de validação para o chamador).
-
-### MEL-10 — Listagem de transações continua dependente 100% do RLS
+### MEL-09 — Listagem de transações continua dependente 100% do RLS
 
 - **User Story:** US-014 (e US-013 pelo detalhe)
 - **Observação:** `getTransactions` segue sem `.eq("user_id", session.user.id)`
