@@ -1,4 +1,4 @@
-jest.mock("../../infra/supabase", () => ({
+﻿jest.mock("../../infra/supabase", () => ({
   supabase: {
     // Mocka apenas métodos que authServices usa
     // SignOut não é usado ainda
