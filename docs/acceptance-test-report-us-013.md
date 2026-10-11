@@ -5,33 +5,33 @@ implementada por Marcus Vinícius, conforme o [plano da Iteração 2](iteration-
 CT13.01–CT13.05 de [test-plan-iterations.md](test-plan-iterations.md).
 
 > Este relatório foi produzido como a **atividade de QA da Tarefa 03** (papel de QA do projeto),
-> executado sobre a **branch de trabalho do desenvolvedor** (`task/497`, PR #45) — e não sobre a
-> `main`, que ainda não contém a entrega da US-013.
+> executado sobre a **branch de trabalho do desenvolvedor** (`task/497`, PR #45) e **retestado na
+> `main`** (commit `d48f634`) após o merge do PR #45.
 
 ---
 
 ## 1. Identificação
 
-| Campo                  | Valor                                                                       |
-| :--------------------- | :-------------------------------------------------------------------------- |
-| QA Engineer / Testador | José Samuel Lima — `@Jose-Samuel-Lima` — jose.lima.146@ufrn.edu.br          |
-| Desenvolvedor da US    | Marcus Vinícius — `@MViniciusCoffe`                                         |
-| Escopo oficial         | US-013 — Registrar despesa (CT13.01 a CT13.05)                              |
-| Branch testada         | `task/497` (PR [#45](https://github.com/MViniciusCoffe/SpendSmart/pull/45)) |
-| Commit testado         | `9621777` (`feat: adiciona testes de integração para expenseRegistration`)  |
-| Data da execução       | 2026-10-09                                                                  |
+| Campo                  | Valor                                                                                                    |
+| :--------------------- | :------------------------------------------------------------------------------------------------------- |
+| QA Engineer / Testador | José Samuel Lima — `@Jose-Samuel-Lima` — jose.lima.146@ufrn.edu.br                                       |
+| Desenvolvedor da US    | Marcus Vinícius — `@MViniciusCoffe`                                                                      |
+| Escopo oficial         | US-013 — Registrar despesa (CT13.01 a CT13.05)                                                           |
+| Branch testada         | `task/497` (PR [#45](https://github.com/MViniciusCoffe/SpendSmart/pull/45)); reteste na `main` pós-merge |
+| Commit testado         | `9621777` (inicial) · `d48f634` (reteste: `fix: corrige erros de unicode e session nos testes`)          |
+| Data da execução       | 2026-10-09 (inicial) · 2026-10-11 (reteste)                                                              |
 
 ---
 
 ## 2. Ambiente de teste e método de execução
 
-| Item    | Valor                                                                                  |
-| :------ | :------------------------------------------------------------------------------------- |
-| SO      | Windows 11                                                                             |
-| Node.js | v24.21.0                                                                               |
-| Suíte   | Jest 30 — **97 testes, 92 aprovados, 5 reprovados**, 1 suíte vermelha (`authServices`) |
-| Banco   | Postgres em memória (pg-mem) para a camada de integração                               |
-| Sistema | Backend Supabase **indisponível no ambiente de QA** (sem credenciais) — ver limitações |
+| Item    | Valor                                                                                        |
+| :------ | :------------------------------------------------------------------------------------------- |
+| SO      | Windows 11                                                                                   |
+| Node.js | v24.21.0                                                                                     |
+| Suíte   | Jest 30 — reteste `d48f634`: **97/97 na `main`**; **104/104 na branch integrada `task/502`** |
+| Banco   | Postgres em memória (pg-mem) para a camada de integração                                     |
+| Sistema | Backend Supabase **indisponível no ambiente de QA** (sem credenciais) — ver limitações       |
 
 **Método.** Cada cenário foi avaliado por uma ou mais das vias abaixo, indicadas na coluna
 "Evidência" de cada tabela:
@@ -47,9 +47,9 @@ CT13.01–CT13.05 de [test-plan-iterations.md](test-plan-iterations.md).
   `.env.development.example`). A persistência foi validada em nível de integração (pg-mem) e o
   fluxo de UI por inspeção. **Precisam ser executados manualmente em navegador com credenciais
   válidas antes do fechamento da iteração.**
-- **Branch com suíte vermelha:** a execução de `npm run test:all` **reprova 5 testes de
-  `authServices`** (regressão da própria branch — BUG-09). Enquanto a suíte não voltar a verde, o
-  critério de saída da iteração ("testes de unidade e integração aprovados") não é atendido.
+- **Suíte vermelha resolvida no reteste:** `npm run test:all` na `main` (`d48f634`) roda
+  **97/97 verde**; na branch integrada `task/502`, **104/104 verde**. O critério de saída da
+  iteração ("testes de unidade e integração aprovados") passa a ser atendido.
 
 ---
 
@@ -59,8 +59,9 @@ CT13.01–CT13.05 de [test-plan-iterations.md](test-plan-iterations.md).
 | :------- | :------- | :------------- |
 | 2        | 1        | 2              |
 
-> **Bloqueio transversal:** além dos cenários abaixo, a **suíte de testes da branch está
-> vermelha** (5 falhas em `authServices` — BUG-09), o que por si só impede o aceite.
+> **Bloqueio removido no reteste:** a suíte voltou a verde (`d48f634` → 97/97 na `main`; 104/104 na
+> branch integrada), eliminando o BUG-09. Permanecem a execução manual em navegador
+> (CT13.01/CT13.03) e a decisão do time sobre o CT13.05.
 
 Legenda: Passou · Falhou · Não executado
 
@@ -84,16 +85,16 @@ confirmação visual em navegador com sessão real.
 
 ---
 
-## 5. Bugs e regressões encontradas no escopo
+## 5. Bugs e regressões encontradas no escopo (resolvidas no reteste)
 
 ### BUG-09 — Suíte de testes vermelha na branch `task/497` (bloqueador)
 
-| Campo        | Valor                          |
-| :----------- | :----------------------------- |
-| Caso afetado | Critério de saída da I2        |
-| Severidade   | **Crítica** (bloqueia o merge) |
-| Issue        | **A abrir**                    |
-| Status       | Aberto                         |
+| Campo        | Valor                             |
+| :----------- | :-------------------------------- |
+| Caso afetado | Critério de saída da I2           |
+| Severidade   | **Crítica** (bloqueia o merge)    |
+| Issue        | **A abrir**                       |
+| Status       | **Resolvido** (reteste `d48f634`) |
 
 **Passos para reproduzir:**
 
@@ -123,7 +124,7 @@ confirmação visual em navegador com sessão real.
 | Caso afetado | CA-001.02/CA-001.03 (US-001)        |
 | Severidade   | Alta (mensagem ilegível ao usuário) |
 | Issue        | **A abrir**                         |
-| Status       | Aberto                              |
+| Status       | **Resolvido** (reteste `d48f634`)   |
 
 **Passos para reproduzir:**
 
@@ -140,12 +141,12 @@ confirmação visual em navegador com sessão real.
 
 ### BUG-11 — Testes de unidade não acompanharam a nova chamada `getSession`
 
-| Campo        | Valor                       |
-| :----------- | :-------------------------- |
-| Caso afetado | US-001 (regressão de teste) |
-| Severidade   | Alta (suíte vermelha)       |
-| Issue        | **A abrir**                 |
-| Status       | Aberto                      |
+| Campo        | Valor                             |
+| :----------- | :-------------------------------- |
+| Caso afetado | US-001 (regressão de teste)       |
+| Severidade   | Alta (suíte vermelha)             |
+| Issue        | **A abrir**                       |
+| Status       | **Resolvido** (reteste `d48f634`) |
 
 **Esperado:** ao passar a enviar o token (`getSession()` + `Authorization: Bearer`), os mocks de
 `tests/unit/authServices.test.js` devem devolver uma sessão válida, e o teste do corpo não deve
@@ -156,6 +157,14 @@ o mock de `supabase.auth` não define `getSession`, então o destructuring em
 `services/authServices.js:20-22` recebe `undefined`.
 
 **Evidência:** `services/authServices.js:20-28`; `tests/unit/authServices.test.js` (não alterado no diff `origin/main...origin/task/497`).
+
+### Reteste — 2026-10-11 (commit `d48f634`)
+
+`npm run test:all` na `main` → **8 suítes, 97/97 aprovados** (0 falhas). Na branch integrada
+`task/502` (US-007 + US-013) → **9 suítes, 104/104 aprovados**. Os três bugs
+(BUG-09/BUG-10/BUG-11) foram corrigidos na branch do desenvolvedor antes do merge do PR #45:
+encoding UTF-8 normalizado, `getSession` mockado nos testes e corpo de `/api/createProfile` sem
+`id` (token via `Authorization: Bearer`).
 
 ---
 
@@ -193,26 +202,25 @@ o mock de `supabase.auth` não define `getSession`, então o destructuring em
 
 - [x] Todos os cenários executáveis no ambiente foram executados; os demais têm justificativa e passos para execução manual
 - [x] Toda falha tem evidência `arquivo:linha` ou saída de comando registrada
-- [ ] Bugs novos (BUG-09, BUG-10, BUG-11) ainda sem issue aberta no repositório — **ação pendente do QA**
-- [ ] Reteste obrigatório após a branch voltar a verde
+- [x] Reteste executado em 2026-10-11: `npm run test:all` verde (`d48f634` → 97/97 na `main`; 104/104 na branch integrada)
+- [ ] Bugs BUG-09/BUG-10/BUG-11 sem issue aberta no repositório — **ação pendente do QA** (corrigidos no reteste; não bloqueiam o aceite)
 - [ ] Execução manual de CT13.01 e CT13.03 em navegador com credenciais válidas
+- [ ] Decisão do time sobre o CT13.05 (invariante categoria×transação ausente no schema)
 
-**Resultado consolidado (escopo US-013):** 2 casos aprovados, 1 reprovado (CT13.05 — invariante
-inexistente) e 2 não executados de ponta a ponta (CT13.01 e CT13.03, por falta de sessão). A
-regressão #21 (CT13.03) **não se reproduz mais** na base da branch. Como bloqueador, a **suíte da
-branch está vermelha** (5 falhas em `authServices`).
+**Resultado consolidado (escopo US-013):** 2 casos aprovados (CT13.02 e CT13.04), 1 não executado de
+ponta a ponta (CT13.01, por falta de sessão real) e CT13.03 (regressão #21) com persistência validada
+e **confirmação visual em navegador pendente**. O CT13.05 permanece como **defeito conhecido do
+plano de testes** (invariante inexistente no schema), fora do código da US-013. A suíte, que era o
+bloqueador (BUG-09), está **verde** no reteste.
 
-**Parecer sobre a US-013 no commit testado:** ☐ Aprovado &nbsp;&nbsp; ☐ Aprovado com ressalvas
-&nbsp;&nbsp; ☒ **Reprovado — reteste necessário**
+**Parecer sobre a US-013 no reteste (2026-10-11, `d48f634`):** ☐ Aprovado &nbsp;&nbsp; ☒ **Aprovado
+com ressalvas** &nbsp;&nbsp; ☐ Reprovado
 
-**Justificativa e condições de aceite:** a implementação da US-013 está funcional no que foi
-possível verificar (persistência íntegra e regressão #21 resolvida), porém a entrega **não atende
-ao critério de saída da iteração** porque a própria suíte de testes da branch falha
-(BUG-09/BUG-10/BUG-11). O aceite depende de: **(1)** corrigir o encoding e atualizar os testes de
-`authServices` até `npm run test:all` ficar verde; **(2)** reteste de CT13.01 e CT13.03 em navegador
-com credenciais; **(3)** decisão do time sobre o CT13.05 (invariante categoria×transação), que segue
-em aberto no plano de testes.
+**Justificativa e condições de aceite:** a implementação da US-013 e a suíte automatizada estão
+íntegras e verdes no reteste, e a regressão #21 (CT13.03) não se reproduz. As ressalvas são: **(1)**
+execução manual de CT13.01 e CT13.03 em navegador com credenciais válidas; **(2)** tratamento do
+CT13.05 (invariante categoria×transação), que é lacuna do schema/plano e não da US-013.
 
 ---
 
-_Assinatura do QA:_ José Samuel Lima — 2026-10-09
+_Assinatura do QA:_ José Samuel Lima — 2026-10-11
