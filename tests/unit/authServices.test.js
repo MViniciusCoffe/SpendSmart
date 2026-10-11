@@ -29,8 +29,15 @@ const respostaComErro = mensagem => ({
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
+
   // O fetch é mockado aqui para que todo teste já o tenha disponível
   jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
+
+  // Mock padrão para getSession (registerUser agora usa o token da sessão)
+  supabase.auth.getSession.mockResolvedValue({
+    data: { session: { access_token: "token123" } },
+    error: null
+  })
 })
 
 afterEach(() => {
@@ -71,11 +78,11 @@ describe("registerUser", () => {
       expect.objectContaining({ method: "POST" })
     )
     expect(JSON.parse(opcoes.body)).toEqual({
-      id: "u1",
       nome_completo: "Joao Silva",
       data_nascimento: "1990-01-01",
       telefone: "11999999999"
     })
+    expect(opcoes.headers.Authorization).toBe("Bearer token123")
   })
 
   it("traduz 'already registered' em e-mail ja cadastrado", async () => {
