@@ -10,9 +10,15 @@ const categoryTypeMap = cat => ({
 
 export const categoryService = {
   async getCategories() {
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
+    if (!session) throw new Error("Usuário não autenticado.")
+
     const { data, error } = await supabase
       .from("categories")
       .select("*")
+      .eq("user_id", session.user.id)
       .order("name", { ascending: true })
 
     if (error) {
@@ -52,6 +58,11 @@ export const categoryService = {
   },
 
   async updateCategory({ id, nome, tipo, descricao, cor }) {
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
+    if (!session) throw new Error("Usuário não autenticado.")
+
     const { data, error } = await supabase
       .from("categories")
       .update({
@@ -61,6 +72,7 @@ export const categoryService = {
         color: cor
       })
       .eq("id", id)
+      .eq("user_id", session.user.id)
       .select()
       .single()
 
@@ -73,7 +85,16 @@ export const categoryService = {
   },
 
   async deleteCategory(id) {
-    const { error } = await supabase.from("categories").delete().eq("id", id)
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
+    if (!session) throw new Error("Usuário não autenticado.")
+
+    const { error } = await supabase
+      .from("categories")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", session.user.id)
 
     if (error) {
       console.error("[Supabase deleteCategory Error]:", error.code, error.message)
