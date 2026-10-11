@@ -67,7 +67,15 @@ afterEach(() => {
 
 // Testes para o método getTransactions do serviço de transação
 describe("getTransactions", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(transactionService.getTransactions()).rejects.toThrow("Usuário não autenticado.")
+  })
+
   it("traduz income e expense para receita e despesa", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(
       criarBuilder({
         data: [linha(), linha({ id: 2, title: "Salario", type: "income", amount: 5000 })],
@@ -82,6 +90,8 @@ describe("getTransactions", () => {
   })
 
   it("ordena por occurred_on decrescente", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ data: [], error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -91,6 +101,8 @@ describe("getTransactions", () => {
   })
 
   it("traduz o erro do banco em mensagem para o usuario", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ data: null, error: { message: "refused" } }))
 
     await expect(transactionService.getTransactions()).rejects.toThrow(
@@ -99,6 +111,8 @@ describe("getTransactions", () => {
   })
 
   it("le da tabela transactions", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ data: [], error: null }))
 
     await transactionService.getTransactions()
@@ -215,7 +229,16 @@ describe("createTransaction", () => {
 
 // Testes para o método updateTransaction do serviço de transação
 describe("updateTransaction", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(
+      transactionService.updateTransaction({ id: 1, titulo: "X", valor: 10, tipo: "despesa" })
+    ).rejects.toThrow("Usuário não autenticado.")
+  })
+
   it("traduz o DTO para as colunas do update sem enviar user_id", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ title: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -244,6 +267,8 @@ describe("updateTransaction", () => {
   })
 
   it("converte despesa em expense no update", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ data: linha(), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -258,6 +283,8 @@ describe("updateTransaction", () => {
   })
 
   it("filtra pelo id e devolve o DTO", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ data: linha({ title: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -273,6 +300,8 @@ describe("updateTransaction", () => {
   })
 
   it("traduz 23503 em categoria inexistente", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(
       criarBuilder({ data: null, error: { code: "23503", message: "fk" } })
     )
@@ -283,6 +312,8 @@ describe("updateTransaction", () => {
   })
 
   it("traduz qualquer outro erro", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(
       criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
     )
@@ -295,7 +326,17 @@ describe("updateTransaction", () => {
 
 // Testes para o método deleteTransaction do serviço de transação
 describe("deleteTransaction", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(transactionService.deleteTransaction(1)).rejects.toThrow(
+      "Usuário não autenticado."
+    )
+  })
+
   it("filtra pelo id e devolve true quando o banco aceita", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -304,6 +345,8 @@ describe("deleteTransaction", () => {
   })
 
   it("traduz erro genérico quando não há branch específico", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ error: { code: "08006", message: "fk" } }))
 
     await expect(transactionService.deleteTransaction(1)).rejects.toThrow(
