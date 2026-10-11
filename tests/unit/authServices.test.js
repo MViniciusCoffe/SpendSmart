@@ -1,4 +1,4 @@
-﻿jest.mock("../../infra/supabase", () => ({
+jest.mock("../../infra/supabase", () => ({
   supabase: {
     // Mocka apenas métodos que authServices usa
     // SignOut não é usado ainda
@@ -104,7 +104,7 @@ describe("registerUser", () => {
     ).rejects.toThrow("Erro ao registrar usuário. Verifique os dados e tente novamente")
   })
 
-  it("traduz falha do /api/createProfile avisando que a conta foi criada", async () => {
+  it("repassa mensagem de erro real do /api/createProfile", async () => {
     supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
     global.fetch.mockResolvedValue(respostaComErro("sem token"))
 
