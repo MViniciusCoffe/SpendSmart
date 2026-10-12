@@ -63,13 +63,13 @@ function RendaPage() {
 
     try {
       await transactionService.createTransaction({
-        titulo: nome,
-        valor: Number(valor),
-        tipo: "receita",
-        categoria_id: categorySelected,
-        data_ocorrencia: data,
-        descricao: descricao,
-        metodo_pagamento: formaPagamento
+        title: nome,
+        amount: Number(valor),
+        type: "income",
+        category_id: categorySelected,
+        occurred_on: data,
+        description: descricao,
+        payment_method: formaPagamento
       })
 
       setAddingErrorMessage("")
@@ -295,24 +295,24 @@ function RendaPage() {
               <div className={styles.category_details}>
                 <h2>Detalhes da Renda</h2>
                 <p>
-                  <strong>Nome:</strong> {incomeDetails?.titulo || "Sem dados"}
+                  <strong>Nome:</strong> {incomeDetails?.title || "Sem dados"}
                 </p>
                 <p>
-                  <strong>Valor:</strong> R$ {incomeDetails?.valor || "0.00"}
+                  <strong>Valor:</strong> R$ {incomeDetails?.amount || "0.00"}
                 </p>
                 <p>
                   <strong>Descrição:</strong>{" "}
-                  {incomeDetails?.descricao || "Nenhuma descrição fornecida."}
+                  {incomeDetails?.description || "Nenhuma descrição fornecida."}
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
-                  {incomeDetails?.data_ocorrencia
-                    ? new Date(incomeDetails.data_ocorrencia).toISOString().split("T")[0]
+                  {incomeDetails?.occurred_on
+                    ? new Date(incomeDetails.occurred_on).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
                 <p>
                   <strong>Forma de Pagamento:</strong>{" "}
-                  {incomeDetails?.metodo_pagamento || "Sem dados"}
+                  {incomeDetails?.payment_method || "Sem dados"}
                 </p>
               </div>
             </div>

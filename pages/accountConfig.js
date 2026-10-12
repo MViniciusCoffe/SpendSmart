@@ -24,10 +24,10 @@ function AccountConfig() {
 
     try {
       await profileService.updateProfile({
-        nome: nome,
+        full_name: nome,
         senha: senha,
-        dataNascimento: dataNascimento,
-        telefone: telefone
+        birth_date: dataNascimento,
+        phone: telefone
       })
 
       setErrorMessage("")

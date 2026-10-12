@@ -41,12 +41,12 @@ function DashboardPage() {
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("nome_completo")
+            .select("full_name")
             .eq("id", user.id)
             .single()
 
-          if (profile?.nome_completo) {
-            setNomeUsuario(profile.nome_completo)
+          if (profile?.full_name) {
+            setNomeUsuario(profile.full_name)
           }
         }
       } catch (error) {
@@ -112,7 +112,7 @@ function DashboardPage() {
 
     const despesasPorCategoria = categories.map(categoria => {
       const valorTotalCategoria = spends
-        .filter(gasto => gasto.categoria_id === categoria.id)
+        .filter(gasto => gasto.category_id === category.id)
         .reduce((acc, gasto) => acc + Number(gasto.valor), 0)
 
       return {
@@ -141,7 +141,7 @@ function DashboardPage() {
     if (spends.length === 0 || dados.totalGastos === 0) return null
 
     const gastosComCategoria = spends.map(gasto => {
-      const categoria = categories.find(cat => cat.id === gasto.categoria_id)
+      const categoria = categories.find(cat => cat.id === gasto.category_id)
       return {
         nome: gasto.titulo || "Sem nome",
         valor: Number(gasto.valor),
@@ -169,7 +169,7 @@ function DashboardPage() {
 
     const receitasPorCategoria = categories.map(categoria => {
       const valorTotalCategoria = incomes
-        .filter(receita => receita.categoria_id === categoria.id)
+        .filter(receita => receita.category_id === category.id)
         .reduce((acc, receita) => acc + Number(receita.valor), 0)
 
       return {
@@ -198,7 +198,7 @@ function DashboardPage() {
     if (incomes.length === 0 || dados.totalReceitas === 0) return null
 
     const receitasComCategoria = incomes.map(receita => {
-      const categoria = categories.find(cat => cat.id === receita.categoria_id)
+      const categoria = categories.find(cat => cat.id === receita.category_id)
       return {
         nome: receita.titulo || "Sem nome",
         valor: Number(receita.valor),

@@ -63,9 +63,9 @@ describe("registerUser", () => {
     await authService.registerUser({
       email: "joao@email.com",
       password: "senha123",
-      nomeCompleto: "Joao Silva",
-      dataNascimento: "1990-01-01",
-      telefone: "11999999999"
+      full_name: "Joao Silva",
+      birth_date: "1990-01-01",
+      phone: "11999999999"
     })
 
     // Verifica se o fetch foi chamado com a URL correta e o método POST
@@ -78,9 +78,9 @@ describe("registerUser", () => {
       expect.objectContaining({ method: "POST" })
     )
     expect(JSON.parse(opcoes.body)).toEqual({
-      nome_completo: "Joao Silva",
-      data_nascimento: "1990-01-01",
-      telefone: "11999999999"
+      full_name: "Joao Silva",
+      birth_date: "1990-01-01",
+      phone: "11999999999"
     })
     expect(opcoes.headers.Authorization).toBe("Bearer token123")
   })

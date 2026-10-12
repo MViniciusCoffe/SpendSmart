@@ -92,10 +92,10 @@ describe("getCategories", () => {
     // Chama o serviço para obter as categorias
     const resultado = await categoryService.getCategories()
 
-    // Verifica se o resultado traduz corretamente os tipos para português
+    // Verifica se o resultado traduz corretamente os tipos para inglês
     expect(resultado).toEqual([
-      { id: 1, nome: "Alimentacao", tipo: "despesa", descricao: "Mercado", cor: "#FF0000" },
-      { id: 2, nome: "Salario", tipo: "receita", descricao: "Mercado", cor: "#FF0000" }
+      { id: 1, name: "Alimentacao", type: "expense", description: "Mercado", color: "#FF0000" },
+      { id: 2, name: "Salario", type: "income", description: "Mercado", color: "#FF0000" }
     ])
   })
 
@@ -146,7 +146,7 @@ describe("createCategory", () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
 
-    await categoryService.createCategory({ nome: "Mercado", tipo: "despesa" })
+    await categoryService.createCategory({ name: "Mercado", type: "expense" })
 
     expect(supabase.from).toHaveBeenCalledWith("categories")
   })
@@ -154,27 +154,23 @@ describe("createCategory", () => {
   it("recusa sem sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "receita" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "income" })).rejects.toThrow(
       "Usuário não autenticado."
     )
   })
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
-    // Configura o mock do Supabase para simular uma sessão de usuário autenticado
     supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
     supabase.from.mockReturnValue(builder)
 
-    // Chama o serviço para criar uma nova categoria com os dados fornecidos
     await categoryService.createCategory({
-      nome: "Salario",
-      tipo: "receita",
-      descricao: "Mensal",
-      cor: "#00FF00"
+      name: "Salario",
+      type: "income",
+      description: "Mensal",
+      color: "#00FF00"
     })
 
-    // Verifica se o método insert do builder foi chamado com os dados corretos,
-    // incluindo a tradução do tipo e o user_id da sessão
     expect(builder.insert).toHaveBeenCalledWith([
       {
         name: "Salario",
@@ -186,19 +182,18 @@ describe("createCategory", () => {
     ])
   })
 
-  it("devolve o DTO em portugues, nao a linha crua", async () => {
-    // Configura o mock do Supabase para simular uma sessão de usuário autenticado
+  it("devolve o DTO em ingles, nao a linha crua", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
 
-    const resultado = await categoryService.createCategory({ nome: "X", tipo: "despesa" })
+    const resultado = await categoryService.createCategory({ name: "X", type: "expense" })
 
     expect(resultado).toEqual({
       id: 1,
-      nome: "Alimentacao",
-      tipo: "despesa",
-      descricao: "Mercado",
-      cor: "#FF0000"
+      name: "Alimentacao",
+      type: "expense",
+      description: "Mercado",
+      color: "#FF0000"
     })
   })
 
@@ -208,7 +203,7 @@ describe("createCategory", () => {
       criarBuilder({ data: null, error: { code: "23505", message: "duplicate" } })
     )
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "despesa" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "expense" })).rejects.toThrow(
       "Categoria já existe. Escolha outro nome."
     )
   })
@@ -219,7 +214,7 @@ describe("createCategory", () => {
       criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
     )
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "despesa" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "expense" })).rejects.toThrow(
       "Não foi possível criar a categoria."
     )
   })
@@ -229,7 +224,7 @@ describe("createCategory", () => {
     const builder = criarBuilder({ data: linha(), error: null })
     supabase.from.mockReturnValue(builder)
 
-    await categoryService.createCategory({ nome: "Mercado", tipo: "despesa" })
+    await categoryService.createCategory({ name: "Mercado", type: "expense" })
 
     expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
   })
@@ -240,7 +235,7 @@ describe("updateCategory", () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Usuário não autenticado.")
   })
 
@@ -252,12 +247,12 @@ describe("updateCategory", () => {
 
     const resultado = await categoryService.updateCategory({
       id: 1,
-      nome: "Novo",
-      tipo: "despesa"
+      name: "Novo",
+      type: "expense"
     })
 
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
-    expect(resultado.nome).toBe("Novo")
+    expect(resultado.name).toBe("Novo")
   })
 
   it("traduz 23505 em conflito de nome", async () => {
@@ -268,7 +263,7 @@ describe("updateCategory", () => {
     )
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Já existe outra categoria com este nome.")
   })
 
@@ -280,7 +275,7 @@ describe("updateCategory", () => {
     )
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Não foi possível atualizar a categoria.")
   })
 
@@ -292,10 +287,10 @@ describe("updateCategory", () => {
 
     await categoryService.updateCategory({
       id: 1,
-      nome: "Novo",
-      tipo: "receita",
-      descricao: "Mensal",
-      cor: "#00FF00"
+      name: "Novo",
+      type: "income",
+      description: "Mensal",
+      color: "#00FF00"
     })
 
     expect(builder.update).toHaveBeenCalledWith({

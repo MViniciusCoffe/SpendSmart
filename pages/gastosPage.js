@@ -71,13 +71,13 @@ function GastosPage() {
 
     try {
       await transactionService.createTransaction({
-        titulo: nome,
-        valor: Number(valor),
-        tipo: "despesa",
-        categoria_id: categorySelected,
-        data_ocorrencia: data,
-        descricao: descricao,
-        metodo_pagamento: formaPagamento
+        title: nome,
+        amount: Number(valor),
+        type: "expense",
+        category_id: categorySelected,
+        occurred_on: data,
+        description: descricao,
+        payment_method: formaPagamento
       })
 
       setAddingErrorMessage("")
@@ -304,24 +304,24 @@ function GastosPage() {
               <div className={styles.category_details}>
                 <h2>Detalhes da Despesa</h2>
                 <p>
-                  <strong>Nome:</strong> {expenseDetails?.titulo || "Sem dados"}
+                  <strong>Nome:</strong> {expenseDetails?.title || "Sem dados"}
                 </p>
                 <p>
-                  <strong>Valor:</strong> R$ {expenseDetails?.valor || "0.00"}
+                  <strong>Valor:</strong> R$ {expenseDetails?.amount || "0.00"}
                 </p>
                 <p>
                   <strong>Descrição:</strong>{" "}
-                  {expenseDetails?.descricao || "Nenhuma descrição fornecida."}
+                  {expenseDetails?.description || "Nenhuma descrição fornecida."}
                 </p>
                 <p>
                   <strong>Data:</strong>{" "}
-                  {expenseDetails?.data_ocorrencia
-                    ? new Date(expenseDetails.data_ocorrencia).toISOString().split("T")[0]
+                  {expenseDetails?.occurred_on
+                    ? new Date(expenseDetails.occurred_on).toISOString().split("T")[0]
                     : "Sem dados"}
                 </p>
                 <p>
                   <strong>Forma de Pagamento:</strong>{" "}
-                  {expenseDetails?.metodo_pagamento || "Sem dados"}
+                  {expenseDetails?.payment_method || "Sem dados"}
                 </p>
               </div>
             </div>

@@ -16,7 +16,7 @@ export const dto = (overrides = {}) => ({
   titulo: "Aluguel",
   valor: 1500.0,
   tipo: "despesa",
-  categoria_id: 7,
+  category_id: 7,
   data_ocorrencia: "2026-09-01",
   descricao: "Setembro",
   metodo_pagamento: "cartao_credito",
