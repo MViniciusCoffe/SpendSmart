@@ -266,8 +266,7 @@ teórico — 366 pacotes do `package-lock.json` declaram `engines.node` e o CI e
 O `npm ci` emitia cerca de 99 avisos `EBADENGINE` e completava assim mesmo: o aviso não impede a
 instalação, então nada quebra e nada aponta a causa. O caso do `@supabase/supabase-js` é o mais
 sério, porque é dependência de **produção** — o CI não falha por rodar Node 20, mas o primeiro
-teste de integração que invocar o cliente real (issue
-[#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16)) falha por engine.
+teste de integração que invocar o cliente real falharia por engine.
 
 Declarar `engines` faz três coisas de uma vez: documenta o mínimo, faz o npm avisar quem instala
 fora da faixa, e passa a ser a fonte que a Vercel respeita. O limite `>=24.11.0` é o piso do
@@ -278,8 +277,8 @@ e não traz vantagem aqui. Também rejeitado: não declarar `engines` e confiar 
 cada workflow — é o que permitia a divergência entre os ambientes.
 
 **Reavaliar quando.** O Babel ou o Jest mudarem de requisito de engine. Se `engines` deixar de
-cobrir a versão que a Vercel usa, o número tem de mudar nos três lugares juntos:
-`package.json`, `test.yml` e `lint.yml`.
+cobrir a versão que a Vercel usa, o número tem de mudar nos quatro lugares juntos:
+`package.json`, `test.yml`, `lint.yml` e `sonar.yml`.
 
 ---
 
@@ -343,8 +342,8 @@ GitHub Actions não participa do deploy.
 
 **Por que.** Vale registrar porque os dois nomes se confundem. A Vercel **não usa GitHub Actions**.
 O que aparece no repositório GitHub depois de um push são _checks_ — o resultado do build da Vercel
-reportado no GitHub — e não arquivos de workflow. Os dois arquivos em `.github/workflows/`,
-`test.yml` e `lint.yml`, são do GitHub Actions e existem para verificar qualidade antes do deploy.
+reportado no GitHub — e não arquivos de workflow. Os três arquivos em `.github/workflows/`,
+`test.yml`, `lint.yml` e `sonar.yml`, são do GitHub Actions e existem para verificar qualidade antes do deploy.
 
 Não há `vercel.json` porque a configuração está no painel, e a configuração padrão da Vercel para
 Next.js já detecta o framework e o build command. Um arquivo só seria necessário para algo que o

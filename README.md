@@ -122,19 +122,19 @@ A separação de responsabilidades adotada:
 Isto importa mais do que qualquer checklist antigo: o repositório está em **revitalização** e vários
 itens que pareciam prontos não estão.
 
-| Item                                        | Estado                                       |
-| :------------------------------------------ | :------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                  |
-| Categorias: criar, listar, alterar, excluir | Funcionando                                  |
-| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos         |
-| Dashboard com gráficos                      | Funcionando                                  |
-| Excluir conta                               | Funcionando                                  |
-| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**        |
-| Testes de integração                        | **Nenhum**                                   |
-| `npm test`                                  | **Passa** — 65/65, sem erro                  |
-| CI no GitHub Actions                        | **Dois workflows** — `test.yml` e `lint.yml` |
-| RLS aplicado e validado                     | **Nunca foi validado** com dois usuários     |
-| Ambientes separados                         | **Não existem** — um único banco para tudo   |
+| Item                                        | Estado                                                |
+| :------------------------------------------ | :---------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                           |
+| Categorias: criar, listar, alterar, excluir | Funcionando                                           |
+| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos                  |
+| Dashboard com gráficos                      | Funcionando                                           |
+| Excluir conta                               | Funcionando                                           |
+| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**                 |
+| Testes de integração                        | **5 suítes** (`pg-mem` ou Postgres real)              |
+| `npm test`                                  | **Passa** — 65/65, sem erro                           |
+| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml` |
+| RLS aplicado e validado                     | **Nunca foi validado** com dois usuários              |
+| Ambientes separados                         | **Não existem** — um único banco para tudo            |
 
 ### Defeitos conhecidos
 
@@ -144,7 +144,6 @@ itens que pareciam prontos não estão.
 | [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21) | Detalhe de transação sempre vazio: a UI lê `data`/`forma_pagamento`, o service devolve `data_ocorrencia`/`metodo_pagamento` |
 | [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                                                            |
 | [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas públicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente                                |
-| [#25](https://github.com/MViniciusCoffe/SpendSmart/issues/25) | Cadastro sem rollback: se o perfil falhar, sobra uma conta no Auth sem perfil                                               |
 
 ### Sobre o RLS nunca ter sido validado
 
@@ -166,13 +165,13 @@ arquivos abaixo, em Markdown.
 
 ### Requisitos e testes
 
-| Documento                                                          | Conteúdo                                                                               |
-| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| [Documento de Visão](docs/vision.md)                               | Escopo, personas, RF01–RF16, RNF01–RNF07, riscos e equipe                              |
-| [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação              |
-| [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                  |
-| [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin   |
-| [Estado atual dos testes](docs/test-state-report.md)               | Diagnóstico formal: 65 testes unitários, cobertura, integração ausente, débito técnico |
+| Documento                                                          | Conteúdo                                                                             |
+| :----------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| [Documento de Visão](docs/vision.md)                               | Escopo, personas, RF01-RF16, RNF01-RNF07, riscos e equipe                            |
+| [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
+| [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
+| [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
+| [Estado atual dos testes](docs/test-state-report.md)               | Diagnóstico formal: 65 testes unitários, 5 de integração, cobertura, débito técnico  |
 
 ### Planejamento de iterações
 
@@ -202,18 +201,14 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                        | Bloqueia  |
-| :------------------------------------------------------------ | :----------------------------- | :-------- |
-| [#16](https://github.com/MViniciusCoffe/SpendSmart/issues/16) | Testes de integração           | #17       |
-| [#17](https://github.com/MViniciusCoffe/SpendSmart/issues/17) | Cobertura LCOV                 | #19       |
-| [#19](https://github.com/MViniciusCoffe/SpendSmart/issues/19) | SonarQube LABENS               | Tarefa 01 |
-| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e ambiente local  | #24       |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —         |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —         |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —         |
-| [#29](https://github.com/MViniciusCoffe/SpendSmart/issues/29) | `createProfile` sem token      | —         |
+| #                                                             | Assunto                        | Bloqueia |
+| :------------------------------------------------------------ | :----------------------------- | :------- |
+| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e Docker local    | #24      |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
 
-Resolvidos pela frente de testes, CI e SonarQube: #15, #17, #18, #19, #26 e #31.
+Resolvidos pela frente de testes, CI e SonarQube: #15, #16, #17, #18, #19, #25, #26, #29 e #31.
 
 ---
 

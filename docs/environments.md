@@ -26,8 +26,8 @@ Preview e Production existem; o que não existe é um banco separado para qualqu
 
 O projeto está conectado a Vercel e publicado em <https://spend-smart-lilac.vercel.app/>. A Vercel
 não usa GitHub Actions: ela tem o próprio pipeline, e o que aparece no repositório GitHub são
-_checagens_ (checks) reportando o resultado do build, não arquivos de workflow. Os dois
-`.github/workflows/` deste repositório — `test.yml` e `lint.yml` — são do GitHub Actions e não têm relação com a Vercel.
+_checagens_ (checks) reportando o resultado do build, não arquivos de workflow. Os três
+`.github/workflows/` deste repositório — `test.yml`, `lint.yml` e `sonar.yml` — são do GitHub Actions e não têm relação com a Vercel.
 
 A Vercel decide o que buildar a partir do nome da branch:
 

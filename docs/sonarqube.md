@@ -301,16 +301,15 @@ Commit `ab5e87e`, 8 arquivos indexados (4 de `services/` mais 4 arquivos de test
 | Vulnerabilidades | 0     |
 | Code smells      | 14    |
 
-Os 14 code smells são de duas regras:
+Os 14 code smells eram de duas regras:
 
 | Regra                                  | Qtd. | Onde                                            |
 | :------------------------------------- | :--- | :---------------------------------------------- |
 | `S2223` — catch só relança             | 12   | `try { } catch (e) { throw e; }` em `services/` |
 | `Number.parseFloat` sobre `parseFloat` | 2    | `transactionService.js:53` e `:91`              |
 
-O padrão `try { } catch (e) { throw e; }` é proibido pelo `AGENTS.md` §4.3. Os 12 casos foram
-verificados um a um: nenhum tem `finally` e nenhum tem lógica no `catch` além do `throw`, então
-remover o `try/catch` é semanticamente idêntico. Limpar os 14 é um PR separado do de infraestrutura.
+Os 14 code smells foram corrigidos em 2026-10. Verificado por grep: nenhum `catch (e) { throw e; }`
+nem `parseFloat` permanece em `services/`.
 
 ---
 
@@ -359,18 +358,17 @@ e token nunca entram no arquivo versionado.
 
 ## 10. Pendências
 
-| Item                                                   | Estado     | Onde                         |
-| :----------------------------------------------------- | :--------- | :--------------------------- |
-| Projeto `spendsmart` criado no painel do LABENS        | Feito      | #19                          |
-| `sonar-project.properties` na raiz, escopo `services/` | Feito      | #19                          |
-| `SONAR_TOKEN` e `SONAR_HOST_URL` como secrets          | Feito      | #19                          |
-| Workflow com testes antes do scan                      | Feito      | #19                          |
-| Análise verde no painel                                | Feito      | #19                          |
-| Evidência de cobertura anexada ao relatório da T1      | Pendente   | #17                          |
-| Limpar os 14 code smells de `services/`                | Pendente   | issue própria, **não** a #19 |
-| `LICENSE` no repositório                               | Não existe | —                            |
+| Item                                                   | Estado     | Onde    |
+| :----------------------------------------------------- | :--------- | :------ |
+| Projeto `spendsmart` criado no painel do LABENS        | Feito      | #19     |
+| `sonar-project.properties` na raiz, escopo `services/` | Feito      | #19     |
+| `SONAR_TOKEN` e `SONAR_HOST_URL` como secrets          | Feito      | #19     |
+| Workflow com testes antes do scan                      | Feito      | #19     |
+| Análise verde no painel                                | Feito      | #19     |
+| Evidência de cobertura anexada ao relatório da T1      | Pendente   | #17     |
+| Limpar os 14 code smells de `services/`                | Feito      | 2026-10 |
+| `LICENSE` no repositório                               | Não existe | —       |
 
-A limpeza dos 14 code smells não é parte do que a #19 pede — ela cobre a configuração da análise, que
-está pronta. Por isso o PR fecha a #19 e **não** deve fechar a issue de limpeza: os 12 `S2223` são
-proibidos pelo `AGENTS.md` §4.3 e os 2 `parseFloat` ficam em `transactionService.js:53,91`. Vale
-uma issue separada, que é o que a coluna acima pressupõe.
+A limpeza dos 14 code smells foi feita em 2026-10, separada da #19 que cobre a configuração da análise.
+Os 12 `S2223` (proibidos pelo `AGENTS.md` §4.3) e os 2 `parseFloat` em `transactionService.js:53,91`
+foram removidos. Verificado por grep em 12/10/2026: nenhum permanece em `services/`.

@@ -1,7 +1,8 @@
 # Relatório do Estado Atual dos Testes
 
 Diagnóstico formal do estado dos testes do SpendSmart antes da disciplina de Testes de Software
-(BSI, UFRN, 2026), exigido pela entrega P1. Data de referência: **06/10/2026**.
+(BSI, UFRN, 2026), exigido pela entrega P1. Data de referência: **06/10/2026**. Atualizado em
+**12/10/2026** para refletir os testes de integração adicionados.
 
 Todas as afirmações numéricas deste relatório foram verificadas por execução local na data de
 referência. O comando usado está indicado em cada seção.
@@ -13,7 +14,7 @@ referência. O comando usado está indicado em cada seção.
 | Pergunta da disciplina           | Resposta                                                                                |
 | :------------------------------- | :-------------------------------------------------------------------------------------- |
 | Existem testes de unidade?       | **Sim** — 65 testes em 4 suítes, todos passando                                         |
-| Existem testes de integração?    | **Não** — nenhum teste de integração automatizado existe hoje                           |
+| Existem testes de integração?    | **Sim** — 5 suítes em `tests/integration/postgres/` com `pg-mem` ou Postgres real       |
 | Qual a cobertura atual?          | **100%** sobre `services/` (4 arquivos, 348 linhas); 0% sobre o restante do repositório |
 | O sistema era legado sem testes? | **Sim** — até 23/09/2026 não havia um único teste no repositório                        |
 | Débito técnico identificado      | Sim — listado em §5                                                                     |
@@ -55,7 +56,7 @@ Diagnóstico do estado legado:
 
 ---
 
-## 3. Estado atual (06/10/2026)
+## 3. Estado atual (12/10/2026)
 
 ### 3.1 Testes de unidade
 
@@ -75,30 +76,47 @@ também é testado.
 
 ### 3.2 Testes de integração
 
-**Nenhum existe.** A situação é de dois níveis diferentes:
+**Existem 5 suítes em `tests/integration/postgres/`**, usando `pg-mem` (Postgres em memória) ou
+Postgres real via `TEST_DATABASE_URL`:
 
-| Situação             | Detalhe                                                                                                                            |
-| :------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/integration/` | **O diretório não existe.** Os scripts `npm run test:integration` e `test:integration:rls` apontam para pastas vazias e falhariam. |
-| Cobertura pretendida | 10 casos (IT-01 a IT-10) especificados em [test-plan.md](test-plan.md) §2.2                                                        |
-| Ambiente necessário  | Stack local do Supabase CLI (Postgres + Auth + RLS de verdade) — ainda não montada (issue #20)                                     |
+| Suite                         | O que cobre                                                                                    |
+| :---------------------------- | :--------------------------------------------------------------------------------------------- |
+| `profileConstraints.test.js`  | Gravação do perfil no cadastro (CT01.04, #25)                                                  |
+| `incomeRegistration.test.js`  | Cadastro de receita com dados válidos e valores inválidos (CT10.01, CT10.02)                   |
+| `expenseRegistration.test.js` | Cadastro de despesa com dados válidos, valores inválidos, detalhe preenchido (CT13.01-CT13.04) |
+| `categoryListing.test.js`     | Listagem de categorias isolada por usuário (US-007)                                            |
+| `categoryConstraints.test.js` | Unicidade de categoria por (usuário, nome, tipo) e exclusão com FK (IT-04, IT-05)              |
 
-Consequência prática: **o isolamento entre usuários (RLS) nunca foi exercitado em nenhum
-ambiente.** Nenhuma garantia de privacidade foi provada por teste até hoje.
+| Situação             | Detalhe                                                                                                                              |
+| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/integration/` | **Existe** com 5 suítes. Os scripts `npm run test:integration` e `test:integration:rls` em `package.json` apontam para essas pastas. |
+| Cobertura pretendida | 10 casos (IT-01 a IT-10) especificados em [test-plan.md](test-plan.md) §2.2 — parcialmente coberta                                   |
+| Ambiente necessário  | Stack local do Supabase CLI (Postgres + Auth + RLS de verdade) — ainda não montada (issue #20)                                       |
 
-### 3.3 Testes de sistema e aceitação
+Consequência prática: **o isolamento por RLS do Supabase continua não testado.** Os testes de
+integração usam `pg-mem` ou Postgres puro, que não têm `auth.users` nem políticas RLS. O
+comentário em `categoryListing.test.js:10-13` registra isso explicitamente: "O isolamento por
+RLS continua sendo IT-01/IT-02 e depende da stack do Supabase (issue #20)".
+
+### 3.3 Testes de regressão
+
+Existe 1 suíte de regressão em `tests/regression/issue10-21-transactionService.test.js` cobrindo:
+validação de título (#10), DTO com `data_ocorrencia`/`metodo_pagamento` (#21), tradução de tipo e
+validação de valor.
+
+### 3.4 Testes de sistema e aceitação
 
 Executados manualmente, sem automação. Os critérios de aceitação de cada User Story estão em
 [user-stories.md](user-stories.md) e a matriz de cobertura por nível está em
 [test-plan.md](test-plan.md) §4.
 
-### 3.4 Análise estática e CI
+### 3.5 Análise estática e CI
 
-| Ferramenta          | Estado                                                                                                    |
-| :------------------ | :-------------------------------------------------------------------------------------------------------- |
-| ESLint 9 + Prettier | Configurados; `eslint .` com 0 erros e 21 avisos (12 `no-alert`, 8 `no-img-element`, 1 `exhaustive-deps`) |
-| SonarQube LABENS    | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 14 code smells                  |
-| GitHub Actions      | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan)                 |
+| Ferramenta          | Estado                                                                                    |
+| :------------------ | :---------------------------------------------------------------------------------------- |
+| ESLint 9 + Prettier | Configurados; `eslint .` com 0 erros e 20 avisos (12 `no-alert`, 8 `no-img-element`)      |
+| SonarQube LABENS    | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 0 code smells   |
+| GitHub Actions      | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan) |
 
 Verificado em 06/10/2026 por `npm run lint:eslint:check` e `npx prettier --check .`; o resultado
 do SonarQube está registrado em [sonarqube.md](sonarqube.md) §7.
@@ -128,26 +146,25 @@ escopo.
 
 ## 5. Débito técnico identificado
 
-| Débito                                                          | Impacto | Esforço | Onde/Issue                                              |
-| :-------------------------------------------------------------- | :------ | :------ | :------------------------------------------------------ |
-| Nenhum teste de integração automatizado                         | Alto    | Médio   | [test-plan.md](test-plan.md) §2.2, issues #16 e #20     |
-| RLS nunca validado com dois usuários                            | Alto    | Médio   | Issue #20 (bloqueia a prova do requisito RNF04)         |
-| `tests/integration/` inexistente com scripts apontando para ela | Médio   | Baixo   | Scripts `test:integration*` em `package.json`           |
-| Front-end sem cobertura (`pages/`, `components/`)               | Médio   | Médio   | Issue #33                                               |
-| 14 code smells no SonarQube (12 `S2223`, 2 `parseFloat`)        | Baixo   | Baixo   | [sonarqube.md](sonarqube.md) §7 — issue própria a criar |
-| Defeitos conhecidos de contrato de UI (`#10`, `#21`)            | Médio   | Baixo   | README "Defeitos conhecidos"                            |
-| Ambiente único: `npm run dev` aplica migrations no banco remoto | Alto    | Médio   | Issue #20, [environments.md](environments.md)           |
-| Cobertura do Sonar limitada ao escopo `services/`               | Baixo   | Baixo   | Decisão registrada em [sonarqube.md](sonarqube.md) §4   |
+| Débito                                                          | Impacto | Esforço | Onde/Issue                                            |
+| :-------------------------------------------------------------- | :------ | :------ | :---------------------------------------------------- |
+| RLS nunca validado com dois usuários                            | Alto    | Médio   | Issue #20 (bloqueia a prova do requisito RNF04)       |
+| Front-end sem cobertura (`pages/`, `components/`)               | Médio   | Médio   | Issue #33                                             |
+| 14 code smells corrigidos (12 `S2223`, 2 `parseFloat`)          | —       | —       | [sonarqube.md](sonarqube.md) §7 — verificado 2026-10  |
+| Defeitos conhecidos de contrato de UI (`#10`, `#21`)            | Médio   | Baixo   | README "Defeitos conhecidos"                          |
+| Ambiente único: `npm run dev` aplica migrations no banco remoto | Alto    | Médio   | Issue #20, [environments.md](environments.md)         |
+| Cobertura do Sonar limitada ao escopo `services/`               | Baixo   | Baixo   | Decisão registrada em [sonarqube.md](sonarqube.md) §4 |
 
 ---
 
 ## 6. Conclusão
 
 O repositório saiu de **zero testes** para 65 testes de unidade com 100% de cobertura na camada de
-negócio, lint e análise estática rodando na CI, em cerca de duas semanas de trabalho (23/09 a
-06/10/2026). A camada de negócio é hoje a parte mais bem coberta do sistema.
+negócio, 5 suítes de testes de integração com `pg-mem` ou Postgres real, lint e análise estática
+rodando na CI, em cerca de duas semanas de trabalho (23/09 a 06/10/2026). A camada de negócio é
+hoje a parte mais bem coberta do sistema.
 
-O débito principal é a **ausência total de testes de integração**: sem eles, o requisito central
-de privacidade (RNF04) continua sem evidência, e os scripts de integração já existentes apontam
-para diretórios que ainda não foram criados. Esse é o principal risco aberto e está planejado nas
-iterações seguintes ([iteration-plan.md](iteration-plan.md)).
+O débito principal é a **ausência de testes de RLS**: os testes de integração usam `pg-mem` ou
+Postgres puro, que não têm `auth.users` nem políticas RLS. O requisito central de privacidade
+(RNF04) continua sem evidência automatizada. Esse é o principal risco aberto e está planejado nas
+iterações seguintes ([iteration-plan.md](iteration-plan.md), issue #20).
