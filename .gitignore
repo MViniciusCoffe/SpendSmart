@@ -4,6 +4,7 @@ node_modules
 .env.*
 !.env.example
 !.env.development.example
+!.env.local.example
 coverage/
 .eslintcache
 
