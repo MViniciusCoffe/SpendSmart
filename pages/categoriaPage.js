@@ -219,6 +219,13 @@ function CategoriaPage() {
           <form className={styles.form_content} onSubmit={handleEdit}>
             <h1 className={styles.content_h1}>Editar Categoria</h1>
 
+            {categories.length === 0 && (
+              <p className={styles.empty_message}>
+                Você ainda não tem categorias cadastradas. Crie a primeira na aba
+                &quot;Adicionar&quot;.
+              </p>
+            )}
+
             <label className={styles.input_title} htmlFor="categoria">
               Selecionar Categoria
             </label>
@@ -324,6 +331,14 @@ function CategoriaPage() {
         {activeTab === "delete" && (
           <form className={styles.form_content} onSubmit={handleDelete}>
             <h1 className={styles.content_h1}>Excluir Categoria</h1>
+
+            {categories.length === 0 && (
+              <p className={styles.empty_message}>
+                Você ainda não tem categorias cadastradas. Crie a primeira na aba
+                &quot;Adicionar&quot;.
+              </p>
+            )}
+
             <div className={styles.form_group}>
               <label className={styles.input_title} htmlFor="delete_categoria">
                 Selecionar Categoria

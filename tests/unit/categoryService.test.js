@@ -51,8 +51,34 @@ afterEach(() => {
 
 // Descreve os testes para o serviço de categoria
 describe("getCategories", () => {
+  it("recusa a listagem sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(categoryService.getCategories()).rejects.toThrow("Usuário não autenticado.")
+  })
+
+  // CA-007.01: a leitura não pode depender apenas do RLS — o service filtra pelo
+  // user_id da sessão (mesmo padrão do createCategory).
+  it("filtra as categorias pelo user_id da sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: [], error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await categoryService.getCategories()
+
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+  })
+
+  it("devolve lista vazia quando o usuario nao tem categorias", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(criarBuilder({ data: [], error: null }))
+
+    await expect(categoryService.getCategories()).resolves.toEqual([])
+  })
+
   it("traduz income e expense para receita e despesa", async () => {
     // Configura o mock do Supabase para retornar duas categorias, uma de despesa e outra de receita
+    supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(
       // Cria um builder com os dados das categorias
       criarBuilder({
@@ -76,6 +102,7 @@ describe("getCategories", () => {
   it("ordena por nome crescente", async () => {
     // Configura o mock do Supabase para retornar um builder vazio,
     // apenas para testar a chamada do método order
+    supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: [], error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -88,6 +115,7 @@ describe("getCategories", () => {
   it("traduz o erro do banco em mensagem para o usuario", async () => {
     // Configura o mock do Supabase para simular um erro ao buscar categorias
     // Aqui, o builder chama o método then e retorna um objeto com data null e um erro com mensagem "refused"
+    supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ data: null, error: { message: "refused" } }))
 
     await expect(categoryService.getCategories()).rejects.toThrow(
@@ -96,6 +124,7 @@ describe("getCategories", () => {
   })
 
   it("le da tabela categories", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ data: [], error: null }))
 
     await categoryService.getCategories()
