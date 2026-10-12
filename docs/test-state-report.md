@@ -112,13 +112,14 @@ Executados manualmente, sem automação. Os critérios de aceitação de cada Us
 
 ### 3.5 Análise estática e CI
 
-| Ferramenta          | Estado                                                                                    |
-| :------------------ | :---------------------------------------------------------------------------------------- |
-| ESLint 9 + Prettier | Configurados; `eslint .` com 0 erros e 20 avisos (12 `no-alert`, 8 `no-img-element`)      |
-| SonarQube LABENS    | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 0 code smells   |
-| GitHub Actions      | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan) |
+| Ferramenta           | Estado                                                                                                                               |
+| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| ESLint 9 + Prettier  | Configurados; `eslint .` com 0 erros e 20 avisos (12 `no-alert`, 8 `no-img-element`)                                                 |
+| SonarQube LABENS     | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 0 code smells                                              |
+| GitHub Actions       | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan)                                            |
+| **Scripts de teste** | `test` (unit), `test:watch`, `test:coverage`, `test:integration` (pg-mem), `test:integration:local` (banco real), `test:all` (todos) |
 
-Verificado em 06/10/2026 por `npm run lint:eslint:check` e `npx prettier --check .`; o resultado
+Verificado em 12/10/2026 por `npm run lint:eslint:check` e `npx prettier --check .`; o resultado
 do SonarQube está registrado em [sonarqube.md](sonarqube.md) §7.
 
 ---
@@ -165,6 +166,8 @@ rodando na CI, em cerca de duas semanas de trabalho (23/09 a 06/10/2026). A cama
 hoje a parte mais bem coberta do sistema.
 
 O débito principal é a **ausência de testes de RLS**: os testes de integração usam `pg-mem` ou
-Postgres puro, que não têm `auth.users` nem políticas RLS. O requisito central de privacidade
-(RNF04) continua sem evidência automatizada. Esse é o principal risco aberto e está planejado nas
-iterações seguintes ([iteration-plan.md](iteration-plan.md), issue #20).
+Postgres puro, que não têm `auth.users` nem políticas RLS. O ambiente local Supabase CLI
+(`supabase start`) já tem RLS real — a Fase 5 criará usuários de teste no Auth local e validará
+isolamento. O requisito central de privacidade (RNF04) continua sem evidência automatizada.
+Esse é o principal risco aberto e está planejado nas iterações seguintes
+([iteration-plan.md](iteration-plan.md), issue #20).

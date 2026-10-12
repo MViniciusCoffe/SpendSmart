@@ -31,19 +31,49 @@ código atual.
 
 Requisitos: Node.js compatível com o Next.js 16, npm e Docker.
 
+### 🚀 Quickstart — Desenvolvimento local (recomendado)
+
+Com Supabase CLI local (Postgres + Auth + RLS + Studio):
+
+```bash
+npm install
+supabase start                    # sobe stack local completa
+cp .env.local.example .env.local  # edite colando as chaves do output do 'supabase status'
+npm run dev                       # sobe infra + Next.js junto (concurrently)
+```
+
+O Next.js responde em `http://localhost:3000` contra banco local com **RLS real**.
+
+### 📋 Variáveis de ambiente local
+
+| Arquivo            | Para que serve                         | Precisa preencher?                    |
+| ------------------ | -------------------------------------- | ------------------------------------- |
+| `.env.local`       | Supabase CLI local (padrão)            | **Sim** — chaves do `supabase status` |
+| `.env.development` | Docker Compose Postgres puro (sem RLS) | Só se usar fluxo alternativo          |
+
+> **Prioridade Next.js:** `.env.local` > `.env.development` > `.env`. Se `.env.local` existe, o `.env.development` é ignorado.
+
+### Fluxo alternativo — só Postgres puro (sem RLS, sem Auth)
+
 ```bash
 npm install
 cp .env.development.example .env.development
+# edite .env.development com credenciais do Postgres local
+npm run services:up
+npm run services:wait:database
+npm run migrations:up
+npm run next:dev
 ```
 
-Preencha `.env.development` com as quatro variáveis do Supabase:
+> **Atenção:** sem Supabase CLI, **não há RLS nem Auth**. Use só para validar constraints/índices.
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=[https://seu-projeto.supabase.co](https://seu-projeto.supabase.co)
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
-SUPABASE_SERVICE_ROLE_KEY=sua-chave-de-servico
-DATABASE_URL=postgresql://usuario:senha@host:5432/postgres
-```
+### Atenção ao `npm run dev` antigo
+
+O comando `npm run dev` **era perigoso** — aplicava migrations no banco remoto. Foi substituído pelo novo `dev` que usa Supabase CLI local. O fluxo antigo foi removido.
+
+---
+
+### Credenciais Supabase
 
 O nome da chave pública é `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — o Supabase renomeou a antiga
 `anon` para `publishable`, e `ANON_KEY` não é mais válido.
@@ -51,28 +81,6 @@ O nome da chave pública é `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — o Supabas
 `SUPABASE_SERVICE_ROLE_KEY` **não pode** ter prefixo `NEXT_PUBLIC_`. Com esse prefixo ela vira
 parte do bundle enviado ao navegador e qualquer visitante ganha acesso à conta inteira. Ela só é
 lida dentro de `pages/api/`.
-
-Aplique as migrations e suba a aplicação:
-
-```bash
-npm run migrations:up
-npm run next:dev
-```
-
-O Next.js responde em `http://localhost:3000`.
-
-### Atenção ao `npm run dev`
-
-```bash
-npm run dev        # NÃO use com o .env.development atual
-```
-
-Esse script sobe o Docker, espera a conexão e aplica as migrations antes de iniciar o Next.js. Ele lê
-`DATABASE_URL` de `.env.development`, que hoje aponta para o **Supabase remoto**. Resultado: o
-Postgres do container sobe sem ser usado, e as migrations vão para o banco real.
-
-Use `npm run next:dev` para desenvolvimento, ou corrija o `.env.development` antes. O diagnóstico
-completo está em [docs/environments.md](docs/environments.md).
 
 ---
 
@@ -197,18 +205,36 @@ arquivos abaixo, em Markdown.
 | [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências |
 | [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar    |
 
+## Scripts principais
+
+| Script                     | Comando                            | Quando usar                                |
+| -------------------------- | ---------------------------------- | ------------------------------------------ |
+| `npm run dev`              | `concurrently infra:up + next:dev` | **Padrão** — desenvolvimento diário        |
+| `npm run infra:up`         | `supabase start`                   | Só sobe infra (já tem `.env.local`)        |
+| `npm run next:dev`         | `next dev`                         | Next.js só (infra já rodando)              |
+| `npm run infra:down`       | `supabase stop`                    | Para infra                                 |
+| `npm run infra:reset`      | `supabase db reset`                | Recria banco + migrations                  |
+| `npm run infra:studio`     | `supabase studio`                  | Abre dashboard local                       |
+| `npm run infra:status`     | `supabase status`                  | Mostra URLs e chaves                       |
+| `npm run services:up`      | `docker compose up -d`             | Postgres puro (sem RLS)                    |
+| `npm run migrations:up`    | `node-pg-migrate up`               | Aplica migrations (usa `.env.development`) |
+| `npm run test`             | `jest tests/unit`                  | Testes unitários                           |
+| `npm run test:integration` | `jest integration`                 | Integração pg-mem                          |
+| `npm run test:all`         | `jest all`                         | Todos os testes                            |
+
+---
+
 ## Trabalho acadêmico em andamento
 
 Issues abertas, em ordem de dependência:
 
 | #                                                             | Assunto                        | Bloqueia |
 | :------------------------------------------------------------ | :----------------------------- | :------- |
-| [#2](https://github.com/MViniciusCoffe/SpendSmart/issues/2)   | Supabase CLI e Docker local    | #24      |
 | [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
 | [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
 | [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
 
-Resolvidos pela frente de testes, CI e SonarQube: #15, #16, #17, #18, #19, #25, #26, #29 e #31.
+Resolvidos pela frente de testes, CI e SonarQube: #2, #15, #16, #17, #18, #19, #25, #26, #29 e #31.
 
 ---
 

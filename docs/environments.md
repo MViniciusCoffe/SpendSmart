@@ -126,7 +126,55 @@ ambiente de teste é um erro: **é** um ambiente de teste, e o teste usa o banco
 
 ---
 
-## 4. O problema do `npm run dev`
+## 4. Ambiente Local com Supabase CLI (novo padrão)
+
+O ambiente local recomendado usa **Supabase CLI** — sobe Postgres + Auth + Realtime + Storage + Studio com RLS real.
+
+### 4.1 Como subir
+
+```bash
+supabase start                    # sobe stack completa (portas 54321-54326)
+supabase status                   # mostra URLs e chaves
+```
+
+### 4.2 Variáveis locais (`.env.local`)
+
+| Variável                               | Valor local                                               | Onde obtém                             |
+| -------------------------------------- | --------------------------------------------------------- | -------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `http://127.0.0.1:54321`                                  | Fixo                                   |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`                                      | `supabase status` → `anon key`         |
+| `SUPABASE_SERVICE_ROLE_KEY`            | `sb_secret_...`                                           | `supabase status` → `service_role key` |
+| `TEST_DATABASE_URL`                    | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` | Fixo (para testes integração)          |
+
+> **Prioridade Next.js:** `.env.local` > `.env.development` > `.env`. Se `.env.local` existe, `.env.development` é ignorado.
+
+### 4.3 Comandos úteis
+
+```bash
+supabase start                    # sobe stack completa
+supabase status                   # URLs e chaves
+supabase db reset                 # recria banco + aplica migrations
+supabase studio                   # abre dashboard local (porta 54323)
+supabase stop                     # para containers (preserva volumes)
+supabase stop --no-backup         # para e remove volumes
+```
+
+### 4.4 Testes de integração contra banco local real
+
+```bash
+# Terminal 1: infra
+supabase start
+
+# Terminal 2: testes com RLS real
+$env:TEST_DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+npm run test:integration
+```
+
+> **Nota:** Os testes atuais usam UUIDs fixos que não existem no `auth.users` local — as FKs para `auth.users` bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`.
+
+---
+
+## 5. O problema do `npm run dev` (histórico)
 
 `package.json:7` define `dev` como `node infra/scripts/run-services.js`. Esse script executa, em
 ordem:
@@ -173,7 +221,26 @@ produção.**
 
 ---
 
-## 5. Ambientes que ainda não existem
+## 6. Fluxo Docker Compose (Postgres puro — sem RLS, sem Auth)
+
+> **Use apenas se NÃO quiser Supabase CLI.** Sem Auth, sem RLS, sem Studio. Só valida constraints/índices.
+
+### 6.1 Como subir
+
+```bash
+cp .env.development.example .env.development
+# edite .env.development com credenciais do Postgres local
+npm run services:up
+npm run services:wait:database
+npm run migrations:up
+npm run next:dev
+```
+
+> **Sem Supabase CLI = sem RLS, sem Auth.** Use só para validar constraints/índices.
+
+---
+
+## 7. Ambientes que ainda não existem
 
 ### Testes
 
