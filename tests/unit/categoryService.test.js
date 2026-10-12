@@ -51,7 +51,7 @@ afterEach(() => {
 
 // Descreve os testes para o serviço de categoria
 describe("getCategories", () => {
-  it("recusa a listagem sem sessao", async () => {
+  it("recusa sem sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
     await expect(categoryService.getCategories()).rejects.toThrow("Usuário não autenticado.")
@@ -77,6 +77,8 @@ describe("getCategories", () => {
   })
 
   it("traduz income e expense para receita e despesa", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     // Configura o mock do Supabase para retornar duas categorias, uma de despesa e outra de receita
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(
@@ -100,6 +102,8 @@ describe("getCategories", () => {
   // Verifica se a ordenação por nome crescente é aplicada corretamente
   // it significa "it should" e descreve o comportamento esperado do teste
   it("ordena por nome crescente", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     // Configura o mock do Supabase para retornar um builder vazio,
     // apenas para testar a chamada do método order
     supabase.auth.getSession.mockResolvedValue(comSessao)
@@ -113,6 +117,8 @@ describe("getCategories", () => {
   })
 
   it("traduz o erro do banco em mensagem para o usuario", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     // Configura o mock do Supabase para simular um erro ao buscar categorias
     // Aqui, o builder chama o método then e retorna um objeto com data null e um erro com mensagem "refused"
     supabase.auth.getSession.mockResolvedValue(comSessao)
@@ -125,6 +131,7 @@ describe("getCategories", () => {
 
   it("le da tabela categories", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ data: [], error: null }))
 
     await categoryService.getCategories()
@@ -229,7 +236,17 @@ describe("createCategory", () => {
 })
 
 describe("updateCategory", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(
+      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+    ).rejects.toThrow("Usuário não autenticado.")
+  })
+
   it("filtra pelo id e devolve o DTO", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -244,6 +261,8 @@ describe("updateCategory", () => {
   })
 
   it("traduz 23505 em conflito de nome", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(
       criarBuilder({ data: null, error: { code: "23505", message: "duplicate" } })
     )
@@ -254,6 +273,8 @@ describe("updateCategory", () => {
   })
 
   it("traduz qualquer outro erro", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(
       criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
     )
@@ -264,6 +285,8 @@ describe("updateCategory", () => {
   })
 
   it("traduz o DTO para as colunas do update", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -285,7 +308,15 @@ describe("updateCategory", () => {
 })
 
 describe("deleteCategory", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(categoryService.deleteCategory(1)).rejects.toThrow("Usuário não autenticado.")
+  })
+
   it("devolve true quando o banco aceita", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     const builder = criarBuilder({ error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -294,6 +325,8 @@ describe("deleteCategory", () => {
   })
 
   it("traduz 23503 em categoria em uso", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ error: { code: "23503", message: "fk" } }))
 
     await expect(categoryService.deleteCategory(1)).rejects.toThrow(
@@ -302,6 +335,8 @@ describe("deleteCategory", () => {
   })
 
   it("traduz qualquer outro erro", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
     supabase.from.mockReturnValue(criarBuilder({ error: { code: "08006", message: "timeout" } }))
 
     await expect(categoryService.deleteCategory(1)).rejects.toThrow(
