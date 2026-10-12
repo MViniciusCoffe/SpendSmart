@@ -218,16 +218,6 @@ describe("createCategory", () => {
       "Não foi possível criar a categoria."
     )
   })
-
-  it("converte despesa em expense na escrita", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha(), error: null })
-    supabase.from.mockReturnValue(builder)
-
-    await categoryService.createCategory({ name: "Mercado", type: "expense" })
-
-    expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
-  })
 })
 
 describe("updateCategory", () => {

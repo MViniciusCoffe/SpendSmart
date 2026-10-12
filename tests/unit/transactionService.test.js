@@ -266,22 +266,6 @@ describe("updateTransaction", () => {
     expect(payload).not.toHaveProperty("user_id")
   })
 
-  it("converte despesa em expense no update", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
-    const builder = criarBuilder({ data: linha(), error: null })
-    supabase.from.mockReturnValue(builder)
-
-    await transactionService.updateTransaction({
-      id: 1,
-      title: "Mercado",
-      amount: 80,
-      type: "expense"
-    })
-
-    expect(builder.update.mock.calls[0][0].type).toBe("expense")
-  })
-
   it("filtra pelo id e devolve o DTO", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 

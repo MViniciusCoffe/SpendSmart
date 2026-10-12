@@ -88,8 +88,8 @@ describe("Regressão #21 — DTO com occurred_on e payment_method", () => {
   })
 })
 
-describe("Regressão #10/#21 — validação de valor e tradução de tipo", () => {
-  it("createTransaction com receita traduz tipo para income", async () => {
+describe("Regressão #10/#21 — validação de valor e tipo", () => {
+  it("createTransaction com receita usa income", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
     supabase.from.mockReturnValue(builder)
@@ -103,7 +103,7 @@ describe("Regressão #10/#21 — validação de valor e tradução de tipo", () 
     expect(builder.insert.mock.calls[0][0][0].type).toBe("income")
   })
 
-  it("createTransaction com despesa traduz tipo para expense", async () => {
+  it("createTransaction com despesa usa expense", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ type: "expense" }), error: null })
     supabase.from.mockReturnValue(builder)
