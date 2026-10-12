@@ -1,8 +1,5 @@
 import { supabase } from "../infra/supabase"
 
-export const traduzirTipo = tipo => (tipo === "receita" ? "income" : "expense")
-export const traduzirTipoReverso = tipo => (tipo === "income" ? "receita" : "despesa")
-
 export const validarTitulo = titulo => {
   if (!titulo || titulo.trim() === "") throw new Error("Título é obrigatório")
 }

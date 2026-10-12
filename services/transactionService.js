@@ -1,22 +1,15 @@
 import { supabase } from "../infra/supabase"
-import {
-  traduzirTipoReverso,
-  obterSessao,
-  traduzirTipo,
-  traduzirErroSupabase,
-  validarTitulo,
-  validarValor
-} from "./utils"
+import { obterSessao, traduzirErroSupabase, validarTitulo, validarValor } from "./utils"
 
 const transactionTypeMap = tx => ({
   id: tx.id,
-  titulo: tx.title,
-  valor: tx.amount,
-  tipo: traduzirTipoReverso(tx.type),
-  categoria_id: tx.category_id,
-  data_ocorrencia: tx.occurred_on,
-  descricao: tx.description,
-  metodo_pagamento: tx.payment_method
+  title: tx.title,
+  amount: tx.amount,
+  type: tx.type,
+  category_id: tx.category_id,
+  occurred_on: tx.occurred_on,
+  description: tx.description,
+  payment_method: tx.payment_method
 })
 
 export const transactionService = {
@@ -38,29 +31,29 @@ export const transactionService = {
   },
 
   async createTransaction({
-    titulo,
-    valor,
-    tipo,
-    categoria_id,
-    data_ocorrencia,
-    descricao,
-    metodo_pagamento
+    title,
+    amount,
+    type,
+    category_id,
+    occurred_on,
+    description,
+    payment_method
   }) {
     const session = await obterSessao()
-    validarTitulo(titulo)
-    const valorNum = validarValor(valor)
+    validarTitulo(title)
+    const amountNum = validarValor(amount)
 
     const { data: newTransaction, error } = await supabase
       .from("transactions")
       .insert([
         {
-          title: titulo,
-          amount: valorNum,
-          type: traduzirTipo(tipo),
-          category_id: categoria_id,
-          occurred_on: data_ocorrencia,
-          description: descricao,
-          payment_method: metodo_pagamento,
+          title,
+          amount: amountNum,
+          type,
+          category_id,
+          occurred_on,
+          description,
+          payment_method,
           user_id: session.user.id
         }
       ])
@@ -79,28 +72,28 @@ export const transactionService = {
 
   async updateTransaction({
     id,
-    titulo,
-    valor,
-    tipo,
-    categoria_id,
-    data_ocorrencia,
-    descricao,
-    metodo_pagamento
+    title,
+    amount,
+    type,
+    category_id,
+    occurred_on,
+    description,
+    payment_method
   }) {
     const session = await obterSessao()
-    validarTitulo(titulo)
-    const valorNum = validarValor(valor)
+    validarTitulo(title)
+    const amountNum = validarValor(amount)
 
     const { data: updatedTransaction, error } = await supabase
       .from("transactions")
       .update({
-        title: titulo,
-        amount: valorNum,
-        type: traduzirTipo(tipo),
-        category_id: categoria_id,
-        occurred_on: data_ocorrencia,
-        description: descricao,
-        payment_method: metodo_pagamento
+        title,
+        amount: amountNum,
+        type,
+        category_id,
+        occurred_on,
+        description,
+        payment_method
       })
       .eq("id", id)
       .eq("user_id", session.user.id)

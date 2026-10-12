@@ -1,7 +1,7 @@
 import { supabase } from "../infra/supabase"
 
 export const profileService = {
-  async updateProfile({ nome, senha, dataNascimento, telefone }) {
+  async updateProfile({ full_name, password, birth_date, phone }) {
     const {
       data: { session },
       error: sessionError
@@ -11,9 +11,9 @@ export const profileService = {
     const userId = session.user.id
 
     // 1. Atualizar a Senha (Isso vai para o Supabase Auth)
-    if (senha) {
+    if (password) {
       const { error: authError } = await supabase.auth.updateUser({
-        password: senha
+        password
       })
       if (authError)
         throw new Error(
@@ -21,13 +21,10 @@ export const profileService = {
         )
     }
 
-    // 2. Atualizar o Perfil Público (Isso vai para o Supabase Database - Tabela 'profiles')
-    // Futuramente atualizar migrations para inglês
-    // Oportunidade de primeira migration
     const profileUpdates = {}
-    if (nome) profileUpdates.nome_completo = nome
-    if (dataNascimento) profileUpdates.data_nascimento = dataNascimento
-    if (telefone) profileUpdates.telefone = telefone
+    if (full_name) profileUpdates.full_name = full_name
+    if (birth_date) profileUpdates.birth_date = birth_date
+    if (phone) profileUpdates.phone = phone
 
     // Só faz a requisição pro banco se o usuário digitou algum dado de perfil
     if (Object.keys(profileUpdates).length > 0) {

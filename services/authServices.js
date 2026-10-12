@@ -1,7 +1,7 @@
 import { supabase } from "../infra/supabase"
 
 export const authService = {
-  async registerUser({ email, password, nomeCompleto, dataNascimento, telefone }) {
+  async registerUser({ email, password, full_name, birth_date, phone }) {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password
@@ -29,9 +29,9 @@ export const authService = {
         Authorization: accessToken ? `Bearer ${accessToken}` : ""
       },
       body: JSON.stringify({
-        nome_completo: nomeCompleto,
-        data_nascimento: dataNascimento,
-        telefone: telefone
+        full_name,
+        birth_date,
+        phone
       })
     })
 

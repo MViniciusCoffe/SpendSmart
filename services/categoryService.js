@@ -1,12 +1,12 @@
 import { supabase } from "../infra/supabase"
-import { traduzirTipoReverso, obterSessao, traduzirTipo, traduzirErroSupabase } from "./utils"
+import { obterSessao, traduzirErroSupabase } from "./utils"
 
 const categoryTypeMap = cat => ({
   id: cat.id,
-  nome: cat.name,
-  tipo: traduzirTipoReverso(cat.type),
-  descricao: cat.description,
-  cor: cat.color
+  name: cat.name,
+  type: cat.type,
+  description: cat.description,
+  color: cat.color
 })
 
 export const categoryService = {
@@ -27,17 +27,17 @@ export const categoryService = {
     return data.map(categoryTypeMap)
   },
 
-  async createCategory({ nome, tipo, descricao, cor }) {
+  async createCategory({ name, type, description, color }) {
     const session = await obterSessao()
 
     const { data, error } = await supabase
       .from("categories")
       .insert([
         {
-          name: nome,
-          type: traduzirTipo(tipo),
-          description: descricao,
-          color: cor,
+          name,
+          type,
+          description,
+          color,
           user_id: session.user.id
         }
       ])
@@ -54,16 +54,16 @@ export const categoryService = {
     return categoryTypeMap(data)
   },
 
-  async updateCategory({ id, nome, tipo, descricao, cor }) {
+  async updateCategory({ id, name, type, description, color }) {
     const session = await obterSessao()
 
     const { data, error } = await supabase
       .from("categories")
       .update({
-        name: nome,
-        type: traduzirTipo(tipo),
-        description: descricao,
-        color: cor
+        name,
+        type,
+        description,
+        color
       })
       .eq("id", id)
       .eq("user_id", session.user.id)
