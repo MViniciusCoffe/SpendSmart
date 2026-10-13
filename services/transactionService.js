@@ -1,5 +1,6 @@
 import { supabase } from "../infra/supabase"
-import { obterSessao, traduzirErroSupabase, validarTitulo, validarValor } from "./utils"
+import { validarTitulo, validarValor } from "./utils"
+import { withSession, withErrorHandling, handleSupabaseError } from "./baseService"
 
 const transactionTypeMap = tx => ({
   id: tx.id,
@@ -15,21 +16,22 @@ const transactionTypeMap = tx => ({
 
 export const transactionService = {
   async getTransactions() {
-    const session = await obterSessao()
-
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .is("deleted_at", null)
-      .order("occurred_on", { ascending: false })
-
-    if (error) {
-      console.error("[Supabase Get Transactions Error]", error.message)
-      throw new Error("Não foi possível carregar suas transações.")
-    }
-
-    return data.map(transactionTypeMap)
+    return withSession(async session => {
+      return withErrorHandling(
+        async () => {
+          const { data, error } = await supabase
+            .from("transactions")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .is("deleted_at", null)
+            .order("occurred_on", { ascending: false })
+          if (error) throw error
+          return data.map(transactionTypeMap)
+        },
+        "getTransactions",
+        { generica: "Não foi possível carregar suas transações." }
+      )
+    })
   },
 
   async createTransaction({
@@ -41,35 +43,38 @@ export const transactionService = {
     description,
     payment_method
   }) {
-    const session = await obterSessao()
-    validarTitulo(title)
-    const amountNum = validarValor(amount)
+    return withSession(async session => {
+      validarTitulo(title)
+      const amountNum = validarValor(amount)
 
-    const { data: newTransaction, error } = await supabase
-      .from("transactions")
-      .insert([
+      return withErrorHandling(
+        async () => {
+          const { data: newTransaction, error } = await supabase
+            .from("transactions")
+            .insert([
+              {
+                title,
+                amount: amountNum,
+                type,
+                category_id,
+                occurred_on,
+                description,
+                payment_method,
+                user_id: session.user.id
+              }
+            ])
+            .select()
+            .single()
+          if (error) throw error
+          return transactionTypeMap(newTransaction)
+        },
+        "createTransaction",
         {
-          title,
-          amount: amountNum,
-          type,
-          category_id,
-          occurred_on,
-          description,
-          payment_method,
-          user_id: session.user.id
+          fk: "Categoria não encontrada.",
+          generica: "Não foi possível criar a transação."
         }
-      ])
-      .select()
-      .single()
-
-    if (error) {
-      console.error("[Supabase Create Transaction Error]", error.code, error.message)
-      traduzirErroSupabase(error, {
-        fk: "Categoria não encontrada.",
-        generica: "Não foi possível criar a transação."
-      })
-    }
-    return transactionTypeMap(newTransaction)
+      )
+    })
   },
 
   async updateTransaction({
@@ -82,50 +87,55 @@ export const transactionService = {
     description,
     payment_method
   }) {
-    const session = await obterSessao()
-    validarTitulo(title)
-    const amountNum = validarValor(amount)
+    return withSession(async session => {
+      validarTitulo(title)
+      const amountNum = validarValor(amount)
 
-    const { data: updatedTransaction, error } = await supabase
-      .from("transactions")
-      .update({
-        title,
-        amount: amountNum,
-        type,
-        category_id,
-        occurred_on,
-        description,
-        payment_method
-      })
-      .eq("id", id)
-      .eq("user_id", session.user.id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("[Supabase Update Transaction Error]", error.code, error.message)
-      traduzirErroSupabase(error, {
-        fk: "Categoria não encontrada.",
-        generica: "Não foi possível atualizar a transação."
-      })
-    }
-    return transactionTypeMap(updatedTransaction)
+      return withErrorHandling(
+        async () => {
+          const { data: updatedTransaction, error } = await supabase
+            .from("transactions")
+            .update({
+              title,
+              amount: amountNum,
+              type,
+              category_id,
+              occurred_on,
+              description,
+              payment_method
+            })
+            .eq("id", id)
+            .eq("user_id", session.user.id)
+            .select()
+            .single()
+          if (error) throw error
+          return transactionTypeMap(updatedTransaction)
+        },
+        "updateTransaction",
+        {
+          fk: "Categoria não encontrada.",
+          generica: "Não foi possível atualizar a transação."
+        }
+      )
+    })
   },
 
   async deleteTransaction(id) {
-    const session = await obterSessao()
-
-    const { error } = await supabase
-      .from("transactions")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", session.user.id)
-      .is("deleted_at", null)
-
-    if (error) {
-      console.error("[Supabase Delete Transaction Error]", error.code, error.message)
-      traduzirErroSupabase(error, { generica: "Não foi possível deletar a transação." })
-    }
-    return true
+    return withSession(async session => {
+      return withErrorHandling(
+        async () => {
+          const { error } = await supabase
+            .from("transactions")
+            .update({ deleted_at: new Date().toISOString() })
+            .eq("id", id)
+            .eq("user_id", session.user.id)
+            .is("deleted_at", null)
+          if (error) throw error
+          return true
+        },
+        "deleteTransaction",
+        { generica: "Não foi possível deletar a transação." }
+      )
+    })
   }
 }
