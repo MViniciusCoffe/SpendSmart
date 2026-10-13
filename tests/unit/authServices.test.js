@@ -13,6 +13,7 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { authService } from "../../services/authServices"
+import { clearSessionCache } from "../../services/baseService"
 
 // Usuário fictício devolvido pelo Supabase Auth
 const usuario = { id: "u1", email: "joao@email.com" }
@@ -28,16 +29,16 @@ const respostaComErro = mensagem => ({
 
 beforeEach(() => {
   jest.clearAllMocks()
+  clearSessionCache()
   jest.spyOn(console, "error").mockImplementation(() => {})
-
-  // O fetch é mockado aqui para que todo teste já o tenha disponível
-  jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
-
   // Mock padrão para getSession (registerUser agora usa o token da sessão)
   supabase.auth.getSession.mockResolvedValue({
     data: { session: { access_token: "token123" } },
     error: null
   })
+
+  // O fetch é mockado aqui para que todo teste já o tenha disponível
+  jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
 })
 
 afterEach(() => {

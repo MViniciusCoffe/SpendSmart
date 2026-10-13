@@ -8,11 +8,13 @@ jest.mock("../../infra/supabase", () => ({
 import { supabase } from "../../infra/supabase"
 import { categoryService } from "../../services/categoryService"
 import { criarBuilder, linhaCategoria, semSessao, comSessao } from "../helpers/supabase"
+import { clearSessionCache } from "../../services/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
+  clearSessionCache()
 })
 
 afterEach(() => {
