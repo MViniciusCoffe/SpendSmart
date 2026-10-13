@@ -187,6 +187,7 @@ erDiagram
 - Uma categoria pode classificar várias transações.
 - A exclusão da conta usa `on delete cascade` para seus dados privados (Supabase).
 - A exclusão de uma categoria em uso usa `on delete restrict`; transações não são apagadas silenciosamente.
+- **Soft delete:** exclusão de perfil, categoria ou transação define `deleted_at = now()`; registros permanecem no histórico, somas e dashboards. Listagens e dropdowns filtram `deleted_at IS NULL`. Purge real ocorre via job noturno (`deleted_at > 30 dias`).
 - A aplicação deve validar que categoria e transação pertencem ao mesmo usuário e possuem o mesmo tipo.
 
 ## Esquema Relacional (3FN)
@@ -247,10 +248,14 @@ Registrados aqui para que ninguém os descubra em produção:
 | O RLS só é criado se `auth.users` existir.                   | No PostgreSQL local **nunca** é aplicado. Um banco local tem zero isolamento entre usuários.         |
 | O isolamento entre dois usuários nunca foi exercitado.       | Os casos IT-01 e IT-02 do [plano de testes](test-plan.md#22-testes-de-integração) ainda não rodaram. |
 | `transactions.type` não é validado contra `categories.type`. | Um lançamento pode apontar para categoria de tipo oposto e corromper o _dashboard_.                  |
-| `updated_at` não tem _trigger_.                              | A coluna registra apenas o instante da inserção, nunca a última alteração.                           |
 | `profiles` usa português; as outras duas, inglês.            | Inconsistência de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8).   |
 
-As três primeiras pendências têm script pronto em [Future Migrations](future-migrations.md).
+As pendências acima têm script pronto em [Future Migrations](future-migrations.md).
+
+**Resolvido (Fase 3):**
+
+- `updated_at` não tinha _trigger_ → implementado via trigger `update_updated_at_column()` nas 3 tabelas.
+- Soft delete não existia → implementado via coluna `deleted_at` + índices parciais `*_active` + filtro `deleted_at IS NULL` nos services.
 
 ## Ambiente local e Supabase
 

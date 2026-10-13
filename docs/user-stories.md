@@ -309,16 +309,18 @@ Funcionalidade: US-008 — Alterar categoria
 ### US-009 — Excluir categoria
 
 > Como usuário autenticado, quero excluir uma categoria que não uso, para manter a listagem
-> limpa.
+> limpa **sem perder meu histórico financeiro**.
 
 **Derivada de:** RF09
 **Service:** `services/categoryService.js:67`
 
-| ID        | Critério de aceitação                                                                                                         |
-| :-------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| CA-009.01 | Dado uma categoria sem transações, quando excluo, então a linha é removida                                                    |
-| CA-009.02 | Dado uma categoria com transações, quando tento excluir, então o banco rejeita e o usuário recebe explicação (código `23503`) |
-| CA-009.03 | Dado a exibição de uma categoria, quando olho a contagem de uso, então o número corresponde aos lançamentos reais             |
+| ID        | Critério de aceitação                                                                                                                 |
+| :-------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| CA-009.01 | Dado uma categoria sem transações, quando excluo, então a categoria é marcada como deletada e some da listagem                        |
+| CA-009.02 | Dado uma categoria com transações, quando excluo, então a categoria é marcada como deletada e some da listagem (histórico preservado) |
+| CA-009.04 | Dado uma categoria deletada, quando listo categorias para nova transação, então ela não aparece no dropdown                           |
+| CA-009.05 | Dado uma transação com categoria deletada, quando visualizo o detalhe, então a categoria aparece com indicador "deletada"             |
+| CA-009.02 | Dado uma categoria deletada sem transações, quando restauro, então a categoria volta a aparecer na listagem                           |
 
 > CA-009.03 não é atendido: a tela exibe "Quantidade de usos: 0" fixo. Registrado em
 > [Plano de testes](test-plan.md#6-riscos-e-contingencias).
@@ -327,32 +329,53 @@ Funcionalidade: US-008 — Alterar categoria
 
 ```gherkin
 # language: pt
-Funcionalidade: US-009 — Excluir categoria
+Funcionalidade: US-009 — Excluir categoria (soft delete)
 
   Contexto:
     Dado que estou autenticado
     E estou na tela "Categorias", aba "Excluir"
 
-  Cenário: CA-009.01 — Excluir categoria sem transações
+  Cenário: CA-009.01 — Excluir categoria sem transações (soft delete)
     Dado que a categoria "Viagem" não tem nenhuma transação vinculada
     Quando a seleciono e aciono "Excluir Categoria"
-    Então a linha é removida do banco
+    Então a categoria é marcada como deletada
     E ela some da listagem
+    E ela não aparece no dropdown de novas transações
 
-  Cenário: CA-009.02 — Excluir categoria com transações vinculadas
+  Cenário: CA-009.02 — Excluir categoria com transações vinculadas (soft delete)
     Dado que a categoria "Mercado" tem transações vinculadas
     Quando a seleciono e aciono "Excluir Categoria"
-    Então o banco rejeita a exclusão (código Postgres 23503)
-    E vejo a mensagem "Não é possível deletar esta categoria pois existem transações usando ela."
+    Então a categoria é marcada como deletada
+    E ela some da listagem
+    E as transações existentes mantêm a categoria visível com indicador "deletada"
+    E a soma do dashboard continua incluindo essas transações
+
+  Cenário: CA-009.04 — Categoria deletada não aparece para novas transações
+    Dado que a categoria "Viagem" foi deletada
+    Quando vou registrar uma nova despesa
+    Então "Viagem" não aparece no dropdown de categorias
+
+  Cenário: CA-009.05 — Transação com categoria deletada mostra indicador
+    Dado que a categoria "Mercado" foi deletada
+    E existe uma transação "Compras do mês" vinculada a "Mercado"
+    Quando visualizo o detalhe da transação
+    Então a categoria aparece como "Mercado (deletada)"
+
+  Cenário: CA-009.05 — Restaurar categoria deletada
+    Dado que a categoria "Viagem" foi deletada
+    E não tem transações vinculadas
+    Quando restauro a categoria
+    Então a categoria volta a aparecer na listagem
+    E fica disponível no dropdown de novas transações
 
   Cenário: CA-009.03 — Contagem de usos corresponde aos lançamentos reais
     Dado que a categoria "Mercado" tem 3 transações vinculadas
     Quando a seleciono na aba "Excluir"
     Então o detalhe exibe "Quantidade de usos: 3"
-
-  # PENDENTE: o detalhe exibe "Quantidade de usos: 0" fixo para qualquer
-  # categoria (pages/categoriaPage.js). O cenário acima descreve o esperado.
 ```
+
+> CA-009.03 não é atendido: a tela exibe "Quantidade de usos: 0" fixo. Registrado em
+> [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
 ---
 
