@@ -1,7 +1,8 @@
 import { supabase } from "../infra/supabase"
+import { handleSupabaseError } from "./utils/baseService"
 
 export const profileService = {
-  async updateProfile({ nome, senha, dataNascimento, telefone }) {
+  async updateProfile({ full_name, password, birth_date, phone }) {
     const {
       data: { session },
       error: sessionError
@@ -10,10 +11,9 @@ export const profileService = {
 
     const userId = session.user.id
 
-    // 1. Atualizar a Senha (Isso vai para o Supabase Auth)
-    if (senha) {
+    if (password) {
       const { error: authError } = await supabase.auth.updateUser({
-        password: senha
+        password
       })
       if (authError)
         throw new Error(
@@ -21,15 +21,11 @@ export const profileService = {
         )
     }
 
-    // 2. Atualizar o Perfil Público (Isso vai para o Supabase Database - Tabela 'profiles')
-    // Futuramente atualizar migrations para inglês
-    // Oportunidade de primeira migration
     const profileUpdates = {}
-    if (nome) profileUpdates.nome_completo = nome
-    if (dataNascimento) profileUpdates.data_nascimento = dataNascimento
-    if (telefone) profileUpdates.telefone = telefone
+    if (full_name) profileUpdates.full_name = full_name
+    if (birth_date) profileUpdates.birth_date = birth_date
+    if (phone) profileUpdates.phone = phone
 
-    // Só faz a requisição pro banco se o usuário digitou algum dado de perfil
     if (Object.keys(profileUpdates).length > 0) {
       const { error: profileError } = await supabase
         .from("profiles")
@@ -37,33 +33,14 @@ export const profileService = {
         .eq("id", userId)
 
       if (profileError) {
-        console.error("[Supabase Update Profile Error]", profileError)
-        throw new Error("Não foi possível atualizar os dados do perfil.")
+        handleSupabaseError(
+          profileError,
+          {
+            generica: "Não foi possível atualizar os dados do perfil."
+          },
+          "updateProfile"
+        )
       }
-    }
-
-    return true
-  },
-
-  async deleteAccount() {
-    // 1. Pega a sessão atual
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession()
-    if (sessionError || !session) throw new Error("Usuário não autenticado.")
-
-    // 2. Faz o fetch para a nossa rota interna (O serviço lida com a rede, não a tela)
-    const response = await fetch("/api/deleteAccount", {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || "Não foi possível excluir a conta.")
     }
 
     return true

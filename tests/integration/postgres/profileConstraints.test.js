@@ -13,12 +13,12 @@ let db
 
 const USUARIO_NOVO = "33333333-3333-3333-3333-333333333333"
 
-const inserirPerfil = ({ id = USUARIO_NOVO, nome = "Usuário de Teste" } = {}) =>
+const inserirPerfil = ({ id = USUARIO_NOVO, full_name = "Usuário de Teste" } = {}) =>
   db.client.query(
-    `INSERT INTO profiles (id, nome_completo, data_nascimento, telefone)
+    `INSERT INTO profiles (id, full_name, birth_date, phone)
      VALUES ($1, $2, '2000-01-15', '84999990000')
      RETURNING id`,
-    [id, nome]
+    [id, full_name]
   )
 
 // Mesmo padrão do categoryConstraints: o pg-mem não preenche `code` em todas
@@ -52,30 +52,30 @@ describe("US-001 — gravação do perfil no cadastro", () => {
     expect(rows[0].id).toBe(USUARIO_NOVO)
 
     const { rows: perfil } = await db.client.query(
-      "SELECT nome_completo, telefone FROM profiles WHERE id = $1",
+      "SELECT full_name, phone FROM profiles WHERE id = $1",
       [USUARIO_NOVO]
     )
-    expect(perfil[0].nome_completo).toBe("Usuário de Teste")
+    expect(perfil[0].full_name).toBe("Usuário de Teste")
   })
 
-  it("rejeita perfil sem nome_completo — a falha que hoje gera conta órfã (CT01.04, issue #25)", async () => {
-    const erro = await capturarErro(inserirPerfil({ nome: null }))
+  it("rejeita perfil sem full_name — a falha que hoje gera conta órfã (CT01.04, issue #25)", async () => {
+    const erro = await capturarErro(inserirPerfil({ full_name: null }))
 
     expect(erro.message).toMatch(/violates not-null constraint/i)
     if (erro.code) expect(erro.code).toBe("23502")
   })
 
   it("rejeita perfil com id já cadastrado (23505) — reenvio não duplica nem sobrescreve", async () => {
-    await inserirPerfil({ nome: "Primeiro Nome" })
+    await inserirPerfil({ full_name: "Primeiro Nome" })
 
-    const erro = await capturarErro(inserirPerfil({ nome: "Nome Trocado" }))
+    const erro = await capturarErro(inserirPerfil({ full_name: "Nome Trocado" }))
 
     expect(erro.message).toMatch(/duplicate key value violates unique constraint/i)
     expect(erro.code).toBe("23505")
 
-    const { rows } = await db.client.query("SELECT nome_completo FROM profiles WHERE id = $1", [
+    const { rows } = await db.client.query("SELECT full_name FROM profiles WHERE id = $1", [
       USUARIO_NOVO
     ])
-    expect(rows[0].nome_completo).toBe("Primeiro Nome")
+    expect(rows[0].full_name).toBe("Primeiro Nome")
   })
 })

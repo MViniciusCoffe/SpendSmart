@@ -199,6 +199,8 @@ por critério de aceitação está em [user-stories.md](user-stories.md).
 
 Os 14 métodos de `services/` têm 100% de cobertura. O `logoutUser` deixou de ser código morto em 2026-09: `pages/accountConfig.js` e `components/Navbar/navbarApp.js` passaram a chamar o service em vez de `supabase.auth.signOut()` direto. Ver #26.
 
+**Cobertura atual: 116 testes (73 unit + 28 pg-mem + 12 RLS + 8 regression).**
+
 ---
 
 ## 5. Ambiente de testes

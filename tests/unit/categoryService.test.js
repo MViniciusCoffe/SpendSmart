@@ -7,42 +7,14 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { categoryService } from "../../services/categoryService"
-
-// Simula o comportamento do Supabase para os métodos que usamos no serviço de categoria
-const METODOS = ["select", "insert", "update", "delete", "eq", "order", "single"]
-
-const criarBuilder = resultado => {
-  const builder = {}
-  // Na memória, ficaria tipo:
-  // builder.select = jest.fn(() => builder)
-  // builder.insert = jest.fn(() => builder)
-  // builder.update = jest.fn(() => builder)
-  // ...
-  // Mas podemos fazer isso de forma dinâmica com um loop
-  METODOS.forEach(metodo => {
-    builder[metodo] = jest.fn(() => builder)
-  })
-  builder.then = (resolver, rejeitar) => Promise.resolve(resultado).then(resolver, rejeitar)
-  return builder
-}
-
-// Função auxiliar para criar uma linha de categoria com valores padrão, podendo sobrescrever com overrides
-const linha = (overrides = {}) => ({
-  id: 1,
-  name: "Alimentacao",
-  type: "expense",
-  description: "Mercado",
-  color: "#FF0000",
-  ...overrides
-})
-
-const semSessao = { data: { session: null } }
-const comSessao = { data: { session: { user: { id: "u1" } } } }
+import { criarBuilder, linhaCategoria, semSessao, comSessao } from "../helpers/supabase"
+import { clearSessionCache } from "../../services/utils/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
+  clearSessionCache()
 })
 
 afterEach(() => {
@@ -84,7 +56,7 @@ describe("getCategories", () => {
     supabase.from.mockReturnValue(
       // Cria um builder com os dados das categorias
       criarBuilder({
-        data: [linha(), linha({ id: 2, name: "Salario", type: "income" })],
+        data: [linhaCategoria(), linhaCategoria({ id: 2, name: "Salario", type: "income" })],
         error: null
       })
     )
@@ -92,10 +64,24 @@ describe("getCategories", () => {
     // Chama o serviço para obter as categorias
     const resultado = await categoryService.getCategories()
 
-    // Verifica se o resultado traduz corretamente os tipos para português
+    // Verifica se o resultado traduz corretamente os tipos para inglês
     expect(resultado).toEqual([
-      { id: 1, nome: "Alimentacao", tipo: "despesa", descricao: "Mercado", cor: "#FF0000" },
-      { id: 2, nome: "Salario", tipo: "receita", descricao: "Mercado", cor: "#FF0000" }
+      {
+        id: 1,
+        name: "Alimentacao",
+        type: "expense",
+        description: "Mercado",
+        color: "#FF0000",
+        deleted_at: null
+      },
+      {
+        id: 2,
+        name: "Salario",
+        type: "income",
+        description: "Mercado",
+        color: "#FF0000",
+        deleted_at: null
+      }
     ])
   })
 
@@ -119,10 +105,9 @@ describe("getCategories", () => {
   it("traduz o erro do banco em mensagem para o usuario", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    // Configura o mock do Supabase para simular um erro ao buscar categorias
-    // Aqui, o builder chama o método then e retorna um objeto com data null e um erro com mensagem "refused"
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: null, error: { message: "refused" } }))
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "PGRST111", message: "refused" } })
+    )
 
     await expect(categoryService.getCategories()).rejects.toThrow(
       "Não foi possível carregar suas categorias."
@@ -144,9 +129,9 @@ describe("getCategories", () => {
 describe("createCategory", () => {
   it("escreve na tabela categories", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
 
-    await categoryService.createCategory({ nome: "Mercado", tipo: "despesa" })
+    await categoryService.createCategory({ name: "Mercado", type: "expense" })
 
     expect(supabase.from).toHaveBeenCalledWith("categories")
   })
@@ -154,27 +139,23 @@ describe("createCategory", () => {
   it("recusa sem sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "receita" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "income" })).rejects.toThrow(
       "Usuário não autenticado."
     )
   })
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
-    // Configura o mock do Supabase para simular uma sessão de usuário autenticado
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ type: "income" }), error: null })
     supabase.from.mockReturnValue(builder)
 
-    // Chama o serviço para criar uma nova categoria com os dados fornecidos
     await categoryService.createCategory({
-      nome: "Salario",
-      tipo: "receita",
-      descricao: "Mensal",
-      cor: "#00FF00"
+      name: "Salario",
+      type: "income",
+      description: "Mensal",
+      color: "#00FF00"
     })
 
-    // Verifica se o método insert do builder foi chamado com os dados corretos,
-    // incluindo a tradução do tipo e o user_id da sessão
     expect(builder.insert).toHaveBeenCalledWith([
       {
         name: "Salario",
@@ -186,19 +167,19 @@ describe("createCategory", () => {
     ])
   })
 
-  it("devolve o DTO em portugues, nao a linha crua", async () => {
-    // Configura o mock do Supabase para simular uma sessão de usuário autenticado
+  it("devolve o DTO em ingles, nao a linha crua", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
 
-    const resultado = await categoryService.createCategory({ nome: "X", tipo: "despesa" })
+    const resultado = await categoryService.createCategory({ name: "X", type: "expense" })
 
     expect(resultado).toEqual({
       id: 1,
-      nome: "Alimentacao",
-      tipo: "despesa",
-      descricao: "Mercado",
-      cor: "#FF0000"
+      name: "Alimentacao",
+      type: "expense",
+      description: "Mercado",
+      color: "#FF0000",
+      deleted_at: null
     })
   })
 
@@ -208,7 +189,7 @@ describe("createCategory", () => {
       criarBuilder({ data: null, error: { code: "23505", message: "duplicate" } })
     )
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "despesa" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "expense" })).rejects.toThrow(
       "Categoria já existe. Escolha outro nome."
     )
   })
@@ -219,19 +200,9 @@ describe("createCategory", () => {
       criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
     )
 
-    await expect(categoryService.createCategory({ nome: "X", tipo: "despesa" })).rejects.toThrow(
+    await expect(categoryService.createCategory({ name: "X", type: "expense" })).rejects.toThrow(
       "Não foi possível criar a categoria."
     )
-  })
-
-  it("converte despesa em expense na escrita", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha(), error: null })
-    supabase.from.mockReturnValue(builder)
-
-    await categoryService.createCategory({ nome: "Mercado", tipo: "despesa" })
-
-    expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
   })
 })
 
@@ -240,24 +211,24 @@ describe("updateCategory", () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Usuário não autenticado.")
   })
 
   it("filtra pelo id e devolve o DTO", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     const resultado = await categoryService.updateCategory({
       id: 1,
-      nome: "Novo",
-      tipo: "despesa"
+      name: "Novo",
+      type: "expense"
     })
 
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
-    expect(resultado.nome).toBe("Novo")
+    expect(resultado.name).toBe("Novo")
   })
 
   it("traduz 23505 em conflito de nome", async () => {
@@ -268,7 +239,7 @@ describe("updateCategory", () => {
     )
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Já existe outra categoria com este nome.")
   })
 
@@ -280,22 +251,22 @@ describe("updateCategory", () => {
     )
 
     await expect(
-      categoryService.updateCategory({ id: 1, nome: "X", tipo: "despesa" })
+      categoryService.updateCategory({ id: 1, name: "X", type: "expense" })
     ).rejects.toThrow("Não foi possível atualizar a categoria.")
   })
 
   it("traduz o DTO para as colunas do update", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     await categoryService.updateCategory({
       id: 1,
-      nome: "Novo",
-      tipo: "receita",
-      descricao: "Mensal",
-      cor: "#00FF00"
+      name: "Novo",
+      type: "income",
+      description: "Mensal",
+      color: "#00FF00"
     })
 
     expect(builder.update).toHaveBeenCalledWith({

@@ -24,10 +24,10 @@ function AccountConfig() {
 
     try {
       await profileService.updateProfile({
-        nome: nome,
+        full_name: nome,
         senha: senha,
-        dataNascimento: dataNascimento,
-        telefone: telefone
+        birth_date: dataNascimento,
+        phone: telefone
       })
 
       setErrorMessage("")
@@ -53,8 +53,17 @@ function AccountConfig() {
     if (!confirmacao) return
 
     try {
-      // A tela só dá a ordem para o serviço. Zero HTTP aqui!
-      await profileService.deleteAccount()
+      // A tela chama a API diretamente (service role key só em pages/api)
+      const response = await fetch("/api/deleteAccount", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${(await authService.getSession()).access_token}`
+        }
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Não foi possível excluir a conta.")
+      }
     } catch (error) {
       setErrorMessage(error.message)
       return

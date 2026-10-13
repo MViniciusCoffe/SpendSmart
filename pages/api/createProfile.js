@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.split(" ")[1]
   if (!token) return res.status(401).json({ message: "Não autorizado" })
 
-  const { nome_completo, data_nascimento, telefone } = req.body
+  const { full_name, birth_date, phone } = req.body
 
   try {
     const supabase = createClient(
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     const { error: insertError } = await supabaseAdmin
       .from("profiles")
-      .insert([{ id: user.id, nome_completo, data_nascimento, telefone }])
+      .insert([{ id: user.id, full_name, birth_date, phone }])
 
     if (insertError) {
       try {

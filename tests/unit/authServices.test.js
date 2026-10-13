@@ -13,6 +13,7 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { authService } from "../../services/authServices"
+import { clearSessionCache } from "../../services/utils/baseService"
 
 // Usuário fictício devolvido pelo Supabase Auth
 const usuario = { id: "u1", email: "joao@email.com" }
@@ -28,16 +29,16 @@ const respostaComErro = mensagem => ({
 
 beforeEach(() => {
   jest.clearAllMocks()
+  clearSessionCache()
   jest.spyOn(console, "error").mockImplementation(() => {})
-
-  // O fetch é mockado aqui para que todo teste já o tenha disponível
-  jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
-
   // Mock padrão para getSession (registerUser agora usa o token da sessão)
   supabase.auth.getSession.mockResolvedValue({
     data: { session: { access_token: "token123" } },
     error: null
   })
+
+  // O fetch é mockado aqui para que todo teste já o tenha disponível
+  jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
 })
 
 afterEach(() => {
@@ -63,9 +64,9 @@ describe("registerUser", () => {
     await authService.registerUser({
       email: "joao@email.com",
       password: "senha123",
-      nomeCompleto: "Joao Silva",
-      dataNascimento: "1990-01-01",
-      telefone: "11999999999"
+      full_name: "Joao Silva",
+      birth_date: "1990-01-01",
+      phone: "11999999999"
     })
 
     // Verifica se o fetch foi chamado com a URL correta e o método POST
@@ -78,9 +79,9 @@ describe("registerUser", () => {
       expect.objectContaining({ method: "POST" })
     )
     expect(JSON.parse(opcoes.body)).toEqual({
-      nome_completo: "Joao Silva",
-      data_nascimento: "1990-01-01",
-      telefone: "11999999999"
+      full_name: "Joao Silva",
+      birth_date: "1990-01-01",
+      phone: "11999999999"
     })
     expect(opcoes.headers.Authorization).toBe("Bearer token123")
   })
@@ -170,6 +171,30 @@ describe("registerUser", () => {
         })
       })
     )
+  })
+
+  it("usa mensagem padrão quando a resposta de createProfile não é JSON", async () => {
+    supabase.auth.signUp.mockResolvedValue({
+      data: { user: { id: "u1" } },
+      error: null
+    })
+    supabase.auth.getSession.mockResolvedValue({
+      data: { session: { user: { id: "u1" }, access_token: "token123" } }
+    })
+    global.fetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.reject(new SyntaxError("resposta inválida"))
+    })
+
+    await expect(
+      authService.registerUser({
+        email: "a@b.com",
+        password: "senha123",
+        nomeCompleto: "João",
+        dataNascimento: "2000-01-01",
+        telefone: "11999999999"
+      })
+    ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
   })
 })
 

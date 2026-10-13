@@ -23,8 +23,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Gerar relatório de cobertura
-        run: npm run test:coverage
+      - name: Executar testes unitários + integração (pg-mem) + cobertura
+        run: npx jest tests/unit tests/integration/postgres --coverage --runInBand
 
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v7

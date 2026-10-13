@@ -566,3 +566,166 @@ pé da letra. Custa um passo extra no setup e não muda nada no resultado.
 **Reavaliar quando.** O LABENS migrar de série, ou a análise passar a rodar em pipeline que use
 `args` com aspas — nesse caso conferir a sintaxe da documentação da action vigente, porque mudou na
 `v6` e pode mudar de novo.
+
+---
+
+## 21. Supabase CLI como ambiente local padrão
+
+**Decisão.** Usar `supabase start` (Docker Compose gerenciado pelo CLI) como ambiente local padrão,
+em vez de `docker compose` manual ou banco remoto.
+
+**Por que.**
+
+- Entrega Postgres + Auth + Realtime + Storage + Studio + RLS numa única comando.
+- O `config.toml` versionado garante reprodutibilidade entre máquinas.
+- Credenciais geradas localmente (`supabase status`) — não versionadas, não vazam.
+- RLS real roda localmente, permitindo testar isolamento entre usuários (Fase 5).
+- Elimina a dependência do banco remoto provisório durante desenvolvimento.
+
+**Alternativa rejeitada.** Docker Compose manual (`infra/compose.yaml`) — só sobe Postgres puro, sem
+Auth, sem RLS, sem Studio. Mantido só como fallback para validar constraints/índices.
+
+**Alternativa rejeitada.** Banco remoto provisório — aplica migrations no banco real a cada `dev`,
+risco de corrupção, Preview deployments com acesso de serviço ao banco real.
+
+**Reavaliar quando.** Supabase CLI mudar breaking changes no `config.toml` ou no formato de migrations.
+
+---
+
+## 22. Scripts de desenvolvimento reorganizados
+
+**Decisão.** Scripts `npm` organizados em dois mundos separados, com `dev` como comando principal.
+
+| Mundo               | Scripts                                                                        | Variáveis          | Uso             |
+| ------------------- | ------------------------------------------------------------------------------ | ------------------ | --------------- |
+| **Supabase CLI**    | `dev`, `infra:up`, `infra:down`, `infra:reset`, `infra:studio`, `infra:status` | `.env.local`       | Padrão          |
+| **Docker Compose**  | `services:up`, `services:down`, `migrations:up`, `migrations:down`             | `.env.development` | Fallback        |
+| **Supabase remoto** | `migrations:supabase:up`                                                       | `.env.supabase`    | Deploy/produção |
+
+**Decisões de design:**
+
+1. **`dev` = `concurrently infra:up + next:dev`** — comando único para desenvolvimento diário.
+2. **`infra:*` prefixo** — agrupa comandos de infraestrutura Supabase CLI.
+3. **`services:*` prefixo** — mantido para Docker Compose legado (fallback).
+4. **`migrations:*` com `--envPath` explícito** — evita ambiguidade de qual `.env` usar.
+5. **`run-services.js` removido** — era o antigo `dev`, aplicava migrations no banco remoto.
+6. **`wait-for-postgres.js` mantido** — só para fluxo Docker Compose (`services:wait:database`).
+
+**Por que `concurrently` para `dev`.** Sobe infra e Next.js em paralelo, com logs coloridos e
+shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-services.js`.
+
+**Reavaliar quando.** `concurrently` tiver breaking changes, ou surgir alternativa nativa no npm.
+
+---
+
+## 23. Testes organizados por escopo
+
+**Decisão.** Três níveis de teste com scripts explícitos:
+
+| Nível                     | Script                           | Alvo                                      | Infra necessária    |
+| ------------------------- | -------------------------------- | ----------------------------------------- | ------------------- |
+| **Unit**                  | `npm test`                       | `tests/unit/` (73 testes)                 | Nenhuma (mocks)     |
+| **Integração pg-mem**     | `npm run test:integration`       | `tests/integration/postgres/` (28 testes) | Nenhuma (in-memory) |
+| **Integração banco real** | `npm run test:integration:local` | Mesmo caminho, com `TEST_DATABASE_URL`    | `supabase start`    |
+| **Regressão**             | Incluso em `test:all`            | `tests/regression/` (8 testes)            | Nenhuma (mocks)     |
+| **Todos**                 | `npm run test:all`               | Unit + Integração + Regressão             | pg-mem              |
+
+**Decisões de design:**
+
+1. **`--runInBand`** nos testes de integração — evita conflitos de conexão/estado no banco compartilhado.
+2. **`test:integration:local`** usa mesmo caminho que `test:integration` mas requer `TEST_DATABASE_URL` — mesmo código, infra diferente.
+3. **Sem watch em integração** — lento (recriar banco/estado). Watch só em unit (`npm run test:watch`).
+4. **`test:integration:local` não roda no CI** — precisa `supabase start` que não roda em GitHub Actions padrão. Roda localmente.
+
+**Por que não watch em integração.** Recria banco/estado a cada mudança — lento (segundos vs milissegundos).
+
+**Reavaliar quando.** Supabase CLI rodar em CI (GitHub Actions service containers) — aí `test:integration:local` pode entrar no pipeline.
+
+---
+
+## 24. `.env.local` como padrão de desenvolvimento
+
+**Decisão.** `.env.local` (Supabase CLI) tem prioridade sobre `.env.development` (Docker Compose) no Next.js.
+
+**Por que.** Next.js carrega `.env.local` com prioridade máxima. Permite:
+
+- Desenvolvedor roda `supabase start` → copia chaves para `.env.local` → `npm run dev` funciona.
+- `.env.development` continua apontando pro remoto (para `migrations:supabase:up` e Preview).
+- Zero conflito entre ambientes.
+
+**Arquivos versionados:**
+
+- `.env.local.example` — template com placeholders
+- `.env.development.example` — template Docker Compose
+- `.env.supabase.example` — pendente (issue #20)
+
+**Reavaliar quando.** Next.js mudar prioridade de arquivos `.env` (improvável).
+
+---
+
+## 25. Migrations em SQL para Supabase CLI
+
+**Decisão.** Migrations novas usam formato `.sql` (padrão Supabase CLI) em vez de `.js` (node-pg-migrate).
+
+**Por que.**
+
+- O Supabase CLI (`supabase db reset`, `supabase migration up`) **só executa arquivos `.sql`** com timestamp no nome (`YYYYMMDDHHMMSS_name.sql`).
+- O `node-pg-migrate` (formato `.js`) é mantido apenas para o fluxo de deploy remoto (`migrations:supabase:up`) e para o Docker Compose fallback (`migrations:up`).
+- O `node-pg-migrate` **ignora arquivos `.sql`** — ele só processa arquivos `.js` com export `up`/`down`.
+
+**Consequências práticas:**
+
+| Ambiente                        | Comando                                       | Formato | Funciona         |
+| ------------------------------- | --------------------------------------------- | ------- | ---------------- |
+| Local (Supabase CLI)            | `supabase db reset` / `supabase migration up` | `.sql`  | ✅               |
+| Local (Docker Compose fallback) | `npm run migrations:up`                       | `.js`   | ✅               |
+| Remoto/Produção                 | `npm run migrations:supabase:up`              | `.js`   | ✅               |
+| Local (node-pg-migrate direto)  | `node-pg-migrate up`                          | `.js`   | ⚠️ Ignora `.sql` |
+
+**Risco conhecido:** Se alguém rodar `npm run migrations:up` localmente (fluxo Docker Compose), as migrations `.sql` novas **não serão aplicadas**. Isso é intencional — o fluxo recomendado local é `supabase start` + `supabase db reset` (usa `.sql`).
+
+**Migração de arquivos antigos:**
+
+| Arquivo antigo (`.js`)                                | Status                            | Substituto (`.sql`)                                            |
+| ----------------------------------------------------- | --------------------------------- | -------------------------------------------------------------- |
+| `001_create_financial_schema.js`                      | Ignorado pelo CLI (sem timestamp) | `1791833057000_create_financial_schema.sql`                    |
+| `1790304277043_add-rbac-permissions.js`               | Ignorado pelo CLI                 | Não migrado (GRANTs só valem no Supabase remoto)               |
+| `1791833057036_rename-profiles-columns-to-english.js` | Ignorado pelo CLI                 | Incorporado na migration inicial `.sql` (colunas já em inglês) |
+
+**Reavaliar quando.** Supabase CLI suportar migrations `.js` nativamente, ou unificarmos em uma única ferramenta.
+
+---
+
+## 24. Estrutura `services/utils/` para utilitários compartilhados
+
+**Decisão.** Mover auxiliares de `services/` para subpasta `services/utils/`.
+
+**Estrutura final:**
+
+```
+services/
+├── authServices.js
+├── categoryService.js
+├── transactionService.js
+├── profileService.js
+└── utils/
+    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase, clearSessionCache
+    ├── logger.js           # logger.error/warn/info (JSON, dev-only)
+    ├── mappers.js          # categoryTypeMap, transactionTypeMap, profileTypeMap
+    ├── validators.js       # 14 validadores centralizados
+    └── utils.js            # fachada de compatibilidade para validators/baseService
+```
+
+**Por que.** Antes, `baseService.js`, `logger.js`, `mappers.js`, `validators.js`, `utils.js` ficavam soltos em `services/`, misturados com os _domain services_ (`categoryService`, `transactionService`, etc.). Isso confundia o que é _domain logic_ vs _shared utility_.
+
+**Benefícios:**
+
+- Separação clara: _domain services_ em `services/`, _utilitários_ em `services/utils/`
+- Imports explícitos: `import { withSession } from "./utils/baseService"`
+- Fácil adicionar novos utilitários sem poluir a raiz
+
+**Alternativa rejeitada.** Manter tudo na raiz de `services/`. Funciona, mas confunde responsabilidades.
+
+**Reavaliar quando.** A pasta `utils/` crescer além de 8-10 arquivos — aí vale split por domínio (ex: `utils/db`, `utils/auth`).
+
+---

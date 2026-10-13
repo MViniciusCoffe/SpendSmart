@@ -33,11 +33,11 @@ export default function RegisterPage() {
 
     try {
       await authService.registerUser({
-        email: email,
+        email,
         password: senha,
-        nomeCompleto: nomeCompleto,
-        dataNascimento: dataNascimento,
-        telefone: telefone
+        full_name: nomeCompleto,
+        birth_date: dataNascimento,
+        phone: telefone
       })
 
       router.push("/dashboard")

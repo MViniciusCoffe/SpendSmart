@@ -24,9 +24,9 @@ import pg from "pg"
 const DDL = `
   CREATE TABLE profiles (
     id uuid PRIMARY KEY,
-    nome_completo text NOT NULL,
-    data_nascimento date,
-    telefone text,
+    full_name text NOT NULL,
+    birth_date date,
+    phone text,
     created_at timestamptz NOT NULL DEFAULT current_timestamp,
     updated_at timestamptz NOT NULL DEFAULT current_timestamp
   );
