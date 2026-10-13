@@ -1,12 +1,31 @@
-.next
+# Dependencies
 node_modules
+
+# Build output
+.next
+package-lock.json
+/.eslintcache
+/.husky
+/coverage
+
+# Environment files
 .env
 .env.*
 !.env.example
 !.env.development.example
 !.env.local.example
-coverage/
-.eslintcache
+
+# Supabase CLI local state
+supabase/.temp
+supabase/.branches
+
+# Generated files
+supabase/query_temp.sql
+supabase/write_query.js
+*.bak
+*.tmp
+
+# Local database files (do not version)
 
 # Contexto local de agente (nao versionado por decisao do projeto)
 AGENTS.md

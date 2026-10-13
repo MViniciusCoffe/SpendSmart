@@ -8,7 +8,6 @@ package-lock.json
 /.husky
 /coverage
 
-
 # Environment files
 .env
 .env.*
@@ -20,8 +19,12 @@ supabase/.branches
 # Generated files
 supabase/query_temp.sql
 supabase/write_query.js
+*.bak
+*.tmp
 
-# Contexto local de agente
+# Local database files (do not version)
+
+# Contexto local de agente (nao versionado por decisao do projeto)
 AGENTS.md
 CLAUDE.md
-.claude
+.claude/
