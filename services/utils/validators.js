@@ -41,7 +41,7 @@ const validators = {
     }
     const data = new Date(valor)
     if (Number.isNaN(data.getTime())) {
-      throw new Error("Data inválida")
+      throw new TypeError("Data inválida")
     }
     return valor
   },
@@ -64,12 +64,7 @@ const validators = {
   },
 
   email: valor => {
-    if (
-      !valor ||
-      !/^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(
-        valor
-      )
-    ) {
+    if (!valor || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(valor)) {
       throw new Error("E-mail inválido")
     }
     return valor.toLowerCase().trim()
@@ -99,7 +94,7 @@ const validators = {
     }
     const data = new Date(valor)
     if (Number.isNaN(data.getTime())) {
-      throw new Error("Data de nascimento inválida")
+      throw new TypeError("Data de nascimento inválida")
     }
     const hoje = new Date()
     const idade = hoje.getFullYear() - data.getFullYear()
