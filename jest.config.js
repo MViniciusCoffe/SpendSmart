@@ -1,21 +1,62 @@
 module.exports = {
-  testEnvironment: "node",
-  setupFiles: ["<rootDir>/tests/setup.js"],
-  // "services" precisa estar em "roots" alem de "collectCoverageFrom": o glob de
-  // cobertura e resolvido contra os arquivos que o Jest vasculhou, e o que ele
-  // vasculha sao exatamente as pastas de "roots". Sem esta pasta, o filtro de
-  // cobertura casa com nada, sem aviso, e arquivos sem nenhum teste ficam invisiveis
-  roots: ["<rootDir>/tests", "<rootDir>/services"],
-  transform: {
-    "^.+\\.jsx?$": [
-      "babel-jest",
-      { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
-    ]
-  },
-  collectCoverageFrom: ["services/**/*.js"],
-  coverageDirectory: "coverage",
-  // "html" gera coverage/index.html, que mostra linha a linha e nomeia as funcoes sem
-  // cobertura. O "text" so agrega por arquivo: diz 3 de 4 funcoes, mas nao diz quais
+  projects: [
+    {
+      displayName: "unit",
+      testEnvironment: "node",
+      roots: ["<rootDir>/tests/unit", "<rootDir>/services"],
+      testMatch: ["**/*.test.js"],
+      transform: {
+        "^.+\\.jsx?$": [
+          "babel-jest",
+          { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
+        ]
+      },
+      collectCoverageFrom: ["services/**/*.js"],
+      coverageDirectory: "coverage/unit",
+      testTimeout: 10000
+    },
+    {
+      displayName: "integration-pgmem",
+      testEnvironment: "node",
+      roots: ["<rootDir>/tests/integration/postgres"],
+      testMatch: ["**/*.test.js"],
+      transform: {
+        "^.+\\.jsx?$": [
+          "babel-jest",
+          { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
+        ]
+      },
+      setupFiles: ["<rootDir>/tests/setup.js"],
+      testTimeout: 30000
+    },
+    {
+      displayName: "integration-supabase",
+      testEnvironment: "node",
+      roots: ["<rootDir>/tests/integration/supabase"],
+      testMatch: ["**/*.test.js"],
+      transform: {
+        "^.+\\.jsx?$": [
+          "babel-jest",
+          { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
+        ]
+      },
+      setupFiles: ["<rootDir>/tests/setup.js"],
+      testTimeout: 60000
+    },
+    {
+      displayName: "regression",
+      testEnvironment: "node",
+      roots: ["<rootDir>/tests/regression"],
+      testMatch: ["**/*.test.js"],
+      transform: {
+        "^.+\\.jsx?$": [
+          "babel-jest",
+          { presets: [["@babel/preset-env", { targets: { node: "current" } }]] }
+        ]
+      },
+      testTimeout: 30000
+    }
+  ],
   coverageReporters: ["text", "html", "json-summary", "lcov"],
-  testTimeout: 30000
+  coverageDirectory: "coverage"
 }
