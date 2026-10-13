@@ -63,12 +63,12 @@ export const transactionService = {
       .single()
 
     if (error) {
+      console.error("[Supabase Create Transaction Error]", error.code, error.message)
       traduzirErroSupabase(error, {
         fk: "Categoria não encontrada.",
         generica: "Não foi possível criar a transação."
       })
     }
-    console.error("[Supabase Create Transaction Error]", error?.code, error?.message)
     return transactionTypeMap(newTransaction)
   },
 
@@ -103,12 +103,12 @@ export const transactionService = {
       .single()
 
     if (error) {
+      console.error("[Supabase Update Transaction Error]", error.code, error.message)
       traduzirErroSupabase(error, {
         fk: "Categoria não encontrada.",
         generica: "Não foi possível atualizar a transação."
       })
     }
-    console.error("[Supabase Update Transaction Error]", error?.code, error?.message)
     return transactionTypeMap(updatedTransaction)
   },
 
@@ -123,9 +123,9 @@ export const transactionService = {
       .is("deleted_at", null)
 
     if (error) {
+      console.error("[Supabase Delete Transaction Error]", error.code, error.message)
       traduzirErroSupabase(error, { generica: "Não foi possível deletar a transação." })
     }
-    console.error("[Supabase Delete Transaction Error]", error?.code, error?.message)
     return true
   }
 }

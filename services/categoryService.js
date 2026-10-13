@@ -47,12 +47,12 @@ export const categoryService = {
       .single()
 
     if (error) {
+      console.error("[Supabase Create Category Error]", error.code, error.message)
       traduzirErroSupabase(error, {
         unicidade: "Categoria já existe. Escolha outro nome.",
         generica: "Não foi possível criar a categoria."
       })
     }
-    console.error("[Supabase Create Category Error]", error?.code, error?.message)
     return categoryTypeMap(data)
   },
 
@@ -73,12 +73,12 @@ export const categoryService = {
       .single()
 
     if (error) {
+      console.error("[Supabase updateCategory Error]:", error.code, error.message)
       traduzirErroSupabase(error, {
         unicidade: "Já existe outra categoria com este nome.",
         generica: "Não foi possível atualizar a categoria."
       })
     }
-    console.error("[Supabase updateCategory Error]:", error?.code, error?.message)
     return categoryTypeMap(data)
   },
 
@@ -93,12 +93,12 @@ export const categoryService = {
       .is("deleted_at", null)
 
     if (error) {
+      console.error("[Supabase deleteCategory Error]:", error.code, error.message)
       traduzirErroSupabase(error, {
         fk: "Não é possível deletar esta categoria pois existem transações usando ela.",
         generica: "Não foi possível deletar a categoria."
       })
     }
-    console.error("[Supabase deleteCategory Error]:", error?.code, error?.message)
     return true
   }
 }
