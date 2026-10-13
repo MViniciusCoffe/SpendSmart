@@ -8,7 +8,7 @@ const requiredEnv = [
 ]
 const missing = requiredEnv.filter(key => !process.env[key])
 if (missing.length > 0) {
-  console.error(`Variáveis de ambiente faltando: ${missing.join(", ")}`)
-  console.error("Execute: supabase start e configure .env.local")
-  process.exit(1)
+  console.warn(`[setup] Variáveis de ambiente do Supabase não configuradas: ${missing.join(", ")}`)
+  console.warn("[setup] Testes de integração precisam: supabase start e .env.local")
+  console.warn("[setup] Testes unitários continuarão (usam mocks)")
 }
