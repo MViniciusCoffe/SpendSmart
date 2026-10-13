@@ -39,8 +39,14 @@ const validators = {
     if (!regex.test(valor)) {
       throw new Error("Data inválida: use formato YYYY-MM-DD")
     }
-    const data = new Date(valor)
-    if (Number.isNaN(data.getTime())) {
+    const [ano, mes, dia] = valor.split("-").map(Number)
+    const data = new Date(ano, mes - 1, dia)
+    if (
+      Number.isNaN(data.getTime()) ||
+      data.getFullYear() !== ano ||
+      data.getMonth() !== mes - 1 ||
+      data.getDate() !== dia
+    ) {
       throw new TypeError("Data inválida")
     }
     return valor
@@ -92,8 +98,14 @@ const validators = {
     if (!regex.test(valor)) {
       throw new Error("Data de nascimento inválida: use YYYY-MM-DD")
     }
-    const data = new Date(valor)
-    if (Number.isNaN(data.getTime())) {
+    const [ano, mes, dia] = valor.split("-").map(Number)
+    const data = new Date(ano, mes - 1, dia)
+    if (
+      Number.isNaN(data.getTime()) ||
+      data.getFullYear() !== ano ||
+      data.getMonth() !== mes - 1 ||
+      data.getDate() !== dia
+    ) {
       throw new TypeError("Data de nascimento inválida")
     }
     const hoje = new Date()

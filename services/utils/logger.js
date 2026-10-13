@@ -1,8 +1,6 @@
-const isDev = process.env.NODE_ENV !== "production"
-
 export const logger = {
   error: (ctx, error, meta = {}) => {
-    if (!isDev) return
+    if (process.env.NODE_ENV === "production") return
     const payload = {
       ctx,
       code: error?.code,
@@ -14,12 +12,12 @@ export const logger = {
   },
 
   warn: (ctx, message, meta = {}) => {
-    if (!isDev) return
+    if (process.env.NODE_ENV === "production") return
     console.warn(JSON.stringify({ ctx, message, ...meta }))
   },
 
   info: (ctx, message, meta = {}) => {
-    if (!isDev) return
+    if (process.env.NODE_ENV === "production") return
     console.info(JSON.stringify({ ctx, message, ...meta }))
   }
 }

@@ -1,4 +1,4 @@
-import { supabase } from "../infra/supabase"
+import { supabase } from "../../infra/supabase"
 
 export const validarTitulo = titulo => {
   if (!titulo || titulo.trim() === "") throw new Error("Título é obrigatório")
