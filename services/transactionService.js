@@ -9,7 +9,8 @@ const transactionTypeMap = tx => ({
   category_id: tx.category_id,
   occurred_on: tx.occurred_on,
   description: tx.description,
-  payment_method: tx.payment_method
+  payment_method: tx.payment_method,
+  deleted_at: tx.deleted_at
 })
 
 export const transactionService = {
@@ -20,6 +21,7 @@ export const transactionService = {
       .from("transactions")
       .select("*")
       .eq("user_id", session.user.id)
+      .is("deleted_at", null)
       .order("occurred_on", { ascending: false })
 
     if (error) {
@@ -115,9 +117,10 @@ export const transactionService = {
 
     const { error } = await supabase
       .from("transactions")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", session.user.id)
+      .is("deleted_at", null)
 
     if (error) {
       traduzirErroSupabase(error, { generica: "Não foi possível deletar a transação." })

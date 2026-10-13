@@ -7,53 +7,13 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { transactionService } from "../../services/transactionService"
-
-// Simula o comportamento do Supabase para os métodos que usamos no serviço de transação
-const METODOS = ["select", "insert", "update", "delete", "eq", "order", "single"]
-
-const criarBuilder = resultado => {
-  const builder = {}
-  // Na memória, ficaria tipo:
-  // builder.select = jest.fn(() => builder)
-  // builder.insert = jest.fn(() => builder)
-  // ... e assim por diante
-  // Mas podemos fazer isso de forma dinâmica com um loop
-  METODOS.forEach(metodo => {
-    builder[metodo] = jest.fn(() => builder)
-  })
-  builder.then = (resolver, rejeitar) => Promise.resolve(resultado).then(resolver, rejeitar)
-  return builder
-}
-
-// Função auxiliar para criar uma linha de transação com valores padrão, podendo sobrescrever com overrides
-const linha = (overrides = {}) => ({
-  id: 1,
-  title: "Aluguel",
-  amount: 1500.0,
-  type: "expense",
-  category_id: 7,
-  occurred_on: "2026-09-01",
-  description: "Setembro",
-  payment_method: "cartao_credito",
-  user_id: "u1",
-  ...overrides
-})
-
-// Função auxiliar com o DTO em inglês, que é o que o serviço deve devolver
-const dto = (overrides = {}) => ({
-  id: 1,
-  title: "Aluguel",
-  amount: 1500.0,
-  type: "expense",
-  category_id: 7,
-  occurred_on: "2026-09-01",
-  description: "Setembro",
-  payment_method: "cartao_credito",
-  ...overrides
-})
-
-const semSessao = { data: { session: null } }
-const comSessao = { data: { session: { user: { id: "u1" } } } }
+import {
+  criarBuilder,
+  linhaTransacao,
+  dtoTransacao,
+  semSessao,
+  comSessao
+} from "../helpers/supabase"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
@@ -78,15 +38,20 @@ describe("getTransactions", () => {
 
     supabase.from.mockReturnValue(
       criarBuilder({
-        data: [linha(), linha({ id: 2, title: "Salario", type: "income", amount: 5000 })],
+        data: [
+          linhaTransacao(),
+          linhaTransacao({ id: 2, title: "Salario", type: "income", amount: 5000 })
+        ],
         error: null
       })
     )
 
     const resultado = await transactionService.getTransactions()
 
-    expect(resultado[0]).toEqual(dto())
-    expect(resultado[1]).toEqual(dto({ id: 2, title: "Salario", amount: 5000, type: "income" }))
+    expect(resultado[0]).toEqual(dtoTransacao())
+    expect(resultado[1]).toEqual(
+      dtoTransacao({ id: 2, title: "Salario", amount: 5000, type: "income" })
+    )
   })
 
   it("ordena por occurred_on decrescente", async () => {
@@ -125,7 +90,7 @@ describe("getTransactions", () => {
 describe("createTransaction", () => {
   it("escreve na tabela transactions", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaTransacao(), error: null }))
 
     await transactionService.createTransaction({ title: "Aluguel", amount: 1500, type: "expense" })
 
@@ -142,7 +107,7 @@ describe("createTransaction", () => {
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha(), error: null })
+    const builder = criarBuilder({ data: linhaTransacao, error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({
@@ -171,7 +136,7 @@ describe("createTransaction", () => {
 
   it("converte despesa em expense na escrita", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha(), error: null })
+    const builder = criarBuilder({ data: linhaTransacao, error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({ title: "Mercado", amount: 80, type: "expense" })
@@ -193,7 +158,7 @@ describe("createTransaction", () => {
 
   it("devolve o DTO em ingles, nao a linha crua", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaTransacao(), error: null }))
 
     const resultado = await transactionService.createTransaction({
       title: "Aluguel",
@@ -201,7 +166,7 @@ describe("createTransaction", () => {
       type: "expense"
     })
 
-    expect(resultado).toEqual(dto())
+    expect(resultado).toEqual(dtoTransacao())
   })
 
   it("traduz 23503 em categoria inexistente", async () => {
@@ -239,7 +204,7 @@ describe("updateTransaction", () => {
 
   it("traduz o DTO para as colunas do update sem enviar user_id", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha({ title: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaTransacao({ title: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.updateTransaction({
@@ -269,7 +234,7 @@ describe("updateTransaction", () => {
   it("filtra pelo id e devolve o DTO", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    const builder = criarBuilder({ data: linha({ title: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaTransacao({ title: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     const resultado = await transactionService.updateTransaction({
@@ -280,7 +245,7 @@ describe("updateTransaction", () => {
     })
 
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
-    expect(resultado).toEqual(dto({ title: "Novo" }))
+    expect(resultado).toEqual(dtoTransacao({ title: "Novo" }))
   })
 
   it("traduz 23503 em categoria inexistente", async () => {

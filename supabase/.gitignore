@@ -1,8 +1,11 @@
-# Supabase
-.branches
-.temp
+# Supabase CLI local state
+.temp/
+.branches/
 
-# dotenvx
-.env.keys
+# Credenciais locais (não versionadas)
 .env.local
 .env.*.local
+
+# Generated files
+query_temp.sql
+write_query.js

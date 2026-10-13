@@ -660,3 +660,38 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 - `.env.supabase.example` — pendente (issue #20)
 
 **Reavaliar quando.** Next.js mudar prioridade de arquivos `.env` (improvável).
+
+---
+
+## 25. Migrations em SQL para Supabase CLI
+
+**Decisão.** Migrations novas usam formato `.sql` (padrão Supabase CLI) em vez de `.js` (node-pg-migrate).
+
+**Por que.**
+
+- O Supabase CLI (`supabase db reset`, `supabase migration up`) **só executa arquivos `.sql`** com timestamp no nome (`YYYYMMDDHHMMSS_name.sql`).
+- O `node-pg-migrate` (formato `.js`) é mantido apenas para o fluxo de deploy remoto (`migrations:supabase:up`) e para o Docker Compose fallback (`migrations:up`).
+- O `node-pg-migrate` **ignora arquivos `.sql`** — ele só processa arquivos `.js` com export `up`/`down`.
+
+**Consequências práticas:**
+
+| Ambiente                        | Comando                                       | Formato | Funciona         |
+| ------------------------------- | --------------------------------------------- | ------- | ---------------- |
+| Local (Supabase CLI)            | `supabase db reset` / `supabase migration up` | `.sql`  | ✅               |
+| Local (Docker Compose fallback) | `npm run migrations:up`                       | `.js`   | ✅               |
+| Remoto/Produção                 | `npm run migrations:supabase:up`              | `.js`   | ✅               |
+| Local (node-pg-migrate direto)  | `node-pg-migrate up`                          | `.js`   | ⚠️ Ignora `.sql` |
+
+**Risco conhecido:** Se alguém rodar `npm run migrations:up` localmente (fluxo Docker Compose), as migrations `.sql` novas **não serão aplicadas**. Isso é intencional — o fluxo recomendado local é `supabase start` + `supabase db reset` (usa `.sql`).
+
+**Migração de arquivos antigos:**
+
+| Arquivo antigo (`.js`)                                | Status                            | Substituto (`.sql`)                                            |
+| ----------------------------------------------------- | --------------------------------- | -------------------------------------------------------------- |
+| `001_create_financial_schema.js`                      | Ignorado pelo CLI (sem timestamp) | `1791833057000_create_financial_schema.sql`                    |
+| `1790304277043_add-rbac-permissions.js`               | Ignorado pelo CLI                 | Não migrado (GRANTs só valem no Supabase remoto)               |
+| `1791833057036_rename-profiles-columns-to-english.js` | Ignorado pelo CLI                 | Incorporado na migration inicial `.sql` (colunas já em inglês) |
+
+**Reavaliar quando.** Supabase CLI suportar migrations `.js` nativamente, ou unificarmos em uma única ferramenta.
+
+---

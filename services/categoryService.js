@@ -6,7 +6,8 @@ const categoryTypeMap = cat => ({
   name: cat.name,
   type: cat.type,
   description: cat.description,
-  color: cat.color
+  color: cat.color,
+  deleted_at: cat.deleted_at
 })
 
 export const categoryService = {
@@ -17,6 +18,7 @@ export const categoryService = {
       .from("categories")
       .select("*")
       .eq("user_id", session.user.id)
+      .is("deleted_at", null)
       .order("name", { ascending: true })
 
     if (error) {
@@ -85,9 +87,10 @@ export const categoryService = {
 
     const { error } = await supabase
       .from("categories")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("user_id", session.user.id)
+      .is("deleted_at", null)
 
     if (error) {
       traduzirErroSupabase(error, {

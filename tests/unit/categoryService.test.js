@@ -7,37 +7,7 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { categoryService } from "../../services/categoryService"
-
-// Simula o comportamento do Supabase para os métodos que usamos no serviço de categoria
-const METODOS = ["select", "insert", "update", "delete", "eq", "order", "single"]
-
-const criarBuilder = resultado => {
-  const builder = {}
-  // Na memória, ficaria tipo:
-  // builder.select = jest.fn(() => builder)
-  // builder.insert = jest.fn(() => builder)
-  // builder.update = jest.fn(() => builder)
-  // ...
-  // Mas podemos fazer isso de forma dinâmica com um loop
-  METODOS.forEach(metodo => {
-    builder[metodo] = jest.fn(() => builder)
-  })
-  builder.then = (resolver, rejeitar) => Promise.resolve(resultado).then(resolver, rejeitar)
-  return builder
-}
-
-// Função auxiliar para criar uma linha de categoria com valores padrão, podendo sobrescrever com overrides
-const linha = (overrides = {}) => ({
-  id: 1,
-  name: "Alimentacao",
-  type: "expense",
-  description: "Mercado",
-  color: "#FF0000",
-  ...overrides
-})
-
-const semSessao = { data: { session: null } }
-const comSessao = { data: { session: { user: { id: "u1" } } } }
+import { criarBuilder, linhaCategoria, semSessao, comSessao } from "../helpers/supabase"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
@@ -84,7 +54,7 @@ describe("getCategories", () => {
     supabase.from.mockReturnValue(
       // Cria um builder com os dados das categorias
       criarBuilder({
-        data: [linha(), linha({ id: 2, name: "Salario", type: "income" })],
+        data: [linhaCategoria(), linhaCategoria({ id: 2, name: "Salario", type: "income" })],
         error: null
       })
     )
@@ -94,8 +64,22 @@ describe("getCategories", () => {
 
     // Verifica se o resultado traduz corretamente os tipos para inglês
     expect(resultado).toEqual([
-      { id: 1, name: "Alimentacao", type: "expense", description: "Mercado", color: "#FF0000" },
-      { id: 2, name: "Salario", type: "income", description: "Mercado", color: "#FF0000" }
+      {
+        id: 1,
+        name: "Alimentacao",
+        type: "expense",
+        description: "Mercado",
+        color: "#FF0000",
+        deleted_at: null
+      },
+      {
+        id: 2,
+        name: "Salario",
+        type: "income",
+        description: "Mercado",
+        color: "#FF0000",
+        deleted_at: null
+      }
     ])
   })
 
@@ -144,7 +128,7 @@ describe("getCategories", () => {
 describe("createCategory", () => {
   it("escreve na tabela categories", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
 
     await categoryService.createCategory({ name: "Mercado", type: "expense" })
 
@@ -161,7 +145,7 @@ describe("createCategory", () => {
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ type: "income" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     await categoryService.createCategory({
@@ -184,7 +168,7 @@ describe("createCategory", () => {
 
   it("devolve o DTO em ingles, nao a linha crua", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linha(), error: null }))
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
 
     const resultado = await categoryService.createCategory({ name: "X", type: "expense" })
 
@@ -193,7 +177,8 @@ describe("createCategory", () => {
       name: "Alimentacao",
       type: "expense",
       description: "Mercado",
-      color: "#FF0000"
+      color: "#FF0000",
+      deleted_at: null
     })
   })
 
@@ -232,7 +217,7 @@ describe("updateCategory", () => {
   it("filtra pelo id e devolve o DTO", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     const resultado = await categoryService.updateCategory({
@@ -272,7 +257,7 @@ describe("updateCategory", () => {
   it("traduz o DTO para as colunas do update", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    const builder = criarBuilder({ data: linha({ name: "Novo" }), error: null })
+    const builder = criarBuilder({ data: linhaCategoria({ name: "Novo" }), error: null })
     supabase.from.mockReturnValue(builder)
 
     await categoryService.updateCategory({
