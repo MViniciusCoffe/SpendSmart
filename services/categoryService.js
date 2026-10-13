@@ -1,5 +1,5 @@
 import { supabase } from "../infra/supabase"
-import { withSession, withErrorHandling, handleSupabaseError } from "./utils/baseService"
+import { withSession, withErrorHandling } from "./utils/baseService"
 import { categoryTypeMap } from "./utils/mappers"
 import validators from "./utils/validators"
 

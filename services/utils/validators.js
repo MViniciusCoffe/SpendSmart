@@ -40,7 +40,7 @@ const validators = {
       throw new Error("Data inválida: use formato YYYY-MM-DD")
     }
     const data = new Date(valor)
-    if (isNaN(data.getTime())) {
+    if (Number.isNaN(data.getTime())) {
       throw new Error("Data inválida")
     }
     return valor
@@ -64,7 +64,12 @@ const validators = {
   },
 
   email: valor => {
-    if (!valor || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)) {
+    if (
+      !valor ||
+      !/^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(
+        valor
+      )
+    ) {
       throw new Error("E-mail inválido")
     }
     return valor.toLowerCase().trim()
@@ -79,7 +84,7 @@ const validators = {
 
   telefone: valor => {
     if (!valor) return undefined
-    const limpo = String(valor).replace(/\D/g, "")
+    const limpo = String(valor).replaceAll(/\D/g, "")
     if (limpo.length < 10 || limpo.length > 11) {
       throw new Error("Telefone inválido")
     }
@@ -93,7 +98,7 @@ const validators = {
       throw new Error("Data de nascimento inválida: use YYYY-MM-DD")
     }
     const data = new Date(valor)
-    if (isNaN(data.getTime())) {
+    if (Number.isNaN(data.getTime())) {
       throw new Error("Data de nascimento inválida")
     }
     const hoje = new Date()
