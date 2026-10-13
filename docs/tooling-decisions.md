@@ -713,7 +713,7 @@ services/
     ├── logger.js           # logger.error/warn/info (JSON, dev-only)
     ├── mappers.js          # categoryTypeMap, transactionTypeMap, profileTypeMap
     ├── validators.js       # 14 validadores centralizados
-    └── utils.js            # validarTitulo, validarValor
+    └── utils.js            # fachada de compatibilidade para validators/baseService
 ```
 
 **Por que.** Antes, `baseService.js`, `logger.js`, `mappers.js`, `validators.js`, `utils.js` ficavam soltos em `services/`, misturados com os _domain services_ (`categoryService`, `transactionService`, etc.). Isso confundia o que é _domain logic_ vs _shared utility_.

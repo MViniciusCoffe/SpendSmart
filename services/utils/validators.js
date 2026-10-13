@@ -1,3 +1,24 @@
+const validarData = (valor, mensagens) => {
+  if (!valor) return undefined
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    throw new Error(mensagens.formato)
+  }
+
+  const [ano, mes, dia] = valor.split("-").map(Number)
+  const data = new Date(ano, mes - 1, dia)
+  if (
+    Number.isNaN(data.getTime()) ||
+    data.getFullYear() !== ano ||
+    data.getMonth() !== mes - 1 ||
+    data.getDate() !== dia
+  ) {
+    throw new TypeError(mensagens.invalida)
+  }
+
+  return { valor, data }
+}
+
 const validators = {
   titulo: valor => {
     if (!valor || typeof valor !== "string" || valor.trim() === "") {
@@ -34,22 +55,11 @@ const validators = {
   },
 
   data: valor => {
-    if (!valor) return undefined
-    const regex = /^\d{4}-\d{2}-\d{2}$/
-    if (!regex.test(valor)) {
-      throw new Error("Data inválida: use formato YYYY-MM-DD")
-    }
-    const [ano, mes, dia] = valor.split("-").map(Number)
-    const data = new Date(ano, mes - 1, dia)
-    if (
-      Number.isNaN(data.getTime()) ||
-      data.getFullYear() !== ano ||
-      data.getMonth() !== mes - 1 ||
-      data.getDate() !== dia
-    ) {
-      throw new TypeError("Data inválida")
-    }
-    return valor
+    const resultado = validarData(valor, {
+      formato: "Data inválida: use formato YYYY-MM-DD",
+      invalida: "Data inválida"
+    })
+    return resultado?.valor
   },
 
   descricao: valor => {
@@ -93,27 +103,19 @@ const validators = {
   },
 
   dataNascimento: valor => {
-    if (!valor) return undefined
-    const regex = /^\d{4}-\d{2}-\d{2}$/
-    if (!regex.test(valor)) {
-      throw new Error("Data de nascimento inválida: use YYYY-MM-DD")
-    }
-    const [ano, mes, dia] = valor.split("-").map(Number)
-    const data = new Date(ano, mes - 1, dia)
-    if (
-      Number.isNaN(data.getTime()) ||
-      data.getFullYear() !== ano ||
-      data.getMonth() !== mes - 1 ||
-      data.getDate() !== dia
-    ) {
-      throw new TypeError("Data de nascimento inválida")
-    }
+    const resultado = validarData(valor, {
+      formato: "Data de nascimento inválida: use YYYY-MM-DD",
+      invalida: "Data de nascimento inválida"
+    })
+    if (!resultado) return undefined
+
+    const { data } = resultado
     const hoje = new Date()
     const idade = hoje.getFullYear() - data.getFullYear()
     if (idade < 13 || idade > 120) {
       throw new Error("Idade deve ser entre 13 e 120 anos")
     }
-    return valor
+    return resultado.valor
   },
 
   cor: valor => {

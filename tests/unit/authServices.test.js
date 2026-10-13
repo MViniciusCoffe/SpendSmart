@@ -172,6 +172,30 @@ describe("registerUser", () => {
       })
     )
   })
+
+  it("usa mensagem padrão quando a resposta de createProfile não é JSON", async () => {
+    supabase.auth.signUp.mockResolvedValue({
+      data: { user: { id: "u1" } },
+      error: null
+    })
+    supabase.auth.getSession.mockResolvedValue({
+      data: { session: { user: { id: "u1" }, access_token: "token123" } }
+    })
+    global.fetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.reject(new SyntaxError("resposta inválida"))
+    })
+
+    await expect(
+      authService.registerUser({
+        email: "a@b.com",
+        password: "senha123",
+        nomeCompleto: "João",
+        dataNascimento: "2000-01-01",
+        telefone: "11999999999"
+      })
+    ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
+  })
 })
 
 // Testes para o método loginUser do serviço de autenticação
