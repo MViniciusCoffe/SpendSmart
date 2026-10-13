@@ -21,5 +21,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Executar testes e cobertura
+      - name: Executar testes unitários + cobertura
         run: npm run test:coverage
+
+      - name: Executar testes de integração (pg-mem)
+        run: npm run test:integration
