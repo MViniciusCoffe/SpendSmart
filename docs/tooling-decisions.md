@@ -695,3 +695,37 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 **Reavaliar quando.** Supabase CLI suportar migrations `.js` nativamente, ou unificarmos em uma única ferramenta.
 
 ---
+
+## 24. Estrutura `services/utils/` para utilitários compartilhados
+
+**Decisão.** Mover auxiliares de `services/` para subpasta `services/utils/`.
+
+**Estrutura final:**
+
+```
+services/
+├── authServices.js
+├── categoryService.js
+├── transactionService.js
+├── profileService.js
+└── utils/
+    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase, clearSessionCache
+    ├── logger.js           # logger.error/warn/info (JSON, dev-only)
+    ├── mappers.js          # categoryTypeMap, transactionTypeMap, profileTypeMap
+    ├── validators.js       # 14 validadores centralizados
+    └── utils.js            # validarTitulo, validarValor
+```
+
+**Por que.** Antes, `baseService.js`, `logger.js`, `mappers.js`, `validators.js`, `utils.js` ficavam soltos em `services/`, misturados com os _domain services_ (`categoryService`, `transactionService`, etc.). Isso confundia o que é _domain logic_ vs _shared utility_.
+
+**Benefícios:**
+
+- Separação clara: _domain services_ em `services/`, _utilitários_ em `services/utils/`
+- Imports explícitos: `import { withSession } from "./utils/baseService"`
+- Fácil adicionar novos utilitários sem poluir a raiz
+
+**Alternativa rejeitada.** Manter tudo na raiz de `services/`. Funciona, mas confunde responsabilidades.
+
+**Reavaliar quando.** A pasta `utils/` crescer além de 8-10 arquivos — aí vale split por domínio (ex: `utils/db`, `utils/auth`).
+
+---

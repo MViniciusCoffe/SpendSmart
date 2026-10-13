@@ -66,6 +66,14 @@ npm run test:integration
 
 > **Nota:** Testes atuais usam UUIDs fixos que não existem no `auth.users` local — FKs bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`.
 
+O script `tests/helpers/factory.js` fornece helpers para seed limpo:
+
+```js
+const { createTestUser, createTestScenario, cleanupTestData } = require("../helpers/factory")
+await createTestScenario(userId, { categories: [...], transactions: [...] })
+await cleanupTestData([userId])
+```
+
 ---
 
 ## 2. Docker Compose (Postgres puro — legado)
