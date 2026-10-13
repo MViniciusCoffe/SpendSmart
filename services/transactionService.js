@@ -1,18 +1,7 @@
 import { supabase } from "../infra/supabase"
 import { validarTitulo, validarValor } from "./utils"
 import { withSession, withErrorHandling, handleSupabaseError } from "./baseService"
-
-const transactionTypeMap = tx => ({
-  id: tx.id,
-  title: tx.title,
-  amount: tx.amount,
-  type: tx.type,
-  category_id: tx.category_id,
-  occurred_on: tx.occurred_on,
-  description: tx.description,
-  payment_method: tx.payment_method,
-  deleted_at: tx.deleted_at
-})
+import { transactionTypeMap } from "./mappers"
 
 export const transactionService = {
   async getTransactions() {
@@ -21,7 +10,9 @@ export const transactionService = {
         async () => {
           const { data, error } = await supabase
             .from("transactions")
-            .select("*")
+            .select(
+              "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+            )
             .eq("user_id", session.user.id)
             .is("deleted_at", null)
             .order("occurred_on", { ascending: false })

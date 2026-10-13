@@ -1,14 +1,6 @@
 import { supabase } from "../infra/supabase"
 import { withSession, withErrorHandling, handleSupabaseError } from "./baseService"
-
-const categoryTypeMap = cat => ({
-  id: cat.id,
-  name: cat.name,
-  type: cat.type,
-  description: cat.description,
-  color: cat.color,
-  deleted_at: cat.deleted_at
-})
+import { categoryTypeMap } from "./mappers"
 
 export const categoryService = {
   async getCategories() {
@@ -17,7 +9,7 @@ export const categoryService = {
         async () => {
           const { data, error } = await supabase
             .from("categories")
-            .select("*")
+            .select("id,name,type,description,color,deleted_at")
             .eq("user_id", session.user.id)
             .is("deleted_at", null)
             .order("name", { ascending: true })
