@@ -1,5 +1,27 @@
+# Dependencies
+node_modules
+
+# Build output
 .next
 package-lock.json
 /.eslintcache
 /.husky
 /coverage
+
+
+# Environment files
+.env
+.env.*
+
+# Supabase CLI local state
+supabase/.temp
+supabase/.branches
+
+# Generated files
+supabase/query_temp.sql
+supabase/write_query.js
+
+# Contexto local de agente
+AGENTS.md
+CLAUDE.md
+.claude

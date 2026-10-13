@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: "node",
+  setupFiles: ["<rootDir>/tests/setup.js"],
   // "services" precisa estar em "roots" alem de "collectCoverageFrom": o glob de
   // cobertura e resolvido contra os arquivos que o Jest vasculhou, e o que ele
   // vasculha sao exatamente as pastas de "roots". Sem esta pasta, o filtro de

@@ -9,3 +9,7 @@
 # Generated files
 query_temp.sql
 write_query.js
+*.bak
+*.tmp
+
+# Local database files (do not version)
