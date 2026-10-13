@@ -1,5 +1,5 @@
 -- Create financial schema for SpendSmart
--- Compatible with Supabase local (auth.users exists) and remote
+-- Run via Supabase CLI: supabase db reset / supabase migration up
 
 -- profiles table
 CREATE TABLE public.profiles (
