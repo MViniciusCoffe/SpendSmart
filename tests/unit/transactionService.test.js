@@ -14,7 +14,7 @@ import {
   semSessao,
   comSessao
 } from "../helpers/supabase"
-import { clearSessionCache } from "../../services/baseService"
+import { clearSessionCache } from "../../services/utils/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
@@ -70,7 +70,9 @@ describe("getTransactions", () => {
   it("traduz o erro do banco em mensagem para o usuario", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    supabase.from.mockReturnValue(criarBuilder({ data: null, error: { message: "refused" } }))
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "PGRST111", message: "refused" } })
+    )
 
     await expect(transactionService.getTransactions()).rejects.toThrow(
       "Não foi possível carregar suas transações."
@@ -94,7 +96,12 @@ describe("createTransaction", () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ data: linhaTransacao(), error: null }))
 
-    await transactionService.createTransaction({ title: "Aluguel", amount: 1500, type: "expense" })
+    await transactionService.createTransaction({
+      title: "Aluguel",
+      amount: 1500,
+      type: "expense",
+      category_id: 7
+    })
 
     expect(supabase.from).toHaveBeenCalledWith("transactions")
   })
@@ -103,7 +110,12 @@ describe("createTransaction", () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
     await expect(
-      transactionService.createTransaction({ title: "X", amount: 10, type: "expense" })
+      transactionService.createTransaction({
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Usuário não autenticado.")
   })
 
@@ -141,7 +153,12 @@ describe("createTransaction", () => {
     const builder = criarBuilder({ data: linhaTransacao, error: null })
     supabase.from.mockReturnValue(builder)
 
-    await transactionService.createTransaction({ title: "Mercado", amount: 80, type: "expense" })
+    await transactionService.createTransaction({
+      title: "Mercado",
+      amount: 80,
+      type: "expense",
+      category_id: 7
+    })
 
     expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
   })
@@ -153,7 +170,8 @@ describe("createTransaction", () => {
       transactionService.createTransaction({
         title: "Aluguel",
         amount: "1.234,56",
-        type: "expense"
+        type: "expense",
+        category_id: 7
       })
     ).rejects.toThrow("Valor inválido: deve ser um número válido")
   })
@@ -165,7 +183,8 @@ describe("createTransaction", () => {
     const resultado = await transactionService.createTransaction({
       title: "Aluguel",
       amount: 1500,
-      type: "expense"
+      type: "expense",
+      category_id: 7
     })
 
     expect(resultado).toEqual(dtoTransacao())
@@ -178,7 +197,12 @@ describe("createTransaction", () => {
     )
 
     await expect(
-      transactionService.createTransaction({ title: "X", amount: 10, type: "expense" })
+      transactionService.createTransaction({
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Categoria não encontrada.")
   })
 
@@ -189,7 +213,12 @@ describe("createTransaction", () => {
     )
 
     await expect(
-      transactionService.createTransaction({ title: "X", amount: 10, type: "expense" })
+      transactionService.createTransaction({
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Não foi possível criar a transação.")
   })
 })
@@ -200,7 +229,13 @@ describe("updateTransaction", () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
 
     await expect(
-      transactionService.updateTransaction({ id: 1, title: "X", amount: 10, type: "expense" })
+      transactionService.updateTransaction({
+        id: 1,
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Usuário não autenticado.")
   })
 
@@ -243,7 +278,8 @@ describe("updateTransaction", () => {
       id: 1,
       title: "Novo",
       amount: 1500,
-      type: "expense"
+      type: "expense",
+      category_id: 7
     })
 
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
@@ -258,7 +294,13 @@ describe("updateTransaction", () => {
     )
 
     await expect(
-      transactionService.updateTransaction({ id: 1, title: "X", amount: 10, type: "expense" })
+      transactionService.updateTransaction({
+        id: 1,
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Categoria não encontrada.")
   })
 
@@ -270,7 +312,13 @@ describe("updateTransaction", () => {
     )
 
     await expect(
-      transactionService.updateTransaction({ id: 1, title: "X", amount: 10, type: "expense" })
+      transactionService.updateTransaction({
+        id: 1,
+        title: "X",
+        amount: 10,
+        type: "expense",
+        category_id: 7
+      })
     ).rejects.toThrow("Não foi possível atualizar a transação.")
   })
 })

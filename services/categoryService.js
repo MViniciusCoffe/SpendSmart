@@ -1,6 +1,7 @@
 import { supabase } from "../infra/supabase"
-import { withSession, withErrorHandling, handleSupabaseError } from "./baseService"
-import { categoryTypeMap } from "./mappers"
+import { withSession, withErrorHandling, handleSupabaseError } from "./utils/baseService"
+import { categoryTypeMap } from "./utils/mappers"
+import validators from "./utils/validators"
 
 export const categoryService = {
   async getCategories() {
@@ -26,9 +27,22 @@ export const categoryService = {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
+          const validName = validators.nome(name)
+          const validType = validators.tipo(type)
+          const validDescription = validators.descricao(description)
+          const validColor = validators.cor(color)
+
           const { data, error } = await supabase
             .from("categories")
-            .insert([{ name, type, description, color, user_id: session.user.id }])
+            .insert([
+              {
+                name: validName,
+                type: validType,
+                description: validDescription,
+                color: validColor,
+                user_id: session.user.id
+              }
+            ])
             .select()
             .single()
           if (error) throw error
@@ -47,9 +61,19 @@ export const categoryService = {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
+          const validName = validators.nome(name)
+          const validType = validators.tipo(type)
+          const validDescription = validators.descricao(description)
+          const validColor = validators.cor(color)
+
           const { data, error } = await supabase
             .from("categories")
-            .update({ name, type, description, color })
+            .update({
+              name: validName,
+              type: validType,
+              description: validDescription,
+              color: validColor
+            })
             .eq("id", id)
             .eq("user_id", session.user.id)
             .select()

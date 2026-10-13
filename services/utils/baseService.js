@@ -1,4 +1,4 @@
-import { supabase } from "../infra/supabase"
+import { supabase } from "../../infra/supabase"
 import { logger } from "./logger"
 
 let _sessionCache = null
@@ -50,7 +50,7 @@ export const withErrorHandling = async (operation, contexto, mensagens) => {
     if (error.code) {
       handleSupabaseError(error, mensagens, contexto)
     }
-    // Erro sem código (ex: mock, network) -> usa mensagem genérica
-    throw new Error(mensagens.generica)
+    // Erro sem código (validacao, mock, network) -> re-lanca original
+    throw error
   }
 }

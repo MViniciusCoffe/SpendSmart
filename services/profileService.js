@@ -1,5 +1,5 @@
 import { supabase } from "../infra/supabase"
-import { handleSupabaseError } from "./baseService"
+import { handleSupabaseError } from "./utils/baseService"
 
 export const profileService = {
   async updateProfile({ full_name, password, birth_date, phone }) {

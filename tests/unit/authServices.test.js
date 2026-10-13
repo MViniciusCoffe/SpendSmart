@@ -13,7 +13,7 @@ jest.mock("../../infra/supabase", () => ({
 
 import { supabase } from "../../infra/supabase"
 import { authService } from "../../services/authServices"
-import { clearSessionCache } from "../../services/baseService"
+import { clearSessionCache } from "../../services/utils/baseService"
 
 // Usuário fictício devolvido pelo Supabase Auth
 const usuario = { id: "u1", email: "joao@email.com" }

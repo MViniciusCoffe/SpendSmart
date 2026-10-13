@@ -8,7 +8,7 @@ jest.mock("../../infra/supabase", () => ({
 import { supabase } from "../../infra/supabase"
 import { categoryService } from "../../services/categoryService"
 import { criarBuilder, linhaCategoria, semSessao, comSessao } from "../helpers/supabase"
-import { clearSessionCache } from "../../services/baseService"
+import { clearSessionCache } from "../../services/utils/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
@@ -105,10 +105,9 @@ describe("getCategories", () => {
   it("traduz o erro do banco em mensagem para o usuario", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
-    // Configura o mock do Supabase para simular um erro ao buscar categorias
-    // Aqui, o builder chama o método then e retorna um objeto com data null e um erro com mensagem "refused"
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: null, error: { message: "refused" } }))
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "PGRST111", message: "refused" } })
+    )
 
     await expect(categoryService.getCategories()).rejects.toThrow(
       "Não foi possível carregar suas categorias."

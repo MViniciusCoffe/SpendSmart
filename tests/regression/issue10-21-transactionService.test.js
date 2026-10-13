@@ -44,6 +44,7 @@ describe("Regressão #21 — DTO com occurred_on e payment_method", () => {
       title: "Salário",
       amount: 5000,
       type: "income",
+      category_id: 7,
       occurred_on: "2026-10-01",
       payment_method: "pix"
     })
@@ -74,6 +75,7 @@ describe("Regressão #21 — DTO com occurred_on e payment_method", () => {
       title: "Freelance",
       amount: 1200,
       type: "income",
+      category_id: 7,
       occurred_on: "2026-10-05",
       payment_method: "transferencia"
     })
@@ -97,7 +99,8 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
     await transactionService.createTransaction({
       title: "Salário",
       amount: 5000,
-      type: "income"
+      type: "income",
+      category_id: 7
     })
 
     expect(builder.insert.mock.calls[0][0][0].type).toBe("income")
@@ -111,7 +114,8 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
     await transactionService.createTransaction({
       title: "Mercado",
       amount: 150,
-      type: "expense"
+      type: "expense",
+      category_id: 7
     })
 
     expect(builder.insert.mock.calls[0][0][0].type).toBe("expense")
@@ -121,7 +125,12 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
     await expect(
-      transactionService.createTransaction({ title: "Teste", amount: "abc", type: "income" })
+      transactionService.createTransaction({
+        title: "Teste",
+        amount: "abc",
+        type: "income",
+        category_id: 7
+      })
     ).rejects.toThrow("Valor inválido: deve ser um número válido")
   })
 
@@ -131,7 +140,8 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
         id: 1,
         title: "Teste",
         amount: "abc",
-        type: "income"
+        type: "income",
+        category_id: 7
       })
     ).rejects.toThrow("Valor inválido: deve ser um número válido")
   })

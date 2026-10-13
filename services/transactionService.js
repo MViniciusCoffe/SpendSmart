@@ -1,7 +1,7 @@
 import { supabase } from "../infra/supabase"
-import { validarTitulo, validarValor } from "./utils"
-import { withSession, withErrorHandling, handleSupabaseError } from "./baseService"
-import { transactionTypeMap } from "./mappers"
+import { withSession, withErrorHandling, handleSupabaseError } from "./utils/baseService"
+import { transactionTypeMap } from "./utils/mappers"
+import validators from "./utils/validators"
 
 export const transactionService = {
   async getTransactions() {
@@ -35,22 +35,27 @@ export const transactionService = {
     payment_method
   }) {
     return withSession(async session => {
-      validarTitulo(title)
-      const amountNum = validarValor(amount)
-
       return withErrorHandling(
         async () => {
+          const validTitle = validators.titulo(title)
+          const validAmount = validators.valor(amount)
+          const validType = validators.tipo(type)
+          const validCategoryId = validators.categoriaId(category_id)
+          const validDate = validators.data(occurred_on)
+          const validDescription = validators.descricao(description)
+          const validPaymentMethod = validators.formaPagamento(payment_method)
+
           const { data: newTransaction, error } = await supabase
             .from("transactions")
             .insert([
               {
-                title,
-                amount: amountNum,
-                type,
-                category_id,
-                occurred_on,
-                description,
-                payment_method,
+                title: validTitle,
+                amount: validAmount,
+                type: validType,
+                category_id: validCategoryId,
+                occurred_on: validDate,
+                description: validDescription,
+                payment_method: validPaymentMethod,
                 user_id: session.user.id
               }
             ])
@@ -79,21 +84,26 @@ export const transactionService = {
     payment_method
   }) {
     return withSession(async session => {
-      validarTitulo(title)
-      const amountNum = validarValor(amount)
-
       return withErrorHandling(
         async () => {
+          const validTitle = validators.titulo(title)
+          const validAmount = validators.valor(amount)
+          const validType = validators.tipo(type)
+          const validCategoryId = validators.categoriaId(category_id)
+          const validDate = validators.data(occurred_on)
+          const validDescription = validators.descricao(description)
+          const validPaymentMethod = validators.formaPagamento(payment_method)
+
           const { data: updatedTransaction, error } = await supabase
             .from("transactions")
             .update({
-              title,
-              amount: amountNum,
-              type,
-              category_id,
-              occurred_on,
-              description,
-              payment_method
+              title: validTitle,
+              amount: validAmount,
+              type: validType,
+              category_id: validCategoryId,
+              occurred_on: validDate,
+              description: validDescription,
+              payment_method: validPaymentMethod
             })
             .eq("id", id)
             .eq("user_id", session.user.id)
