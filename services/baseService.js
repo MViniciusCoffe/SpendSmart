@@ -1,11 +1,30 @@
 import { supabase } from "../infra/supabase"
+import { logger } from "./logger"
 
-export const obterSessao = async () => {
+let _sessionCache = null
+let _cacheExpiry = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 min
+
+export const obterSessao = async forceRefresh => {
+  const now = Date.now()
+  if (!forceRefresh && _sessionCache && now < _cacheExpiry) {
+    return _sessionCache
+  }
+
   const {
-    data: { session }
+    data: { session },
+    error
   } = await supabase.auth.getSession()
-  if (!session) throw new Error("Usuário não autenticado.")
+  if (error || !session) throw new Error("Usuário não autenticado.")
+
+  _sessionCache = session
+  _cacheExpiry = now + CACHE_TTL
   return session
+}
+
+export const clearSessionCache = () => {
+  _sessionCache = null
+  _cacheExpiry = 0
 }
 
 export const traduzirErroSupabase = (error, mensagens) => {
@@ -14,12 +33,8 @@ export const traduzirErroSupabase = (error, mensagens) => {
   throw new Error(mensagens.generica)
 }
 
-export const logError = (contexto, error) => {
-  console.error(`[${contexto}]`, error.code, error.message)
-}
-
 export const handleSupabaseError = (error, mensagens, contexto) => {
-  logError(contexto, error)
+  logger.error(contexto, error)
   throw traduzirErroSupabase(error, mensagens)
 }
 
