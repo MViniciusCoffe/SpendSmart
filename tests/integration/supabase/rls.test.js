@@ -5,9 +5,13 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KE
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("Variáveis de ambiente do Supabase não configuradas.")
-  console.error("Execute: supabase start")
-  process.exit(1)
+  const missing = []
+  if (!SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL")
+  if (!SUPABASE_PUBLISHABLE_KEY) missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
+  if (!SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+  throw new Error(
+    `Variáveis de ambiente do Supabase não configuradas: ${missing.join(", ")}. Execute: supabase start`
+  )
 }
 
 const TEST_USER_1 = { email: "rls-user1@test.local", password: "123456" }
