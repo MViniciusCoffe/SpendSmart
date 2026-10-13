@@ -1,4 +1,12 @@
 const { createClient } = require("@supabase/supabase-js")
+const {
+  createTestUser,
+  createTestProfile,
+  createTestScenario,
+  cleanupTestData,
+  getCategoriesByUser,
+  getTransactionsByUser
+} = require("../../helpers/factory")
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -21,98 +29,45 @@ let supabase1, supabase2
 let user1Id, user2Id
 
 beforeAll(async () => {
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
-  const { data: usersData } = await admin.auth.admin.listUsers()
-  const allUsers = usersData.users || []
-  let u1 = allUsers.find(u => u.email === TEST_USER_1.email)
-  let u2 = allUsers.find(u => u.email === TEST_USER_2.email)
-
-  if (!u1) {
-    const { data: created } = await admin.auth.admin.createUser({
-      email: TEST_USER_1.email,
-      password: TEST_USER_1.password,
-      email_confirm: true
-    })
-    u1 = created.user
-  }
-  if (!u2) {
-    const { data: created } = await admin.auth.admin.createUser({
-      email: TEST_USER_2.email,
-      password: TEST_USER_2.password,
-      email_confirm: true
-    })
-    u2 = created.user
-  }
+  // Create/get test users
+  const u1 = await createTestUser(TEST_USER_1.email, TEST_USER_1.password)
+  const u2 = await createTestUser(TEST_USER_2.email, TEST_USER_2.password)
 
   user1Id = u1.id
   user2Id = u2.id
 
+  // Create authenticated clients
   supabase1 = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
   supabase2 = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
   await supabase1.auth.signInWithPassword(TEST_USER_1)
   await supabase2.auth.signInWithPassword(TEST_USER_2)
 
-  await admin.from("profiles").upsert([
-    { id: user1Id, full_name: "RLS User 1", birth_date: "1990-01-01", phone: "11999990001" },
-    { id: user2Id, full_name: "RLS User 2", birth_date: "1990-01-01", phone: "11999990002" }
-  ])
+  // Create profiles
+  await createTestProfile(user1Id, { full_name: "RLS User 1" })
+  await createTestProfile(user2Id, { full_name: "RLS User 2" })
 
-  await admin.from("categories").insert([
-    { user_id: user1Id, name: "Food", type: "expense", color: "#FF0000" },
-    { user_id: user1Id, name: "Salary", type: "income", color: "#00FF00" },
-    { user_id: user2Id, name: "Transport", type: "expense", color: "#0000FF" }
-  ])
+  // Create test scenarios with factory
+  await createTestScenario(user1Id, {
+    categories: [
+      { name: "Food", type: "expense", color: "#FF0000" },
+      { name: "Salary", type: "income", color: "#00FF00" }
+    ],
+    transactions: [
+      { title: "Lunch", amount: 50, type: "expense", occurred_on: "2026-10-01" },
+      { title: "Salary", amount: 1000, type: "income", occurred_on: "2026-10-01" }
+    ]
+  })
 
-  const { data: cats1 } = await admin
-    .from("categories")
-    .select("id")
-    .eq("user_id", user1Id)
-    .eq("name", "Food")
-    .limit(1)
-
-  const { data: cats1b } = await admin
-    .from("categories")
-    .select("id")
-    .eq("user_id", user1Id)
-    .eq("name", "Salary")
-    .limit(1)
-
-  const { data: cats2 } = await admin
-    .from("categories")
-    .select("id")
-    .eq("user_id", user2Id)
-    .eq("name", "Transport")
-    .limit(1)
-
-  await admin.from("transactions").insert([
-    {
-      user_id: user1Id,
-      category_id: cats1[0].id,
-      type: "expense",
-      amount: 50,
-      title: "Lunch",
-      occurred_on: "2026-10-01"
-    },
-    {
-      user_id: user1Id,
-      category_id: cats1b[0].id,
-      type: "income",
-      amount: 1000,
-      title: "Salary",
-      occurred_on: "2026-10-01"
-    },
-    {
-      user_id: user2Id,
-      category_id: cats2[0].id,
-      type: "expense",
-      amount: 20,
-      title: "Bus",
-      occurred_on: "2026-10-01"
-    }
-  ])
+  await createTestScenario(user2Id, {
+    categories: [{ name: "Transport", type: "expense", color: "#0000FF" }],
+    transactions: [{ title: "Bus", amount: 20, type: "expense", occurred_on: "2026-10-01" }]
+  })
 }, 30000)
+
+afterAll(async () => {
+  await cleanupTestData([user1Id, user2Id])
+})
 
 describe("RLS - Isolation between users (Supabase real)", () => {
   describe("Categories", () => {
