@@ -42,7 +42,7 @@ cp .env.local.example .env.local  # edite colando as chaves do output do 'supaba
 npm run dev                       # sobe infra + Next.js junto (concurrently)
 ```
 
-O Next.js responde em `http://localhost:3000` contra banco local com **RLS real**.
+O Next.js responde em `http://localhost:3000` contra o banco local **com RLS real apenas quando se usa o Supabase CLI** (`supabase start`, que inclui Auth). Com Postgres puro (Docker Compose sem Supabase CLI) não há RLS nem Auth.
 
 ### 📋 Variáveis de ambiente local
 
@@ -130,36 +130,40 @@ A separação de responsabilidades adotada:
 Isto importa mais do que qualquer checklist antigo: o repositório está em **revitalização** e vários
 itens que pareciam prontos não estão.
 
-| Item                                        | Estado                                                |
-| :------------------------------------------ | :---------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                           |
-| Categorias: criar, listar, alterar, excluir | Funcionando                                           |
-| Receitas e despesas: criar, listar, excluir | Funcionando, com defeitos conhecidos                  |
-| Dashboard com gráficos                      | Funcionando                                           |
-| Excluir conta                               | Funcionando                                           |
-| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**                 |
-| Testes de integração                        | **5 suítes** (`pg-mem` ou Postgres real)              |
-| `npm test`                                  | **Passa** — 65/65, sem erro                           |
-| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml` |
-| RLS aplicado e validado                     | **Nunca foi validado** com dois usuários              |
-| Ambientes separados                         | **Não existem** — um único banco para tudo            |
+| Item                                        | Estado                                                                                             |
+| :------------------------------------------ | :------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                        |
+| Categorias: criar, listar, alterar, excluir | Funcionando                                                                                        |
+| Receitas e despesas: criar, listar, excluir | Funcionando                                                                                        |
+| Dashboard com gráficos                      | Funcionando                                                                                        |
+| Excluir conta                               | Funcionando                                                                                        |
+| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**                                                              |
+| Testes de integração (pg-mem)               | **5 suítes** (constraints, FK, unicidade)                                                          |
+| Testes de integração (Supabase/RLS)         | **1 suíte** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários          |
+| Testes de regressão                         | **1 suíte** (issues #10, #21)                                                                      |
+| **Total de testes**                         | **116 testes** (65 unit + 28 pg-mem + 12 RLS + 8 regression)                                       |
+| `npm test`                                  | **Passa** — 65/65, sem erro                                                                        |
+| `npm run test:all`                          | **Passa** — 116/116, sem erro                                                                      |
+| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml`                                              |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`) |
+| Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                             |
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                                                                    |
-| :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------- |
-| [#10](https://github.com/MViniciusCoffe/SpendSmart/issues/10) | Receitas salvas sem título: o input está ligado a `nome`, o envio usa `fonteRenda`                                          |
-| [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21) | Detalhe de transação sempre vazio: a UI lê `data`/`forma_pagamento`, o service devolve `data_ocorrencia`/`metodo_pagamento` |
-| [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                                                            |
-| [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas públicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente                                |
+| #                                                             | Problema                                                                                     |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------- |
+| [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                             |
+| [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas públicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente |
+| [#32](https://github.com/MViniciusCoffe/SpendSmart/issues/32) | Máscara do campo valor descarta a vírgula e grava valor 100x maior                           |
+| [#43](https://github.com/MViniciusCoffe/SpendSmart/issues/43) | Registro não bloqueia senha com menos de 6 caracteres no cliente                             |
 
-### Sobre o RLS nunca ter sido validado
+### Sobre o RLS
 
 As políticas só são criadas quando `auth.users` existe (`001_create_financial_schema.js:101`). No
-PostgreSQL local essa tabela não existe, portanto **o RLS nunca é aplicado ali** — e o banco local
-aceita qualquer `user_id` sem reclamar. Isso significa que nenhuma garantia de isolamento entre
-usuários foi verificada até hoje em nenhum ambiente. É o motivo de a issue
-[#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) existir.
+PostgreSQL local (Docker Compose) essa tabela não existe, portanto **o RLS não é aplicado ali**.
+Com **Supabase CLI** (`supabase start`), o RLS é real e o isolamento entre dois usuários **é testado**
+em `tests/integration/supabase/rls.test.js` (12 testes cobrindo leitura/escrita cross-user).
+O teste requer `.env.local` preenchido e `supabase start` rodando — não roda no CI GitHub Actions.
 
 ---
 
@@ -228,13 +232,14 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                        | Bloqueia |
-| :------------------------------------------------------------ | :----------------------------- | :------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
+| #                                                             | Assunto                          | Bloqueia |
+| :------------------------------------------------------------ | :------------------------------- | :------- |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers   | —        |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes                | —        |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end           | —        |
+| [#30](https://github.com/MViniciusCoffe/SpendSmart/issues/30) | Isolamento por RLS (teste em CI) | #20      |
 
-Resolvidos pela frente de testes, CI e SonarQube: #2, #15, #16, #17, #18, #19, #25, #26, #29 e #31.
+Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #31.
 
 ---
 

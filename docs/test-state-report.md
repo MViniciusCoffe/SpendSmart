@@ -2,7 +2,7 @@
 
 Diagnóstico formal do estado dos testes do SpendSmart antes da disciplina de Testes de Software
 (BSI, UFRN, 2026), exigido pela entrega P1. Data de referência: **06/10/2026**. Atualizado em
-**12/10/2026** para refletir os testes de integração adicionados.
+**21/10/2026** para refletir o estado real completo (incluindo testes RLS).
 
 Todas as afirmações numéricas deste relatório foram verificadas por execução local na data de
 referência. O comando usado está indicado em cada seção.
@@ -11,15 +11,15 @@ referência. O comando usado está indicado em cada seção.
 
 ## 1. Resumo executivo
 
-| Pergunta da disciplina           | Resposta                                                                                |
-| :------------------------------- | :-------------------------------------------------------------------------------------- |
-| Existem testes de unidade?       | **Sim** — 65 testes em 4 suítes, todos passando                                         |
-| Existem testes de integração?    | **Sim** — 5 suítes em `tests/integration/postgres/` com `pg-mem` ou Postgres real       |
-| Qual a cobertura atual?          | **100%** sobre `services/` (4 arquivos, 348 linhas); 0% sobre o restante do repositório |
-| O sistema era legado sem testes? | **Sim** — até 23/09/2026 não havia um único teste no repositório                        |
-| Débito técnico identificado      | Sim — listado em §5                                                                     |
+| Pergunta da disciplina           | Resposta                                                                                                                        |
+| :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| Existem testes de unidade?       | **Sim** — 65 testes em 4 suítes, todos passando                                                                                 |
+| Existem testes de integração?    | **Sim** — 6 suítes: 5 em `tests/integration/postgres/` (`pg-mem`/Postgres real) + 1 em `tests/integration/supabase/` (RLS real) |
+| Qual a cobertura atual?          | **100%** sobre `services/` (4 arquivos, 348 linhas); 0% sobre o restante do repositório                                         |
+| O sistema era legado sem testes? | **Sim** — até 23/09/2026 não havia um único teste no repositório                                                                |
+| Débito técnico identificado      | Sim — listado em §5                                                                                                             |
 
-Verificação: `npm run test:coverage` em 06/10/2026.
+Verificação: `npm run test:coverage` em 06/10/2026; `npm run test:all` em 21/10/2026.
 
 ```text
 Test Suites: 4 passed, 4 total
@@ -56,7 +56,7 @@ Diagnóstico do estado legado:
 
 ---
 
-## 3. Estado atual (12/10/2026)
+## 3. Estado atual (21/10/2026)
 
 ### 3.1 Testes de unidade
 
@@ -76,8 +76,14 @@ também é testado.
 
 ### 3.2 Testes de integração
 
-**Existem 5 suítes em `tests/integration/postgres/`**, usando `pg-mem` (Postgres em memória) ou
-Postgres real via `TEST_DATABASE_URL`:
+**Existem 6 suítes no total:**
+
+| Local                         | Suítes | O que cobre                                                            |
+| :---------------------------- | :----- | :--------------------------------------------------------------------- |
+| `tests/integration/postgres/` | 5      | Constraints, FK, unicidade, migrações (pg-mem ou Postgres real)        |
+| `tests/integration/supabase/` | 1      | **RLS real** — isolamento entre 2 usuários (requer Supabase CLI local) |
+
+**Detalhe das 5 suítes `postgres/`:**
 
 | Suite                         | O que cobre                                                                                    |
 | :---------------------------- | :--------------------------------------------------------------------------------------------- |
@@ -87,16 +93,25 @@ Postgres real via `TEST_DATABASE_URL`:
 | `categoryListing.test.js`     | Listagem de categorias isolada por usuário (US-007)                                            |
 | `categoryConstraints.test.js` | Unicidade de categoria por (usuário, nome, tipo) e exclusão com FK (IT-04, IT-05)              |
 
-| Situação             | Detalhe                                                                                                                              |
-| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/integration/` | **Existe** com 5 suítes. Os scripts `npm run test:integration` e `test:integration:rls` em `package.json` apontam para essas pastas. |
-| Cobertura pretendida | 10 casos (IT-01 a IT-10) especificados em [test-plan.md](test-plan.md) §2.2 — parcialmente coberta                                   |
-| Ambiente necessário  | Stack local do Supabase CLI (Postgres + Auth + RLS de verdade) — ainda não montada (issue #20)                                       |
+**Detalhe da suíte `supabase/rls.test.js`:**
 
-Consequência prática: **o isolamento por RLS do Supabase continua não testado.** Os testes de
-integração usam `pg-mem` ou Postgres puro, que não têm `auth.users` nem políticas RLS. O
-comentário em `categoryListing.test.js:10-13` registra isso explicitamente: "O isolamento por
-RLS continua sendo IT-01/IT-02 e depende da stack do Supabase (issue #20)".
+| Teste                                         | Casos | O que valida                                                                  |
+| :-------------------------------------------- | :---- | :---------------------------------------------------------------------------- |
+| Categories: leitura isolada                   | 2     | user1 vê só suas categorias; user2 vê só suas                                 |
+| Categories: insert/update/delete cross-user   | 3     | user1 não consegue inserir/atualizar/deletar categorias do user2 (erro 42501) |
+| Transactions: leitura isolada                 | 2     | user1 vê só suas transações; user2 vê só suas                                 |
+| Transactions: insert/update/delete cross-user | 3     | user1 não consegue inserir/atualizar/deletar transações do user2 (erro 42501) |
+| Profiles: leitura isolada                     | 2     | user1 vê seu perfil; user1 NÃO vê perfil do user2                             |
+
+| Situação             | Detalhe                                                                                                                     |
+| :------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| `tests/integration/` | **Existe** com 6 suítes. `npm run test:integration` roda pg-mem; `npm run test:integration:supabase` roda RLS real.         |
+| Cobertura pretendida | 10 casos (IT-01 a IT-10) especificados em [test-plan.md](test-plan.md) §2.2 — **IT-01, IT-02 cobertos pela suíte RLS real** |
+| Ambiente necessário  | Stack local do Supabase CLI (Postgres + Auth + RLS de verdade) — `supabase start` + `.env.local` preenchido                 |
+
+**Consequência prática:** O isolamento por RLS **já é testado** em ambiente local Supabase CLI.
+O teste **não roda no CI GitHub Actions** (precisa stack local), mas valida IT-01 e IT-02.
+O comentário em `categoryListing.test.js:10-13` foi atualizado para refletir isso.
 
 ### 3.3 Testes de regressão
 
@@ -112,14 +127,14 @@ Executados manualmente, sem automação. Os critérios de aceitação de cada Us
 
 ### 3.5 Análise estática e CI
 
-| Ferramenta           | Estado                                                                                                                               |
-| :------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
-| ESLint 9 + Prettier  | Configurados; `eslint .` com 0 erros e 20 avisos (12 `no-alert`, 8 `no-img-element`)                                                 |
-| SonarQube LABENS     | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 0 code smells                                              |
-| GitHub Actions       | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan)                                            |
-| **Scripts de teste** | `test` (unit), `test:watch`, `test:coverage`, `test:integration` (pg-mem), `test:integration:local` (banco real), `test:all` (todos) |
+| Ferramenta           | Estado                                                                                                                           |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| ESLint 9 + Prettier  | Configurados; `eslint .` com 0 erros e 20 avisos (12 `no-alert`, 8 `no-img-element`)                                             |
+| SonarQube LABENS     | Projeto `spendsmart` analisando; 100% de cobertura no escopo `services/`, 0 code smells                                          |
+| GitHub Actions       | 3 workflows: `test.yml`, `lint.yml`, `sonar.yml` (com geração de cobertura antes do scan)                                        |
+| **Scripts de teste** | `test` (unit), `test:watch`, `test:coverage`, `test:integration` (pg-mem), `test:integration:supabase` (RLS), `test:all` (todos) |
 
-Verificado em 12/10/2026 por `npm run lint:eslint:check` e `npx prettier --check .`; o resultado
+Verificado em 21/10/2026 por `npm run lint:eslint:check` e `npx prettier --check .`; o resultado
 do SonarQube está registrado em [sonarqube.md](sonarqube.md) §7.
 
 ---
@@ -147,27 +162,26 @@ escopo.
 
 ## 5. Débito técnico identificado
 
-| Débito                                                          | Impacto | Esforço | Onde/Issue                                            |
-| :-------------------------------------------------------------- | :------ | :------ | :---------------------------------------------------- |
-| RLS nunca validado com dois usuários                            | Alto    | Médio   | Issue #20 (bloqueia a prova do requisito RNF04)       |
-| Front-end sem cobertura (`pages/`, `components/`)               | Médio   | Médio   | Issue #33                                             |
-| 14 code smells corrigidos (12 `S2223`, 2 `parseFloat`)          | —       | —       | [sonarqube.md](sonarqube.md) §7 — verificado 2026-10  |
-| Defeitos conhecidos de contrato de UI (`#10`, `#21`)            | Médio   | Baixo   | README "Defeitos conhecidos"                          |
-| Ambiente único: `npm run dev` aplica migrations no banco remoto | Alto    | Médio   | Issue #20, [environments.md](environments.md)         |
-| Cobertura do Sonar limitada ao escopo `services/`               | Baixo   | Baixo   | Decisão registrada em [sonarqube.md](sonarqube.md) §4 |
+| Débito                                                       | Impacto | Esforço | Onde/Issue                                                        |
+| :----------------------------------------------------------- | :------ | :------ | :---------------------------------------------------------------- |
+| RLS testado apenas local (não no CI)                         | Alto    | Médio   | Issue #20 (bloqueia CI de RLS), #30                               |
+| Front-end sem cobertura (`pages/`, `components/`)            | Médio   | Médio   | Issue #33                                                         |
+| 14 code smells corrigidos (12 `S2223`, 2 `parseFloat`)       | —       | —       | [sonarqube.md](sonarqube.md) §7 — verificado 2026-10              |
+| Defeitos conhecidos de contrato de UI (`#32`, `#43`)         | Médio   | Baixo   | README "Defeitos conhecidos"                                      |
+| Ambiente único: Dev/Preview/Prod no mesmo banco Supabase     | Alto    | Médio   | Issue #20, [environments.md](environments.md)                     |
+| Cobertura do Sonar limitada ao escopo `services/`            | Baixo   | Baixo   | Decisão registrada em [sonarqube.md](sonarqube.md) §4             |
+| Duplicação de migração de soft delete (2 arquivos idênticos) | Baixo   | Baixo   | `supabase/migrations/1790304277050_*.sql` + `1791833057050_*.sql` |
 
 ---
 
 ## 6. Conclusão
 
-O repositório saiu de **zero testes** para 65 testes de unidade com 100% de cobertura na camada de
-negócio, 5 suítes de testes de integração com `pg-mem` ou Postgres real, lint e análise estática
-rodando na CI, em cerca de duas semanas de trabalho (23/09 a 06/10/2026). A camada de negócio é
-hoje a parte mais bem coberta do sistema.
+O repositório saiu de **zero testes** para **116 testes** (65 unit + 28 pg-mem + 12 RLS + 8 regression)
+com 100% de cobertura na camada de negócio, 6 suítes de testes de integração (pg-mem + Supabase real),
+lint e análise estática rodando na CI, em cerca de um mês de trabalho (23/09 a 21/10/2026). A camada de
+negócio é hoje a parte mais bem coberta do sistema.
 
-O débito principal é a **ausência de testes de RLS**: os testes de integração usam `pg-mem` ou
-Postgres puro, que não têm `auth.users` nem políticas RLS. O ambiente local Supabase CLI
-(`supabase start`) já tem RLS real — a Fase 5 criará usuários de teste no Auth local e validará
-isolamento. O requisito central de privacidade (RNF04) continua sem evidência automatizada.
-Esse é o principal risco aberto e está planejado nas iterações seguintes
-([iteration-plan.md](iteration-plan.md), issue #20).
+O débito principal é o **RLS não rodar no CI**: o teste `rls.test.js` valida IT-01/IT-02 localmente,
+mas precisa de stack Supabase CLI que não está no GitHub Actions. A issue #30 captura isso.
+O requisito central de privacidade (RNF04) tem evidência automatizada local, mas não na CI.
+Isso está planejado nas iterações seguintes ([iteration-plan.md](iteration-plan.md), issues #20, #30).

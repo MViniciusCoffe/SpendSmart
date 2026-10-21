@@ -243,12 +243,12 @@ leitura e escrita, conforme `services/categoryService.js:31,41` e
 
 Registrados aqui para que ninguém os descubra em produção:
 
-| Limite                                                       | Consequência                                                                                         |
-| :----------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
-| O RLS só é criado se `auth.users` existir.                   | No PostgreSQL local **nunca** é aplicado. Um banco local tem zero isolamento entre usuários.         |
-| O isolamento entre dois usuários nunca foi exercitado.       | Os casos IT-01 e IT-02 do [plano de testes](test-plan.md#22-testes-de-integração) ainda não rodaram. |
-| `transactions.type` não é validado contra `categories.type`. | Um lançamento pode apontar para categoria de tipo oposto e corromper o _dashboard_.                  |
-| `profiles` usa português; as outras duas, inglês.            | Inconsistência de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8).   |
+| Limite                                                            | Consequência                                                                                                                              |
+| :---------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| O RLS só é criado se `auth.users` existir.                        | No PostgreSQL local (Docker Compose) **nunca** é aplicado. Um banco local tem zero isolamento entre usuários.                             |
+| O isolamento entre dois usuários é testado **apenas localmente**. | Existe `tests/integration/supabase/rls.test.js` (12 testes) que valida IT-01/IT-02 contra Supabase CLI local. Não roda no CI (issue #30). |
+| `transactions.type` não é validado contra `categories.type`.      | Um lançamento pode apontar para categoria de tipo oposto e corromper o _dashboard_.                                                       |
+| `profiles` usa português; as outras duas, inglês.                 | Inconsistência de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8).                                        |
 
 As pendências acima têm script pronto em [Future Migrations](future-migrations.md).
 
@@ -256,6 +256,10 @@ As pendências acima têm script pronto em [Future Migrations](future-migrations
 
 - `updated_at` não tinha _trigger_ → implementado via trigger `update_updated_at_column()` nas 3 tabelas.
 - Soft delete não existia → implementado via coluna `deleted_at` + índices parciais `*_active` + filtro `deleted_at IS NULL` nos services.
+
+**Resolvido (Fase 4):**
+
+- RLS nunca validado → implementado `tests/integration/supabase/rls.test.js` testando isolamento entre 2 usuários reais no Supabase CLI local.
 
 ## Ambiente local e Supabase
 
