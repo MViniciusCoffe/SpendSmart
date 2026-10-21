@@ -12,13 +12,13 @@ Matriz de ambientes e de variáveis de ambiente. Este documento é a referência
 
 ## 1. Matriz de ambientes
 
-| Ambiente            | Banco                        | Vercel          | Finalidade                   | Estado                                        |
-| ------------------- | ---------------------------- | --------------- | ---------------------------- | --------------------------------------------- |
-| **Desenvolvimento** | Supabase remoto (provisório) | não             | Trabalho local, migrations   | Ativo, misturado com produção                 |
-| **Produção**        | Supabase remoto (provisório) | sim (`main`)    | Uso real                     | Ativo, e o **mesmo** banco do desenvolvimento |
-| **Preview**         | Supabase remoto (provisório) | sim, por branch | Revisão antes de produção    | Ativo, com as **mesmas** variáveis            |
-| **Testes**          | —                            | —               | Suite automatizada           | **Não existe**                                |
-| **Local (Docker)**  | PostgreSQL 16                | não             | Schema, constraints, índices | Ativo, mas **não usado** — ver §4             |
+| Ambiente            | Banco                        | Vercel          | Finalidade                   | Estado                                                               |
+| ------------------- | ---------------------------- | --------------- | ---------------------------- | -------------------------------------------------------------------- |
+| **Desenvolvimento** | Supabase remoto (provisório) | não             | Trabalho local, migrations   | Ativo, misturado com produção                                        |
+| **Produção**        | Supabase remoto (provisório) | sim (`main`)    | Uso real                     | Ativo, e o **mesmo** banco do desenvolvimento                        |
+| **Preview**         | Supabase remoto (provisório) | sim, por branch | Revisão antes de produção    | Ativo, com as **mesmas** variáveis                                   |
+| **Testes**          | Supabase CLI local           | —               | Suite automatizada           | **Existe** — `npm run test:integration:supabase` roda RLS real local |
+| **Local (Docker)**  | PostgreSQL 16                | não             | Schema, constraints, índices | Ativo, mas **não usado** — ver §4                                    |
 
 Preview e Production existem; o que não existe é um banco separado para qualquer um dos dois.
 
@@ -126,7 +126,7 @@ ambiente de teste é um erro: **é** um ambiente de teste, e o teste usa o banco
 
 ---
 
-## 4. Ambiente Local com Supabase CLI (novo padrão)
+### Ambiente Local com Supabase CLI (novo padrão)
 
 O ambiente local recomendado usa **Supabase CLI** — sobe Postgres + Auth + Realtime + Storage + Studio com RLS real.
 
@@ -159,7 +159,7 @@ supabase stop                     # para containers (preserva volumes)
 supabase stop --no-backup         # para e remove volumes
 ```
 
-### 4.4 Testes de integração contra banco local real
+### 4.4 Testes de integração contra banco local real (RLS)
 
 ```bash
 # Terminal 1: infra
@@ -167,14 +167,28 @@ supabase start
 
 # Terminal 2: testes com RLS real
 $env:TEST_DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-npm run test:integration
+npm run test:integration:supabase
 ```
 
-> **Nota:** Os testes atuais usam UUIDs fixos que não existem no `auth.users` local — as FKs para `auth.users` bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`.
+> **Nota:** Os testes atuais usam UUIDs fixos que não existem no `auth.users` local — as FKs para `auth.users` bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`. A suíte `rls.test.js` cria seus próprios usuários via Admin API.
 
 ---
 
-## 5. O problema do `npm run dev` (histórico)
+## 5. Ambiente de Testes (novo)
+
+O ambiente de testes automatizado usa a **stack local do Supabase CLI** para validar RLS real:
+
+| Aspecto                    | Detalhe                                                                                   |
+| :------------------------- | :---------------------------------------------------------------------------------------- |
+| Comando                    | `npm run test:integration:supabase`                                                       |
+| Suíte                      | `tests/integration/supabase/rls.test.js` (12 testes)                                      |
+| O que testa                | IT-01 (leitura isolada) e IT-02 (escrita isolada) para categories, transactions, profiles |
+| Pré-requisitos             | `supabase start` rodando + `.env.local` preenchido com chaves do `supabase status`        |
+| Roda no CI GitHub Actions? | **Não** — requer stack local Supabase. Documentado na issue #30.                          |
+
+---
+
+## 6. O problema do `npm run dev` (histórico)
 
 `package.json:7` define `dev` como `node infra/scripts/run-services.js`. Esse script executa, em
 ordem:

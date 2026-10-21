@@ -729,3 +729,39 @@ services/
 **Reavaliar quando.** A pasta `utils/` crescer além de 8-10 arquivos — aí vale split por domínio (ex: `utils/db`, `utils/auth`).
 
 ---
+
+## 26. Scripts de tooling unificados em `scripts/` (raiz)
+
+**Decisão.** Todos os scripts executáveis via `npm run` ficam em `scripts/` na raiz do projeto. Eliminado `infra/scripts/`.
+
+**Estrutura final:**
+
+```
+scripts/
+├── check-agents.js       # Validador de regras do AGENTS.md (CI + pre-commit)
+├── dev.js                # Orquestrador principal: npm run dev
+└── wait-for-postgres.js  # Helper: npm run services:wait:database
+```
+
+**Por que.**
+
+1. **Separação de conceitos:**
+   - `infra/` = infraestrutura como código (declarativo: Docker Compose, config.toml, migrations SQL)
+   - `scripts/` = tooling do projeto (imperativo: comandos executáveis via npm)
+
+2. **Convenção do ecossistema Node.js:** `scripts/` na raiz é o padrão para "ferramentas do projeto" (`dev`, `lint`, `check`, helpers de CI). O `infra/scripts/` era atípico e confuso.
+
+3. **Descoberta:** `npm run` lista tudo que está em `scripts/` implicitamente. `infra/scripts/` não aparece.
+
+**O que aconteceu com `wait-for-postgres.js`:**
+
+- **Mantido** em `scripts/wait-for-postgres.js`
+- **Ainda útil:** É o health check do fluxo **Docker Compose fallback** (`services:wait:database` → `npm run migrations:up`)
+- **Não usado pelo `dev.js`:** O novo `dev.js` usa health check HTTP no Kong gateway (porta 54321 `/health`), não conexão direta Postgres
+- **Mantido por compatibilidade:** Permite validar constraints/índices sem Supabase CLI (issue #20 ainda aberta)
+
+**Alternativa rejeitada.** Mover tudo para `infra/scripts/` — mistura infraestrutura declarativa com tooling imperativo.
+
+**Reavaliar quando.** Surgir necessidade de scripts puramente de infraestrutura (ex: backup, rotate keys) — criar `scripts/infra/` como subpasta, não `infra/scripts/`.
+
+---
