@@ -150,8 +150,10 @@ Com Supabase CLI local (Postgres + Auth + RLS + Studio):
 npm install
 supabase start                    # sobe stack local completa
 cp .env.local.example .env.local  # edite colando as chaves do output do 'supabase status'
-npm run dev                       # sobe infra + Next.js junto (concurrently)
+npm run dev                       # verifica saúde do Supabase, sobe se necessário, inicia Next.js
 ```
+
+> **O novo `npm run dev`** verifica se o Supabase já está healthy via `supabase status`/`docker ps`. Se já estiver rodando, pula o `supabase start` e inicia direto o Next.js. Se não estiver, sobe a infra e aguarda health check.
 
 O Next.js responde em `http://localhost:3000` contra o banco local **com RLS real apenas quando se usa o Supabase CLI** (`supabase start`, que inclui Auth). Com Postgres puro (Docker Compose sem Supabase CLI) não há RLS nem Auth.
 
