@@ -29,7 +29,118 @@ código atual.
 
 ## Como executar
 
-Requisitos: Node.js compatível com o Next.js 16, npm e Docker.
+### Pré-requisitos
+
+| Ferramenta       | Versão mínima   | Como instalar                                         |
+| ---------------- | --------------- | ----------------------------------------------------- |
+| **Node.js**      | `>=24.11.0`     | [nodejs.org](https://nodejs.org/) ou `nvm install 24` |
+| **npm**          | Vem com Node.js | `npm --version`                                       |
+| **Docker**       | 24+             | Ver abaixo                                            |
+| **Supabase CLI** | 1.x             | Ver abaixo                                            |
+
+#### Instalando o Docker
+
+**Docker Desktop (macOS / Windows / Linux com GUI):**
+
+```bash
+# macOS (Homebrew)
+brew install --cask docker
+
+# Windows (Chocolatey)
+choco install docker-desktop
+
+# Windows (Scoop)
+scoop install docker
+
+# Linux (.deb/.rpm)
+# Baixe em https://docs.docker.com/desktop/install/linux/
+```
+
+**Docker Engine (Linux servidor, sem GUI):**
+
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose-plugin
+sudo usermod -aG docker $USER
+# Reinicie a sessão ou: newgrp docker
+
+# Fedora/RHEL/CentOS
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+
+# Arch Linux
+sudo pacman -Syu
+sudo pacman -S docker docker-compose
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+```
+
+**Via script oficial (qualquer Linux):**
+
+```bash
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# Reinicie a sessão
+```
+
+> **Verifique a instalação:**
+>
+> ```bash
+> docker --version
+> docker compose version
+> # Exemplo: Docker version 27.0.0, build xxx
+> # Exemplo: Docker Compose version v2.29.0
+> ```
+
+> **Importante:** O usuário precisa estar no grupo `docker` para rodar sem `sudo`. Após instalar, **reinicie o terminal/sessão** ou rode `newgrp docker`.
+
+---
+
+#### Instalando o Supabase CLI
+
+**macOS (Homebrew):**
+
+```bash
+brew install supabase/tap/supabase
+```
+
+**Linux (binário standalone):**
+
+```bash
+curl -fsSL https://supabase.com/install.sh | sh
+# ou baixe o .tar.gz de https://github.com/supabase/cli/releases
+```
+
+**Windows (Scoop):**
+
+```bash
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
+**Windows (Chocolatey):**
+
+```bash
+choco install supabase
+```
+
+**Via npm (qualquer SO com Node.js):**
+
+```bash
+npm install -g supabase
+# ou use npx supabase (sem instalação global)
+```
+
+> **Verifique a instalação:**
+>
+> ```bash
+> supabase --version
+> # Exemplo: supabase version 1.187.0
+> ```
+
+---
 
 ### 🚀 Quickstart — Desenvolvimento local (recomendado)
 
