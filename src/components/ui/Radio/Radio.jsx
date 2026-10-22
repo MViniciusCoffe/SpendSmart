@@ -1,5 +1,6 @@
 "use client"
 
+import { useId } from "react"
 import styles from "./Radio.module.css"
 
 export function Radio({
@@ -15,7 +16,8 @@ export function Radio({
   className = "",
   ...props
 }) {
-  const radioId = id || `radio-${Math.random().toString(36).slice(2, 9)}`
+  const generatedId = useId()
+  const radioId = id || generatedId
 
   return (
     <div className={`${styles.wrapper} ${className}`}>

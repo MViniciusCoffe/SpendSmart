@@ -1,5 +1,6 @@
 "use client"
 
+import { useId } from "react"
 import styles from "./Checkbox.module.css"
 
 export function Checkbox({
@@ -15,7 +16,8 @@ export function Checkbox({
   className = "",
   ...props
 }) {
-  const checkboxId = id || name || `checkbox-${Math.random().toString(36).slice(2, 9)}`
+  const generatedId = useId()
+  const checkboxId = id || name || generatedId
 
   return (
     <div className={`${styles.wrapper} ${className}`}>

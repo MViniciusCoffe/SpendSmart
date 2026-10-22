@@ -72,6 +72,7 @@ export function Popover({
       {...props}
     >
       {typeof children === "function" ? (
+        // eslint-disable-next-line react-hooks/refs
         children({ isOpen, setIsOpen, triggerRef: wrapperRef })
       ) : (
         <div
