@@ -1,7 +1,7 @@
-import { supabase } from "../infra/supabase"
-import { withSession, withErrorHandling } from "./utils/baseService"
-import { categoryTypeMap } from "./utils/mappers"
-import validators from "./utils/validators"
+import { supabase } from "@/lib/supabase"
+import { withSession, withErrorHandling } from "@/services/utils/baseService"
+import { categoryTypeMap } from "@/services/utils/mappers"
+import validators from "@/services/utils/validators"
 
 export const categoryService = {
   async getCategories() {

@@ -1,14 +1,14 @@
-jest.mock("../../infra/supabase", () => ({
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: jest.fn(),
     auth: { getSession: jest.fn() }
   }
 }))
 
-import { supabase } from "../../infra/supabase"
-import { categoryService } from "../../services/categoryService"
+import { supabase } from "@/lib/supabase"
+import { categoryService } from "@/services/categoryService"
 import { criarBuilder, linhaCategoria, semSessao, comSessao } from "../helpers/supabase"
-import { clearSessionCache } from "../../services/utils/baseService"
+import { clearSessionCache } from "@/services/utils/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {

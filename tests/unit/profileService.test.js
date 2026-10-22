@@ -1,4 +1,4 @@
-jest.mock("../../infra/supabase", () => ({
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     // Mocka apenas métodos que perfil usa
     auth: {
@@ -9,8 +9,8 @@ jest.mock("../../infra/supabase", () => ({
   }
 }))
 
-import { supabase } from "../../infra/supabase"
-import { profileService } from "../../services/profileService"
+import { supabase } from "@/lib/supabase"
+import { profileService } from "@/services/profileService"
 
 // Sessão fictícia devolvida pelo Supabase Auth
 const sessao = { user: { id: "u1" }, access_token: "token123" }

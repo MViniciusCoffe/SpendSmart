@@ -1,4 +1,4 @@
-import { supabase } from "../infra/supabase"
+import { supabase } from "@/lib/supabase"
 
 export const authService = {
   async registerUser({ email, password, full_name, birth_date, phone }) {

@@ -10,12 +10,16 @@ let db
 const USUARIO_TESTE = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
 const inserirCategoria = ({ userId = USUARIO_TESTE, nome = "Salário", tipo = "income" } = {}) =>
-  db.client.query(
-    `INSERT INTO categories (user_id, name, type, description, color)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id`,
-    [userId, nome, tipo, "Renda mensal", "#00AA55"]
-  )
+  db.client
+    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
+    .then(() =>
+      db.client.query(
+        `INSERT INTO categories (user_id, name, type, description, color)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+        [userId, nome, tipo, "Renda mensal", "#00AA55"]
+      )
+    )
 
 const inserirReceita = ({
   userId = USUARIO_TESTE,
@@ -50,6 +54,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await db.client.query("DELETE FROM transactions")
   await db.client.query("DELETE FROM categories")
+  await db.client.query("DELETE FROM auth.users")
 })
 
 afterAll(async () => {

@@ -1,4 +1,4 @@
-import { logger } from "../../../services/utils/logger"
+import { logger } from "@/services/utils/logger"
 
 describe("logger", () => {
   const originalEnv = process.env.NODE_ENV

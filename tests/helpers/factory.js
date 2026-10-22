@@ -1,9 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+function getAdminClient() {
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase env vars not loaded. Ensure setupEnv.js runs first.")
+  }
+
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+}
 
 const defaultCategory = (overrides = {}) => ({
   name: "Test Category",
@@ -23,6 +29,7 @@ const defaultTransaction = (overrides = {}) => ({
 })
 
 export async function createTestUser(email, password = "123456") {
+  const admin = getAdminClient()
   const { data: usersData } = await admin.auth.admin.listUsers()
   let user = usersData.users.find(u => u.email === email)
 
@@ -38,6 +45,7 @@ export async function createTestUser(email, password = "123456") {
 }
 
 export async function createTestProfile(userId, overrides = {}) {
+  const admin = getAdminClient()
   const { error } = await admin.from("profiles").upsert({
     id: userId,
     full_name: `User ${userId.slice(0, 8)}`,
@@ -49,6 +57,7 @@ export async function createTestProfile(userId, overrides = {}) {
 }
 
 export async function createTestCategory(userId, overrides = {}) {
+  const admin = getAdminClient()
   const cat = defaultCategory(overrides)
   const { data, error } = await admin
     .from("categories")
@@ -60,6 +69,7 @@ export async function createTestCategory(userId, overrides = {}) {
 }
 
 export async function createTestTransaction(userId, categoryId, overrides = {}) {
+  const admin = getAdminClient()
   const tx = defaultTransaction(overrides)
   const { data, error } = await admin
     .from("transactions")
@@ -71,6 +81,7 @@ export async function createTestTransaction(userId, categoryId, overrides = {}) 
 }
 
 export async function createTestScenario(userId, options = {}) {
+  const admin = getAdminClient()
   const {
     categories: catDefs = [{ name: "Food", type: "expense", color: "#FF0000" }],
     transactions: txDefs = [{ title: "Lunch", amount: 50, type: "expense" }]
@@ -80,41 +91,46 @@ export async function createTestScenario(userId, options = {}) {
   await admin.from("transactions").delete().eq("user_id", userId)
   await admin.from("categories").delete().eq("user_id", userId)
 
-  const categories = await Promise.all(catDefs.map(c => createTestCategory(userId, c)))
+  const categories = []
+  for (const catDef of catDefs) {
+    const cat = await createTestCategory(userId, catDef)
+    categories.push(cat)
+  }
 
-  const transactions = await Promise.all(
-    txDefs.map((t, i) => createTestTransaction(userId, categories[i % categories.length].id, t))
-  )
+  const transactions = []
+  for (const txDef of txDefs) {
+    const cat = categories.find(c => c.type === txDef.type)
+    if (cat) {
+      const tx = await createTestTransaction(userId, cat.id, txDef)
+      transactions.push(tx)
+    }
+  }
 
   return { categories, transactions }
 }
 
 export async function cleanupTestData(userIds) {
-  if (!userIds.length) return
+  const admin = getAdminClient()
+  const ids = Array.isArray(userIds) ? userIds : [userIds]
 
-  await admin.from("transactions").delete().in("user_id", userIds)
-  await admin.from("categories").delete().in("user_id", userIds)
-  await admin.from("profiles").delete().in("id", userIds)
-
-  for (const userId of userIds) {
+  for (const userId of ids) {
+    await admin.from("transactions").delete().eq("user_id", userId)
+    await admin.from("categories").delete().eq("user_id", userId)
+    await admin.from("profiles").delete().eq("id", userId)
     await admin.auth.admin.deleteUser(userId)
   }
 }
 
 export async function getCategoriesByUser(userId) {
-  const { data, error } = await admin
-    .from("categories")
-    .select("id,name,type,color")
-    .eq("user_id", userId)
+  const admin = getAdminClient()
+  const { data, error } = await admin.from("categories").select("*").eq("user_id", userId)
   if (error) throw error
   return data
 }
 
 export async function getTransactionsByUser(userId) {
-  const { data, error } = await admin
-    .from("transactions")
-    .select("id,title,amount,type,category_id,occurred_on")
-    .eq("user_id", userId)
+  const admin = getAdminClient()
+  const { data, error } = await admin.from("transactions").select("*").eq("user_id", userId)
   if (error) throw error
   return data
 }

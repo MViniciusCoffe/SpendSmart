@@ -12,12 +12,16 @@ let db
 const USUARIO_TESTE = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
 const inserirCategoria = ({ userId = USUARIO_TESTE, nome = "Mercado", tipo = "expense" } = {}) =>
-  db.client.query(
-    `INSERT INTO categories (user_id, name, type, description, color)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id`,
-    [userId, nome, tipo, "Compras do mês", "#AA0000"]
-  )
+  db.client
+    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
+    .then(() =>
+      db.client.query(
+        `INSERT INTO categories (user_id, name, type, description, color)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+        [userId, nome, tipo, "Compras do mês", "#AA0000"]
+      )
+    )
 
 const inserirDespesa = ({
   userId = USUARIO_TESTE,
@@ -52,6 +56,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await db.client.query("DELETE FROM transactions")
   await db.client.query("DELETE FROM categories")
+  await db.client.query("DELETE FROM auth.users")
 })
 
 afterAll(async () => {
@@ -129,7 +134,7 @@ describe("CT13.04 — Formatação monetária", () => {
     const { rows } = await inserirDespesa({ categoryId, amount: 1234.5 })
 
     expect(Number(rows[0].amount)).toBe(1234.5)
-    expect(rows[0].amount.toFixed(2)).toBe("1234.50")
+    expect(Number(rows[0].amount).toFixed(2)).toBe("1234.50")
   })
 })
 

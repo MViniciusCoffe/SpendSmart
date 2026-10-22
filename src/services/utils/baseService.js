@@ -1,4 +1,4 @@
-import { supabase } from "../../infra/supabase"
+import { supabase } from "@/lib/supabase"
 import { logger } from "./logger"
 
 let _sessionCache = null
