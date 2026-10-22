@@ -1,0 +1,184 @@
+/**
+ * Design Tokens - Breakpoints & Media Queries
+ * Mobile-first responsive breakpoints
+ */
+
+:root {
+  /* ===========================================
+     Breakpoint Values (Mobile First)
+     =========================================== */
+  --bp-xs: 320px; /* Extra small phones */
+  --bp-sm: 480px; /* Small phones */
+  --bp-md: 768px; /* Tablets */
+  --bp-lg: 1024px; /* Small laptops */
+  --bp-xl: 1280px; /* Desktops */
+  --bp-2xl: 1536px; /* Large desktops */
+  --bp-3xl: 1920px; /* Ultra-wide */
+
+  /* ===========================================
+     Semantic Breakpoint Aliases
+     =========================================== */
+  --bp-mobile: var(--bp-sm); /* ≤ 480px */
+  --bp-tablet: var(--bp-md); /* 768px - 1023px */
+  --bp-desktop: var(--bp-lg); /* 1024px - 1279px */
+  --bp-wide: var(--bp-xl); /* 1280px - 1535px */
+  --bp-ultrawide: var(--bp-2xl); /* ≥ 1536px */
+
+  /* ===========================================
+     Container Max Widths
+     =========================================== */
+  --container-xs: 320px;
+  --container-sm: 480px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1440px;
+  --container-full: 100%;
+
+  /* ===========================================
+     Container Max Width Aliases
+     =========================================== */
+  --container-sm-max: var(--container-sm);
+  --container-md-max: var(--container-md);
+  --container-lg-max: var(--container-lg);
+  --container-xl-max: var(--container-xl);
+  --container-2xl-max: var(--container-2xl);
+
+  /* ===========================================
+     Grid Breakpoints (for CSS Grid layouts)
+     =========================================== */
+  --grid-cols-mobile: 1;
+  --grid-cols-tablet: 2;
+  --grid-cols-desktop: 3;
+  --grid-cols-wide: 4;
+  --grid-cols-ultrawide: 5;
+
+  /* ===========================================
+     Sidebar Breakpoints
+     =========================================== */
+  --sidebar-collapsed-width: 72px;
+  --sidebar-expanded-width: 280px;
+  --sidebar-mobile-width: 100%;
+  --sidebar-breakpoint: 1024px; /* Below this = mobile drawer */
+
+  /* ===========================================
+     Header Breakpoints
+     =========================================== */
+  --header-height: 64px;
+  --header-height-mobile: 56px;
+  --header-breakpoint: 768px;
+
+  /* ===========================================
+     Content Max Widths
+     =========================================== */
+  --content-width-narrow: 640px; /* Forms, narrow content */
+  --content-width-normal: 896px; /* Standard content */
+  --content-width-wide: 1152px; /* Wide content */
+  --content-width-full: 100%; /* Full width */
+
+  /* ===========================================
+     Media Query Strings (for JS use)
+     =========================================== */
+  --mq-xs: "(min-width: 320px)";
+  --mq-sm: "(min-width: 480px)";
+  --mq-md: "(min-width: 768px)";
+  --mq-lg: "(min-width: 1024px)";
+  --mq-xl: "(min-width: 1280px)";
+  --mq-2xl: "(min-width: 1536px)";
+
+  --mq-mobile: "(max-width: 479px)";
+  --mq-tablet: "(min-width: 480px) and (max-width: 767px)";
+  --mq-tablet-up: "(min-width: 480px)";
+  --mq-desktop: "(min-width: 768px)";
+  --mq-desktop-up: "(min-width: 768px)";
+  --mq-wide: "(min-width: 1024px)";
+  --mq-ultrawide: "(min-width: 1536px)";
+
+  /* ===========================================
+     Orientation Queries
+     =========================================== */
+  --mq-portrait: "(orientation: portrait)";
+  --mq-landscape: "(orientation: landscape)";
+
+  /* ===========================================
+     Reduced Motion
+     =========================================== */
+  --mq-reduced-motion: "(prefers-reduced-motion: reduce)";
+
+  /* ===========================================
+     High Contrast
+     =========================================== */
+  --mq-high-contrast: "(prefers-contrast: high)";
+
+  /* ===========================================
+     Color Scheme
+     =========================================== */
+  --mq-dark: "(prefers-color-scheme: dark)";
+  --mq-light: "(prefers-color-scheme: light)";
+
+  /* ===========================================
+     Touch/Pointer Capabilities
+     =========================================== */
+  --mq-hover: "(hover: hover)";
+  --mq-pointer-fine: "(pointer: fine)";
+  --mq-pointer-coarse: "(pointer: coarse)";
+}
+
+/* ===========================================
+   Media Query Helper Classes (for CSS Modules)
+   =========================================== */
+
+/* Min-width queries */
+@media (min-width: 320px) {
+  /* xs */
+}
+@media (min-width: 480px) {
+  /* sm */
+}
+@media (min-width: 768px) {
+  /* md */
+}
+@media (min-width: 1024px) {
+  /* lg */
+}
+@media (min-width: 1280px) {
+  /* xl */
+}
+@media (min-width: 1536px) {
+  /* 2xl */
+}
+
+/* Max-width queries */
+@media (max-width: 479px) {
+  /* mobile only */
+}
+@media (max-width: 767px) {
+  /* mobile + tablet */
+}
+@media (max-width: 1023px) {
+  /* < desktop */
+}
+@media (max-width: 1279px) {
+  /* < wide */
+}
+
+/* Range queries */
+@media (min-width: 480px) and (max-width: 767px) {
+  /* tablet */
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* desktop */
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* wide */
+}
+
+/* ===========================================
+   Container Queries (Future - when supported)
+   =========================================== */
+/*
+@container (min-width: 320px) { /* xs *\/ }
+@container (min-width: 480px) { /* sm *\/ }
+@container (min-width: 768px) { /* md *\/ }
+@container (min-width: 1024px) { /* lg *\/ }
+*/
