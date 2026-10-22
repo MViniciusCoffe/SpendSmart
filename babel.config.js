@@ -7,9 +7,9 @@ module.exports = {
     [
       "module-resolver",
       {
-        root: ["./src"],
+        root: ["./src", "./tests"],
         alias: {
-          "@": "./src",
+          "@/tests": "./tests",
           "@/components": "./src/components",
           "@/components/ui": "./src/components/ui",
           "@/components/layout": "./src/components/layout",
@@ -24,7 +24,8 @@ module.exports = {
           "@/services": "./src/services",
           "@/utils": "./src/utils",
           "@/types": "./src/types",
-          "@/config": "./src/config"
+          "@/config": "./src/config",
+          "@": "./src"
         }
       }
     ]

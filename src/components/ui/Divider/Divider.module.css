@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  color: var(--color-border);
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  border: none;
+}
+
+.label {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.vertical {
+  flex-direction: column;
+  height: 100%;
+  min-height: 100px;
+}
+
+.vertical .line {
+  width: 1px;
+  height: 100%;
+}

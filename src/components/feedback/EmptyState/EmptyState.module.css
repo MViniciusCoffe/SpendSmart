@@ -1,0 +1,67 @@
+/**
+ * EmptyState Component Styles
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  min-height: 300px;
+}
+
+.illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+.content {
+  max-width: 360px;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--leading-tight);
+}
+
+.description {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.action {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container {
+    padding: var(--space-8) var(--space-4);
+    min-height: 200px;
+  }
+
+  .title {
+    font-size: var(--text-lg);
+  }
+}
+
+/* Focus visible for accessibility */
+.action button:focus-visible,
+.action a:focus-visible {
+  outline: 2px solid var(--color-mercury);
+  outline-offset: 2px;
+}

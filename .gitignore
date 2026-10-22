@@ -22,6 +22,7 @@ supabase/.branches
 # Generated files
 supabase/query_temp.sql
 supabase/write_query.js
+next-env.d.ts
 *.bak
 *.tmp
 
