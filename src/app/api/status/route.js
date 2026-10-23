@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getSimulatedFailures } from "../../status/utils/failParam"
+import {
+  serviceMetadata,
+  getOverallStatus,
+  calculateUptime,
+  calculateLatencies,
+  getSeverityConfig
+} from "../../status/utils/statusConfig"
 
 /**
  * System Status API Endpoint
@@ -11,13 +19,6 @@ import { createClient } from "@supabase/supabase-js"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
-
-function getSimulatedFailures(request) {
-  const { searchParams } = new URL(request.url)
-  const failParam = searchParams.get("fail")
-  if (!failParam) return new Set()
-  return new Set(failParam.split(",").map(s => s.trim().toLowerCase()))
-}
 
 async function checkDatabase(request) {
   const failures = getSimulatedFailures(request)
@@ -265,27 +266,12 @@ export async function GET(request) {
       cdn.status === "fulfilled" ? cdn.value : { ...cdn.reason, status: "operational" }
     ]
 
-    const latencies = services.map(s => s.latency).filter(l => l > 0)
-    const avgLatency = latencies.length
-      ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
-      : 0
-    const sortedLatencies = [...latencies].sort((a, b) => a - b)
-    const p95Latency = sortedLatencies.length
-      ? sortedLatencies[Math.floor(sortedLatencies.length * 0.95)]
-      : 0
-    const p99Latency = sortedLatencies.length
-      ? sortedLatencies[Math.floor(sortedLatencies.length * 0.99)]
-      : 0
+    const { avg: avgLatency, p95: p95Latency, p99: p99Latency } = calculateLatencies(services)
 
     const operationalCount = services.filter(s => s.status === "operational").length
-    const uptime = (operationalCount / services.length) * 100
+    const uptime = calculateUptime(services)
 
-    const statuses = services.map(s => s.status)
-    const overallStatus = statuses.includes("critical")
-      ? "critical"
-      : statuses.includes("degraded")
-        ? "degraded"
-        : "operational"
+    const overallStatus = getOverallStatus(services)
 
     let incidents = []
     try {

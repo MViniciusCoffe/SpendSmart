@@ -2,18 +2,40 @@
 
 import { Card } from "@/components/ui"
 import { Badge } from "@/components/ui"
+import Link from "next/link"
+import {
+  getStatusVariant,
+  getStatusLabel,
+  getStatusColor,
+  metricIconMap
+} from "../utils/statusConfig"
 import styles from "./SystemMetrics.module.css"
 
+import {
+  APIIcon,
+  DatabaseIcon,
+  UptimeIcon,
+  ServicesIcon,
+  MetricsIcon,
+  HomeIcon
+} from "../utils/icons"
+
 const metricConfig = [
-  { key: "apiLatency", label: "API Latency (p95)", unit: "ms", valueKey: "p95", icon: "api" },
-  { key: "dbLatency", label: "Database Latency (p95)", unit: "ms", valueKey: "p95", icon: "db" },
+  { key: "apiLatency", label: "API Latency (p95)", unit: "ms", valueKey: "p95", icon: APIIcon },
+  {
+    key: "dbLatency",
+    label: "Database Latency (p95)",
+    unit: "ms",
+    valueKey: "p95",
+    icon: DatabaseIcon
+  },
   {
     key: "uptime",
     label: "Uptime (30d)",
     unit: "%",
     valueKey: "uptime",
     isPercentage: true,
-    icon: "uptime"
+    icon: UptimeIcon
   },
   {
     key: "services",
@@ -21,78 +43,9 @@ const metricConfig = [
     unit: "",
     valueKey: "servicesUp",
     totalKey: "servicesTotal",
-    icon: "services"
+    icon: ServicesIcon
   }
 ]
-
-const iconMap = {
-  api: (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="2" y="2" width="20" height="20" rx="2" />
-      <path d="M16 20H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z" />
-      <path d="M12 4v4M12 16v4M8 12h8" />
-    </svg>
-  ),
-  db: (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <ellipse cx="12" cy="5" rx="9" ry="3" />
-      <path d="M3 5v14c0 1.7 3.5 3 9 3s9-1.3 9-3V5" />
-      <path d="M3 12c0 1.7 3.5 3 9 3s9-1.3 9-3" />
-    </svg>
-  ),
-  uptime: (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-  services: (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <path d="M8 21h8M12 17v4" />
-    </svg>
-  )
-}
 
 const statusColorMap = {
   normal: "var(--color-success)",
@@ -113,20 +66,7 @@ export function SystemMetrics({ metrics }) {
         <div className={styles.titleGroup}>
           <h2 id="metrics-heading" className={styles.sectionTitle}>
             <span className={styles.sectionIcon} aria-hidden="true">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-              </svg>
+              <MetricsIcon width={24} height={24} />
             </span>
             System Metrics
           </h2>
@@ -134,8 +74,15 @@ export function SystemMetrics({ metrics }) {
             Real-time performance indicators across all infrastructure
           </p>
         </div>
-        <div className={styles.lastCheck}>
-          Last updated: {metrics.lastCheck ? new Date(metrics.lastCheck).toLocaleTimeString() : "—"}
+        <div className={styles.headerActions}>
+          <div className={styles.lastCheck}>
+            Last updated:{" "}
+            {metrics.lastCheck ? new Date(metrics.lastCheck).toLocaleTimeString() : "—"}
+          </div>
+          <Link href="/" className={styles.homeLink} aria-label="Back to dashboard">
+            <HomeIcon width={18} height={18} />
+            <span>Dashboard</span>
+          </Link>
         </div>
       </div>
       <div className={styles.grid} role="list" aria-label="System metrics">
@@ -151,10 +98,10 @@ export function SystemMetrics({ metrics }) {
                 <div className={styles.metricTitleWrapper}>
                   <span
                     className={styles.metricIcon}
-                    style={{ color: getMetricIconColor(config.key) }}
+                    style={{ color: getStatusColor(config.key) }}
                     aria-hidden="true"
                   >
-                    {iconMap[config.icon]}
+                    <config.icon width={20} height={20} />
                   </span>
                   <h3 className={styles.metricTitle}>{config.label}</h3>
                 </div>
@@ -162,17 +109,10 @@ export function SystemMetrics({ metrics }) {
                   config.key !== "uptime" &&
                   metrics[config.key]?.status && (
                     <Badge
-                      variant={
-                        metrics[config.key].status === "normal"
-                          ? "success"
-                          : metrics[config.key].status === "warning"
-                            ? "warning"
-                            : "error"
-                      }
+                      variant={getStatusVariant(metrics[config.key].status)}
                       className={styles.metricBadge}
                     >
-                      {metrics[config.key].status.charAt(0).toUpperCase() +
-                        metrics[config.key].status.slice(1)}
+                      {getStatusLabel(metrics[config.key].status)}
                     </Badge>
                   )}
               </div>
@@ -215,21 +155,6 @@ export function SystemMetrics({ metrics }) {
   )
 }
 
-function getMetricIconColor(key) {
-  switch (key) {
-    case "apiLatency":
-      return "var(--color-mercury)"
-    case "dbLatency":
-      return "var(--color-info)"
-    case "uptime":
-      return "var(--color-success)"
-    case "services":
-      return "var(--color-mercury-dim)"
-    default:
-      return "var(--color-text-muted)"
-  }
-}
-
 function getTrendIndicator(key, metrics) {
   if (key === "apiLatency" && metrics.apiLatency) {
     return metrics.apiLatency.status === "normal" ? (
@@ -267,18 +192,7 @@ function SystemMetricsSkeleton() {
         <div className={styles.titleGroup}>
           <h2 id="metrics-heading" className={styles.sectionTitle}>
             <span className={styles.sectionIcon} aria-hidden="true">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-              </svg>
+              <MetricsIcon width={24} height={24} />
             </span>
             System Metrics
           </h2>

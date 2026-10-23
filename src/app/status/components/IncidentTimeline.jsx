@@ -3,52 +3,8 @@
 import { Card } from "@/components/ui"
 import { Badge } from "@/components/ui"
 import { Divider } from "@/components/ui"
+import { getSeverityConfig } from "../utils/statusConfig"
 import styles from "./IncidentTimeline.module.css"
-
-const severityConfig = {
-  critical: {
-    variant: "error",
-    label: "Major Outage",
-    dotColor: "var(--color-error)",
-    bg: "rgba(255, 71, 87, 0.1)",
-    border: "rgba(255, 71, 87, 0.2)"
-  },
-  major: {
-    variant: "warning",
-    label: "Partial Outage",
-    dotColor: "var(--color-warning)",
-    bg: "rgba(255, 179, 0, 0.1)",
-    border: "rgba(255, 179, 0, 0.2)"
-  },
-  minor: {
-    variant: "info",
-    label: "Minor Issue",
-    dotColor: "var(--color-info)",
-    bg: "rgba(0, 180, 255, 0.1)",
-    border: "rgba(0, 180, 255, 0.2)"
-  },
-  degraded: {
-    variant: "warning",
-    label: "Degraded",
-    dotColor: "var(--color-warning)",
-    bg: "rgba(255, 179, 0, 0.1)",
-    border: "rgba(255, 179, 0, 0.2)"
-  },
-  maintenance: {
-    variant: "default",
-    label: "Maintenance",
-    dotColor: "var(--color-text-muted)",
-    bg: "var(--color-bg-tertiary)",
-    border: "var(--color-border)"
-  },
-  resolved: {
-    variant: "success",
-    label: "Resolved",
-    dotColor: "var(--color-success)",
-    bg: "rgba(0, 212, 170, 0.1)",
-    border: "rgba(0, 212, 170, 0.2)"
-  }
-}
 
 export function IncidentTimeline({ incidents }) {
   if (!incidents || incidents.length === 0) {
@@ -56,19 +12,7 @@ export function IncidentTimeline({ incidents }) {
       <section className={styles.section} aria-labelledby="incidents-heading">
         <h2 id="incidents-heading" className={styles.sectionTitle}>
           <span className={styles.sectionIcon} aria-hidden="true">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
+            <IncidentIcon width={24} height={24} />
           </span>
           Incident History
         </h2>
@@ -108,25 +52,13 @@ export function IncidentTimeline({ incidents }) {
     <section className={styles.section} aria-labelledby="incidents-heading">
       <h2 id="incidents-heading" className={styles.sectionTitle}>
         <span className={styles.sectionIcon} aria-hidden="true">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
+          <IncidentIcon width={24} height={24} />
         </span>
         Incident History
       </h2>
       <div className={styles.timeline} role="list" aria-label="Incident timeline">
         {incidents.map((incident, index) => {
-          const config = severityConfig[incident.severity] || severityConfig.minor
+          const config = getSeverityConfig(incident.severity)
           const isResolved = incident.resolved || incident.severity === "resolved"
 
           return (
@@ -226,4 +158,24 @@ function getDuration(start, end) {
   if (diffDays > 0) return `${diffDays}d ${diffHours % 24}h`
   if (diffHours > 0) return `${diffHours}h ${diffMins % 60}m`
   return `${diffMins}m`
+}
+
+function IncidentIcon({ width = 24, height = 24, ...props }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
 }

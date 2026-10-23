@@ -9,7 +9,6 @@ import { IncidentTimeline } from "./IncidentTimeline"
 import { SystemMetrics } from "./SystemMetrics"
 import { LoadingSpinner, LoadingSkeleton } from "@/components/feedback"
 import { PageContainer, PageHeader } from "@/components/layout"
-import styles from "./StatusPageContent.module.css"
 
 export function StatusPageContent() {
   const [data, setData] = useState(null)
@@ -19,7 +18,6 @@ export function StatusPageContent() {
   useEffect(() => {
     async function fetchStatus() {
       try {
-        // Pass search params to API for fail simulation
         const queryString = searchParams.toString()
         const url = `/api/status${queryString ? `?${queryString}` : ""}`
 
@@ -60,41 +58,38 @@ export function StatusPageContent() {
   }
 
   return (
-    <PageContainer className={`${styles.page} status-page`} maxWidth="full" padding="md">
-      <header className={styles.masthead}>
-        <div className={styles.mastheadCopy}>
-          <span className={styles.eyebrow}>SPENDSMART / OPERATIONS</span>
-          <h1>System status</h1>
-          <p>Live telemetry for the systems keeping your financial workspace moving.</p>
-        </div>
-        <Link href="/" className={styles.dashboardLink} aria-label="Back to dashboard">
-          <span>Back to dashboard</span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M5 12h14" />
-            <path d="m13 6 6 6-6 6" />
-          </svg>
-        </Link>
-      </header>
+    <PageContainer className="status-page" maxWidth="full" padding="md">
+      <PageHeader
+        title="System Status"
+        description="Real-time monitoring of SpendSmart infrastructure"
+        action={
+          <Link href="/" className="dashboardLink" aria-label="Back to dashboard">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span>Dashboard</span>
+          </Link>
+        }
+      />
 
       {data ? (
-        <div className={styles.content}>
+        <>
           <StatusBanner status={data.status} timestamp={data.timestamp} />
           <SystemMetrics metrics={data.metrics} />
-          <div className={styles.lowerGrid}>
-            <ServiceList services={data.services} />
-            <IncidentTimeline incidents={data.incidents} />
-          </div>
-        </div>
+          <ServiceList services={data.services} />
+          <IncidentTimeline incidents={data.incidents} />
+        </>
       ) : (
         <Suspense fallback={<SystemMetricsSkeleton />}>
           <SystemMetrics metrics={null} />
