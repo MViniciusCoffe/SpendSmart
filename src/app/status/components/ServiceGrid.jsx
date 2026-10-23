@@ -33,8 +33,13 @@ export function ServiceGrid({ services }) {
             <StatusCard
               title={service.name}
               value={getStatusLabel(service.status)}
-              status={getStatusVariant(service.status)}
-              icon={service.icon}
+              status={
+                service.status === "operational"
+                  ? "normal"
+                  : service.status === "degraded"
+                    ? "warning"
+                    : "critical"
+              }
               trend={service.latencyTrend}
               trendValue={service.latencyChange}
             />

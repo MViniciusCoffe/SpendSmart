@@ -1,6 +1,7 @@
 "use client"
 
-import styles from "./StatusCard.module.css"
+import { Card } from "@/components/ui"
+import { Badge } from "@/components/ui"
 
 export function StatusCard({
   title,
@@ -9,36 +10,45 @@ export function StatusCard({
   trend,
   trendValue,
   status = "normal",
-  icon,
   className = ""
 }) {
+  const statusVariantMap = {
+    normal: "default",
+    warning: "warning",
+    critical: "error",
+    degraded: "warning",
+    operational: "success"
+  }
+
+  const trendDirection = trend === "up" ? "up" : trend === "down" ? "down" : "neutral"
+
   return (
-    <div className={`${styles.card} ${styles[status]} ${className}`}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>{title}</h3>
+    <Card variant="default" className="status-card">
+      <div className="status-card-header">
+        <h3 className="status-card-title">{title}</h3>
         {status !== "normal" && (
-          <span className={`${styles.badge} ${styles[status]}`}>
+          <Badge variant={statusVariantMap[status] || "default"}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
-          </span>
+          </Badge>
         )}
       </div>
-      <div className={styles.valueWrapper}>
-        <span className={styles.value}>
+      <div className="status-card-value-wrapper">
+        <span className="status-card-value">
           {value}
-          {unit && <span className={styles.unit}>{unit}</span>}
+          {unit && <span className="status-card-unit">{unit}</span>}
         </span>
         {trend !== undefined && trendValue !== undefined && (
-          <span className={`${styles.trend} ${styles[trend]}`}>
-            <span className={styles.trendIcon}>
-              {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"}
+          <span className={`status-card-trend trend-${trendDirection}`}>
+            <span className="status-card-trend-icon">
+              {trendDirection === "up" ? "↑" : trendDirection === "down" ? "↓" : "→"}
             </span>
-            <span className={styles.trendValue}>
+            <span className="status-card-trend-value">
               {trendValue > 0 ? "+" : ""}
               {trendValue}%
             </span>
           </span>
         )}
       </div>
-    </div>
+    </Card>
   )
 }
