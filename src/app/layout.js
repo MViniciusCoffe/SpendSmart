@@ -31,7 +31,10 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#00d4aa" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] antialiased">
+      <body
+        suppressHydrationWarning
+        className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] antialiased"
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
