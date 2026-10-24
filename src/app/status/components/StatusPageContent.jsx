@@ -7,8 +7,10 @@ import { StatusBanner } from "./StatusBanner"
 import { ServiceList } from "./ServiceList"
 import { IncidentTimeline } from "./IncidentTimeline"
 import { SystemMetrics } from "./SystemMetrics"
-import { LoadingSpinner, LoadingSkeleton } from "@/components/feedback"
+import { LoadingSkeleton } from "@/components/feedback"
 import { PageContainer, PageHeader } from "@/components/layout"
+import { Button } from "@/components/ui"
+import styles from "./StatusPageContent.module.css"
 
 export function StatusPageContent() {
   const [data, setData] = useState(null)
@@ -25,8 +27,8 @@ export function StatusPageContent() {
           headers: { "Cache-Control": "no-cache" }
         })
         if (!response.ok) throw new Error("Failed to fetch status")
-        const data = await response.json()
-        setData(data)
+        const json = await response.json()
+        setData(json)
       } catch (err) {
         setError(err.message)
       }
@@ -44,52 +46,57 @@ export function StatusPageContent() {
           title="System Status"
           description="Unable to load system status"
           action={
-            <button onClick={() => window.location.reload()} className="retry-button">
+            <Button variant="primary" onClick={() => window.location.reload()}>
               Retry
-            </button>
+            </Button>
           }
         />
-        <div className="error-state">
-          <p>Failed to load system status: {error}</p>
-          <button onClick={() => window.location.reload()}>Retry</button>
+        <div className={styles.errorState}>
+          <p className={styles.errorMessage}>Failed to load system status: {error}</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
         </div>
       </PageContainer>
     )
   }
 
   return (
-    <PageContainer className="status-page" maxWidth="full" padding="md">
-      <PageHeader
-        title="System Status"
-        description="Real-time monitoring of SpendSmart infrastructure"
-        action={
-          <Link href="/" className="dashboardLink" aria-label="Back to dashboard">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            <span>Dashboard</span>
-          </Link>
-        }
-      />
+    <PageContainer className={styles.page} maxWidth="full" padding="md">
+      <header className={styles.masthead}>
+        <div className={styles.mastheadCopy}>
+          <span className={styles.eyebrow}>SPENDSMART / OPERATIONS</span>
+          <h1>System status</h1>
+          <p>Live telemetry for the systems keeping your financial workspace moving.</p>
+        </div>
+        <Link href="/" className={styles.dashboardLink} aria-label="Back to dashboard">
+          <span>Back to dashboard</span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="m13 6 6 6-6 6" />
+          </svg>
+        </Link>
+      </header>
 
       {data ? (
-        <>
+        <div className={styles.content}>
           <StatusBanner status={data.status} timestamp={data.timestamp} />
           <SystemMetrics metrics={data.metrics} />
-          <ServiceList services={data.services} />
-          <IncidentTimeline incidents={data.incidents} />
-        </>
+          <div className={styles.lowerGrid}>
+            <ServiceList services={data.services} />
+            <IncidentTimeline incidents={data.incidents} />
+          </div>
+        </div>
       ) : (
         <Suspense fallback={<SystemMetricsSkeleton />}>
           <SystemMetrics metrics={null} />
@@ -101,7 +108,7 @@ export function StatusPageContent() {
 
 function SystemMetricsSkeleton() {
   return (
-    <div className="metrics-skeleton">
+    <div className={styles.metricsSkeleton}>
       <LoadingSkeleton variant="card" count={4} />
     </div>
   )

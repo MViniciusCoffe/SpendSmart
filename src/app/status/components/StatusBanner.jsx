@@ -6,45 +6,23 @@ import {
   getStatusLabel,
   getStatusColor,
   getStatusGlow,
-  statusIconMap
+  getStatusMessage,
+  getStatusTitle
 } from "../utils/statusConfig"
+import { ClockIcon, statusIconMap } from "../utils/icons"
 import styles from "./StatusBanner.module.css"
 
-const statusConfig = {
-  operational: {
-    label: "All Systems Operational",
-    description: "All systems are running normally",
-    variant: "success",
-    pulseColor: "var(--color-success)",
-    glowColor: "rgba(0, 212, 170, 0.4)"
-  },
-  degraded: {
-    label: "Degraded Performance",
-    description: "Some systems are experiencing issues",
-    variant: "warning",
-    pulseColor: "var(--color-warning)",
-    glowColor: "rgba(255, 179, 0, 0.4)"
-  },
-  critical: {
-    label: "Major Outage",
-    description: "Critical systems are down",
-    variant: "error",
-    pulseColor: "var(--color-error)",
-    glowColor: "rgba(255, 71, 87, 0.4)"
-  },
-  error: {
-    label: "Status Unavailable",
-    description: "Unable to fetch system status",
-    variant: "default",
-    pulseColor: "var(--color-text-muted)",
-    glowColor: "rgba(148, 163, 184, 0.4)"
-  }
-}
-
 export function StatusBanner({ status = "operational", timestamp }) {
-  const config = statusConfig[status] || statusConfig.operational
+  const normalizedStatus = statusIconMap[status] ? status : "operational"
+  const config = {
+    label: getStatusTitle(normalizedStatus),
+    description: getStatusMessage(normalizedStatus),
+    variant: getStatusVariant(normalizedStatus),
+    pulseColor: getStatusColor(normalizedStatus),
+    glowColor: getStatusGlow(normalizedStatus)
+  }
   const lastUpdated = timestamp ? new Date(timestamp).toLocaleString() : "Just now"
-  const StatusIcon = statusIconMap[status] || statusIconMap.operational
+  const StatusIcon = statusIconMap[normalizedStatus]
 
   return (
     <section className={styles.banner} aria-live="polite" role="status">
@@ -61,13 +39,14 @@ export function StatusBanner({ status = "operational", timestamp }) {
               <span className={styles.glowRing} />
             </div>
             <div className={styles.textGroup}>
+              <span className={styles.statusKicker}>CURRENT SIGNAL</span>
               <h2 className={styles.statusLabel}>{config.label}</h2>
               <p className={styles.statusDescription}>{config.description}</p>
             </div>
           </div>
           <div className={styles.statusMeta}>
             <Badge variant={config.variant} className={styles.statusBadge}>
-              {getStatusLabel(status)}
+              {getStatusLabel(normalizedStatus)}
             </Badge>
             <time className={styles.lastUpdated} dateTime={timestamp}>
               <ClockIcon width={14} height={14} />
@@ -83,25 +62,5 @@ export function StatusBanner({ status = "operational", timestamp }) {
         </div>
       </div>
     </section>
-  )
-}
-
-function ClockIcon({ width = 14, height = 14, ...props }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
   )
 }

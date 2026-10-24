@@ -4,14 +4,22 @@ import { Card } from "@/components/ui"
 import { Badge } from "@/components/ui"
 import { Divider } from "@/components/ui"
 import { getSeverityConfig } from "../utils/statusConfig"
+import { IncidentIcon, SuccessEmptyIcon } from "../utils/icons"
 import styles from "./IncidentTimeline.module.css"
+import sharedStyles from "./StatusShared.module.css"
 
 export function IncidentTimeline({ incidents }) {
   if (!incidents || incidents.length === 0) {
     return (
-      <section className={styles.section} aria-labelledby="incidents-heading">
-        <h2 id="incidents-heading" className={styles.sectionTitle}>
-          <span className={styles.sectionIcon} aria-hidden="true">
+      <section
+        className={`${sharedStyles.section} ${styles.incidentsSection}`}
+        aria-labelledby="incidents-heading"
+      >
+        <h2 id="incidents-heading" className={sharedStyles.sectionTitle}>
+          <span
+            className={`${sharedStyles.sectionIcon} ${styles.incidentsIcon}`}
+            aria-hidden="true"
+          >
             <IncidentIcon width={24} height={24} />
           </span>
           Incident History
@@ -19,20 +27,7 @@ export function IncidentTimeline({ incidents }) {
         <Card variant="default" className={styles.emptyCard}>
           <div className={styles.emptyContent}>
             <div className={styles.emptyIconWrapper}>
-              <svg
-                className={styles.emptyIcon}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0112 5.25c-3.426 0-6.222 2.79-6.827 6.246"
-                />
-              </svg>
+              <SuccessEmptyIcon className={styles.emptyIcon} />
             </div>
             <h3 className={styles.emptyTitle}>No incidents reported</h3>
             <p className={styles.emptyDescription}>All systems have been operating normally</p>
@@ -49,9 +44,12 @@ export function IncidentTimeline({ incidents }) {
   }
 
   return (
-    <section className={styles.section} aria-labelledby="incidents-heading">
-      <h2 id="incidents-heading" className={styles.sectionTitle}>
-        <span className={styles.sectionIcon} aria-hidden="true">
+    <section
+      className={`${sharedStyles.section} ${styles.incidentsSection}`}
+      aria-labelledby="incidents-heading"
+    >
+      <h2 id="incidents-heading" className={sharedStyles.sectionTitle}>
+        <span className={`${sharedStyles.sectionIcon} ${styles.incidentsIcon}`} aria-hidden="true">
           <IncidentIcon width={24} height={24} />
         </span>
         Incident History
@@ -158,24 +156,4 @@ function getDuration(start, end) {
   if (diffDays > 0) return `${diffDays}d ${diffHours % 24}h`
   if (diffHours > 0) return `${diffHours}h ${diffMins % 60}m`
   return `${diffMins}m`
-}
-
-function IncidentIcon({ width = 24, height = 24, ...props }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
 }

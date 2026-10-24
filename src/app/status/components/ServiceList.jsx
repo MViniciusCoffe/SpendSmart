@@ -6,18 +6,21 @@ import {
   getStatusVariant,
   getStatusLabel,
   getStatusColor,
-  getStatusDescription,
-  serviceIconMap
+  getStatusDescription
 } from "../utils/statusConfig"
-import { LatencyIcon } from "../utils/icons"
+import { LatencyIcon, ServicesListIcon, serviceIconMap } from "../utils/icons"
 import styles from "./ServiceList.module.css"
+import sharedStyles from "./StatusShared.module.css"
 
 export function ServiceList({ services }) {
   if (!services || services.length === 0) {
     return (
-      <section className={styles.section} aria-labelledby="services-heading">
-        <h2 id="services-heading" className={styles.sectionTitle}>
-          <span className={styles.sectionIcon} aria-hidden="true">
+      <section
+        className={`${sharedStyles.section} ${styles.servicesSection}`}
+        aria-labelledby="services-heading"
+      >
+        <h2 id="services-heading" className={sharedStyles.sectionTitle}>
+          <span className={`${sharedStyles.sectionIcon} ${styles.servicesIcon}`} aria-hidden="true">
             <ServicesListIcon width={20} height={20} />
           </span>
           Services
@@ -30,15 +33,18 @@ export function ServiceList({ services }) {
   }
 
   return (
-    <section className={styles.section} aria-labelledby="services-heading">
-      <h2 id="services-heading" className={styles.sectionTitle}>
-        <span className={styles.sectionIcon} aria-hidden="true">
+    <section
+      className={`${sharedStyles.section} ${styles.servicesSection}`}
+      aria-labelledby="services-heading"
+    >
+      <h2 id="services-heading" className={sharedStyles.sectionTitle}>
+        <span className={`${sharedStyles.sectionIcon} ${styles.servicesIcon}`} aria-hidden="true">
           <ServicesListIcon width={20} height={20} />
         </span>
         Services
       </h2>
       <div className={styles.grid} role="list" aria-label="Services">
-        {services.map((service, index) => {
+        {services.map(service => {
           const ServiceIcon = serviceIconMap[service.id]
           const statusColor = getStatusColor(service.status)
           return (
@@ -73,8 +79,8 @@ export function ServiceList({ services }) {
                     <span className={styles.latencyIcon} aria-hidden="true">
                       <LatencyIcon width={14} height={14} />
                     </span>
-                    <span className="latencyValue">{service.latency}</span>
-                    <span className="latencyUnit">ms</span>
+                    <span className={styles.latencyValue}>{service.latency}</span>
+                    <span className={styles.latencyUnit}>ms</span>
                   </span>
                 </div>
               )}
@@ -83,26 +89,5 @@ export function ServiceList({ services }) {
         })}
       </div>
     </section>
-  )
-}
-
-function ServicesListIcon({ width = 20, height = 20, ...props }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <rect x="3" y="4" width="18" height="6" rx="2" />
-      <rect x="3" y="14" width="18" height="6" rx="2" />
-      <path d="M7 7h.01M7 17h.01" />
-    </svg>
   )
 }

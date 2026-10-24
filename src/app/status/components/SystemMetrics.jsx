@@ -6,54 +6,14 @@ import Link from "next/link"
 import {
   getStatusVariant,
   getStatusLabel,
-  getStatusColor,
-  metricIconMap
+  metricConfig,
+  getMetricStatusColor,
+  getMetricColor
 } from "../utils/statusConfig"
 import styles from "./SystemMetrics.module.css"
+import sharedStyles from "./StatusShared.module.css"
 
-import {
-  APIIcon,
-  DatabaseIcon,
-  UptimeIcon,
-  ServicesIcon,
-  MetricsIcon,
-  HomeIcon
-} from "../utils/icons"
-
-const metricConfig = [
-  { key: "apiLatency", label: "API Latency (p95)", unit: "ms", valueKey: "p95", icon: APIIcon },
-  {
-    key: "dbLatency",
-    label: "Database Latency (p95)",
-    unit: "ms",
-    valueKey: "p95",
-    icon: DatabaseIcon
-  },
-  {
-    key: "uptime",
-    label: "Uptime (30d)",
-    unit: "%",
-    valueKey: "uptime",
-    isPercentage: true,
-    icon: UptimeIcon
-  },
-  {
-    key: "services",
-    label: "Services Operational",
-    unit: "",
-    valueKey: "servicesUp",
-    totalKey: "servicesTotal",
-    icon: ServicesIcon
-  }
-]
-
-const statusColorMap = {
-  normal: "var(--color-success)",
-  warning: "var(--color-warning)",
-  degraded: "var(--color-warning)",
-  error: "var(--color-error)",
-  critical: "var(--color-error)"
-}
+import { MetricsIcon, HomeIcon, metricIconMap } from "../utils/icons"
 
 export function SystemMetrics({ metrics }) {
   if (!metrics) {
@@ -61,11 +21,17 @@ export function SystemMetrics({ metrics }) {
   }
 
   return (
-    <section className={styles.section} aria-labelledby="metrics-heading">
+    <section
+      className={`${sharedStyles.section} ${styles.metricsSection}`}
+      aria-labelledby="metrics-heading"
+    >
       <div className={styles.sectionHeader}>
         <div className={styles.titleGroup}>
-          <h2 id="metrics-heading" className={styles.sectionTitle}>
-            <span className={styles.sectionIcon} aria-hidden="true">
+          <h2 id="metrics-heading" className={sharedStyles.sectionTitle}>
+            <span
+              className={`${sharedStyles.sectionIcon} ${styles.metricsIcon}`}
+              aria-hidden="true"
+            >
               <MetricsIcon width={24} height={24} />
             </span>
             System Metrics
@@ -98,10 +64,10 @@ export function SystemMetrics({ metrics }) {
                 <div className={styles.metricTitleWrapper}>
                   <span
                     className={styles.metricIcon}
-                    style={{ color: getStatusColor(config.key) }}
+                    style={{ color: getMetricColor(config.key) }}
                     aria-hidden="true"
                   >
-                    <config.icon width={20} height={20} />
+                    <MetricIcon name={config.icon} width={20} height={20} />
                   </span>
                   <h3 className={styles.metricTitle}>{config.label}</h3>
                 </div>
@@ -141,7 +107,7 @@ export function SystemMetrics({ metrics }) {
                 <div
                   className={styles.metricTrend}
                   style={{
-                    borderLeftColor: statusColorMap[metrics[config.key]?.status] || "transparent"
+                    borderLeftColor: getMetricStatusColor(metrics[config.key]?.status)
                   }}
                 >
                   {getTrendIndicator(config.key, metrics)}
@@ -153,6 +119,11 @@ export function SystemMetrics({ metrics }) {
       </div>
     </section>
   )
+}
+
+function MetricIcon({ name, ...props }) {
+  const Icon = metricIconMap[name]
+  return Icon ? <Icon {...props} /> : null
 }
 
 function getTrendIndicator(key, metrics) {
@@ -187,11 +158,17 @@ function getTrendIndicator(key, metrics) {
 
 function SystemMetricsSkeleton() {
   return (
-    <section className={styles.section} aria-labelledby="metrics-heading">
+    <section
+      className={`${sharedStyles.section} ${styles.metricsSection}`}
+      aria-labelledby="metrics-heading"
+    >
       <div className={styles.sectionHeader}>
         <div className={styles.titleGroup}>
-          <h2 id="metrics-heading" className={styles.sectionTitle}>
-            <span className={styles.sectionIcon} aria-hidden="true">
+          <h2 id="metrics-heading" className={sharedStyles.sectionTitle}>
+            <span
+              className={`${sharedStyles.sectionIcon} ${styles.metricsIcon}`}
+              aria-hidden="true"
+            >
               <MetricsIcon width={24} height={24} />
             </span>
             System Metrics
@@ -206,11 +183,11 @@ function SystemMetricsSkeleton() {
           <article key={i} className={styles.skeletonCard} role="listitem">
             <div className={styles.skeletonCardInner}>
               <div className={styles.skeletonRow}>
-                <div className="skeleton-icon" />
-                <div className="skeleton-title" />
+                <div className={styles.skeletonIcon} />
+                <div className={styles.skeletonTitle} />
               </div>
-              <div className="skeleton-value" />
-              <div className="skeleton-trend" />
+              <div className={styles.skeletonValue} />
+              <div className={styles.skeletonTrend} />
             </div>
           </article>
         ))}

@@ -39,6 +39,20 @@ export const statusDescriptionMap = {
   resolved: "Incident resolved"
 }
 
+export const statusTitleMap = {
+  operational: "All Systems Operational",
+  degraded: "Degraded Performance",
+  critical: "Major Outage",
+  error: "Status Unavailable"
+}
+
+export const statusMessageMap = {
+  operational: "All systems are running normally",
+  degraded: "Some systems are experiencing issues",
+  critical: "Critical systems are down",
+  error: "Unable to fetch system status"
+}
+
 // Status colors for CSS custom properties
 export const statusColorMap = {
   operational: "var(--color-success)",
@@ -61,6 +75,42 @@ export const statusGlowMap = {
   error: "rgba(255, 71, 87, 0.4)",
   maintenance: "rgba(148, 163, 184, 0.4)",
   resolved: "rgba(0, 212, 170, 0.4)"
+}
+
+export const metricConfig = [
+  { key: "apiLatency", label: "API Latency (p95)", unit: "ms", valueKey: "p95", icon: "api" },
+  { key: "dbLatency", label: "Database Latency (p95)", unit: "ms", valueKey: "p95", icon: "db" },
+  {
+    key: "uptime",
+    label: "Uptime (30d)",
+    unit: "%",
+    valueKey: "uptime",
+    isPercentage: true,
+    icon: "uptime"
+  },
+  {
+    key: "services",
+    label: "Services Operational",
+    unit: "",
+    valueKey: "servicesUp",
+    totalKey: "servicesTotal",
+    icon: "services"
+  }
+]
+
+export const metricStatusColorMap = {
+  normal: "var(--color-success)",
+  warning: "var(--color-warning)",
+  degraded: "var(--color-warning)",
+  error: "var(--color-error)",
+  critical: "var(--color-error)"
+}
+
+export const metricColorMap = {
+  apiLatency: "var(--color-success)",
+  dbLatency: "var(--color-success)",
+  uptime: "var(--color-success)",
+  services: "var(--color-success)"
 }
 
 // Service metadata
@@ -162,12 +212,28 @@ export function getStatusDescription(status) {
   return statusDescriptionMap[status] || ""
 }
 
+export function getStatusTitle(status) {
+  return statusTitleMap[status] || getStatusLabel(status)
+}
+
+export function getStatusMessage(status) {
+  return statusMessageMap[status] || getStatusDescription(status)
+}
+
 export function getStatusColor(status) {
   return statusColorMap[status] || "var(--color-border)"
 }
 
 export function getStatusGlow(status) {
   return statusGlowMap[status] || "rgba(148, 163, 184, 0.4)"
+}
+
+export function getMetricStatusColor(status) {
+  return metricStatusColorMap[status] || "transparent"
+}
+
+export function getMetricColor(metric) {
+  return metricColorMap[metric] || "var(--color-text-muted)"
 }
 
 export function getSeverityConfig(severity) {

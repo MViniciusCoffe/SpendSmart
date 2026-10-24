@@ -22,9 +22,9 @@ export default function Loading() {
           <div className={styles.metricsGrid}>
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className={styles.metricSkeleton}>
-                <div className="skeleton-title" />
-                <div className="skeleton-value" />
-                <div className="skeleton-trend" />
+                <div className={styles.skeletonMetricTitle} />
+                <div className={styles.skeletonMetricValue} />
+                <div className={styles.skeletonMetricTrend} />
               </div>
             ))}
           </div>
@@ -35,11 +35,11 @@ export default function Loading() {
         <div className={styles.sectionSkeleton}>
           <div className={styles.skeletonSectionTitle} />
           <div className={styles.servicesGrid}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => (
-              <div key={i} className="service-skeleton">
-                <div className="skeleton-title" />
-                <div className="skeleton-value" />
-                <div className="skeleton-badge" />
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+              <div key={i} className={styles.serviceSkeleton}>
+                <div className={styles.skeletonServiceTitle} />
+                <div className={styles.skeletonServiceValue} />
+                <div className={styles.skeletonServiceBadge} />
               </div>
             ))}
           </div>
@@ -51,19 +51,19 @@ export default function Loading() {
           <div className={styles.skeletonSectionTitle} />
           <div className={styles.incidentsList}>
             {[1, 2, 3].map(i => (
-              <div key={i} className="incident-skeleton">
-                <div className="skeleton-marker">
-                  <div className="skeleton-dot" />
-                  <div className="skeleton-line" />
+              <div key={i} className={styles.incidentSkeleton}>
+                <div className={styles.skeletonMarker}>
+                  <div className={styles.skeletonDot} />
+                  <div className={styles.skeletonLine} />
                 </div>
-                <div className="skeleton-content">
-                  <div className="skeleton-header">
-                    <div className="skeleton-title" />
-                    <div className="skeleton-badge" />
+                <div className={styles.skeletonContent}>
+                  <div className={styles.skeletonHeader}>
+                    <div className={styles.skeletonIncidentTitle} />
+                    <div className={styles.skeletonIncidentBadge} />
                   </div>
-                  <div className="skeleton-timestamp" />
-                  <div className="skeleton-description" />
-                  <div className="skeleton-affected" />
+                  <div className={styles.skeletonTimestamp} />
+                  <div className={styles.skeletonDescription} />
+                  <div className={styles.skeletonAffected} />
                 </div>
               </div>
             ))}

@@ -1,39 +1,28 @@
-.section {
-  margin-bottom: var(--space-8);
+/**
+ * IncidentTimeline Styles
+ * Cleaned and unified without duplicate rule stacks
+ */
+
+.incidentsSection {
+  animation-delay: 0.3s;
 }
 
-.sectionTitle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-6);
-}
-
-.sectionIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, rgba(255, 179, 0, 0.15), rgba(255, 179, 0, 0.05));
-  border-radius: var(--radius-lg);
+.incidentsIcon {
   color: var(--color-warning);
-  border: 1px solid rgba(255, 179, 0, 0.2);
+  background: rgba(255, 179, 0, 0.08);
+  box-shadow: 0 0 18px rgba(255, 179, 0, 0.1);
 }
 
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--space-4);
   position: relative;
 }
 
 .item {
   display: flex;
-  gap: var(--space-5);
+  gap: var(--space-4);
   animation: fadeInUp 0.4s ease-out backwards;
 }
 
@@ -50,17 +39,6 @@
   animation-delay: 0.2s;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .markerColumn {
   display: flex;
   flex-direction: column;
@@ -68,48 +46,33 @@
   flex-shrink: 0;
   position: relative;
   padding-top: var(--space-1);
-  width: 32px;
+  width: 24px;
 }
 
 .dot {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
+  background-color: var(--incident-color, var(--color-border));
   border: 3px solid var(--color-bg-primary);
   box-shadow: 0 0 0 4px var(--color-bg-primary);
-  transition:
-    transform var(--transition-normal),
-    box-shadow var(--transition-normal),
-    background-color var(--transition-normal);
   position: relative;
   z-index: 2;
-}
-
-.dot::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: var(--incident-color);
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-}
-
-.item:hover .dot {
-  transform: scale(1.25);
-  box-shadow:
-    0 0 0 4px var(--color-bg-primary),
-    0 0 0 8px var(--incident-color) 40;
-}
-
-.item:hover .dot::after {
-  opacity: 0.3;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
 }
 
 .dot.resolved {
   background-color: var(--color-success) !important;
-  border-color: var(--color-success) !important;
+}
+
+.item:hover .dot {
+  transform: scale(1.2);
+  box-shadow:
+    0 0 0 4px var(--color-bg-primary),
+    0 0 0 8px color-mix(in srgb, var(--incident-color, var(--color-mercury)) 35%, transparent);
 }
 
 .line {
@@ -117,42 +80,28 @@
   width: 2px;
   background: linear-gradient(180deg, var(--color-border), var(--color-border-hover));
   margin-top: var(--space-2);
-  position: relative;
-}
-
-.line::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(180deg, var(--incident-color), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-}
-
-.item:hover .line::before {
-  opacity: 0.4;
 }
 
 .incidentCard {
   flex: 1;
-  transition:
-    box-shadow var(--transition-normal),
-    transform var(--transition-fast),
-    border-color var(--transition-normal);
-  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--incident-border);
-  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+  border-left: 3px solid var(--incident-color, var(--color-border));
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal),
+    background-color var(--transition-normal);
 }
 
 .incidentCard:hover {
-  box-shadow: var(--shadow-xl);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 16px 30px rgba(0, 0, 0, 0.2);
   transform: translateX(4px);
-  border-color: var(--incident-color);
-  border-left-width: 4px;
 }
 
 .incidentContent {
@@ -160,9 +109,7 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5) var(--space-6);
-  background:
-    radial-gradient(ellipse at top left, var(--incident-bg), transparent 60%),
-    var(--color-bg-secondary);
+  background: transparent;
 }
 
 .header {
@@ -180,7 +127,12 @@
   margin: 0;
   line-height: 1.35;
   flex: 1;
-  min-width: 220px;
+  min-width: 200px;
+  transition: color var(--transition-normal);
+}
+
+.incidentCard:hover .title {
+  color: var(--incident-color, var(--color-mercury));
 }
 
 .headerMeta {
@@ -194,19 +146,10 @@
 .severityBadge {
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
-  padding: var(--space-2-5) var(--space-3);
+  padding: var(--space-1) var(--space-2-5);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border-radius: var(--radius-full);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.severityBadge:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .timestamp {
@@ -215,36 +158,23 @@
   white-space: nowrap;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
-  font-family: "SF Mono", "Fira Code", monospace;
+  font-family: var(--font-mono, monospace);
 }
 
 .description {
   font-size: var(--text-base);
   color: var(--color-text-secondary);
   margin: 0;
-  line-height: 1.65;
-  padding-right: var(--space-4);
+  line-height: 1.6;
 }
 
 .affected {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
-  position: relative;
-}
-
-.affected::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 24px;
-  height: 2px;
-  background: var(--incident-color);
-  border-radius: var(--radius-full);
 }
 
 .affectedLabel {
@@ -254,11 +184,11 @@
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
   margin-top: var(--space-1);
-  flex-shrink: 0;
   padding: var(--space-1) var(--space-2);
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .affectedList {
@@ -274,7 +204,7 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
   background: var(--color-bg-tertiary);
-  padding: var(--space-1-5) var(--space-3);
+  padding: var(--space-1) var(--space-2-5);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   font-weight: var(--font-weight-medium);
@@ -282,8 +212,8 @@
 }
 
 .affectedItem:hover {
-  background: var(--incident-bg);
-  border-color: var(--incident-border);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--color-border-hover);
   transform: translateY(-1px);
 }
 
@@ -291,14 +221,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   color: var(--color-success);
   font-size: var(--text-sm);
   background: rgba(0, 212, 170, 0.05);
   margin: calc(var(--space-3) * -1) calc(var(--space-6) * -1) calc(var(--space-5) * -1);
-  padding: var(--space-4) var(--space-6);
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: var(--space-3) var(--space-6);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
   border-left: 3px solid var(--color-success);
 }
 
@@ -309,7 +239,7 @@
 .resolvedTime {
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
-  font-family: "SF Mono", "Fira Code", monospace;
+  font-family: var(--font-mono, monospace);
 }
 
 .resolvedDuration {
@@ -327,37 +257,9 @@
   opacity: 0.5;
 }
 
-.emptyCard {
-  padding: var(--space-14) var(--space-8);
-  text-align: center;
-  background:
-    radial-gradient(ellipse at center, var(--color-bg-tertiary), transparent 70%),
-    var(--color-bg-secondary);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-xl);
-  position: relative;
-  overflow: hidden;
-}
-
-.emptyCard::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--color-mercury), transparent);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
 
 .emptyContent {
   display: flex;
@@ -372,29 +274,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 212, 170, 0.02));
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.12), rgba(0, 212, 170, 0.02));
   border-radius: var(--radius-full);
   border: 1px solid rgba(0, 212, 170, 0.2);
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
 }
 
 .emptyIcon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   color: var(--color-mercury);
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .emptyTitle {
@@ -427,30 +318,20 @@
 }
 
 .emptyCheck {
-  animation: checkPop 0.6s ease-out;
+  font-weight: var(--font-weight-bold);
 }
 
-@keyframes checkPop {
-  0% {
-    transform: scale(0) rotate(-45deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2) rotate(5deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
+/* ==========================================================================
+   Responsive & Accessibility
+   ========================================================================== */
 
 @media (max-width: 640px) {
   .item {
-    gap: var(--space-4);
+    gap: var(--space-3);
   }
 
   .markerColumn {
-    width: 28px;
+    width: 20px;
   }
 
   .dot {
@@ -459,7 +340,7 @@
   }
 
   .incidentContent {
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-4);
   }
 
   .title {
@@ -478,129 +359,20 @@
     justify-content: space-between;
   }
 
-  .description {
-    padding-right: 0;
-  }
-
   .resolved {
-    margin: calc(var(--space-3) * -1) calc(var(--space-5) * -1) calc(var(--space-4) * -1);
-    padding: var(--space-3) var(--space-5);
+    margin: calc(var(--space-3) * -1) calc(var(--space-4) * -1) calc(var(--space-4) * -1);
+    padding: var(--space-3) var(--space-4);
     flex-wrap: wrap;
-  }
-
-  .emptyCard {
-    padding: var(--space-10) var(--space-6);
-  }
-
-  .emptyIconWrapper {
-    width: 64px;
-    height: 64px;
-  }
-
-  .emptyIcon {
-    width: 32px;
-    height: 32px;
   }
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .item,
   .dot,
-  .line::before,
   .incidentCard,
   .emptyIconWrapper,
-  .emptyCheck,
   .affectedItem {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-.section {
-  animation: sectionReveal 0.8s 0.5s ease-out both;
-}
-
-.sectionTitle {
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: var(--text-xl);
-  letter-spacing: -0.03em;
-}
-
-.sectionIcon {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 179, 0, 0.08);
-  border: 0;
-  border-radius: var(--radius-md);
-  box-shadow: 0 0 18px rgba(255, 179, 0, 0.1);
-}
-
-.timeline {
-  gap: var(--space-3);
-}
-
-.item {
-  gap: var(--space-4);
-}
-
-.markerColumn {
-  width: 20px;
-}
-
-.incidentCard {
-  border: 0;
-  border-left: 2px solid var(--incident-color);
-  border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.035);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-  transition:
-    transform var(--transition-normal),
-    box-shadow var(--transition-normal),
-    background-color var(--transition-normal);
-}
-
-.incidentCard:hover {
-  border-left-width: 2px;
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 16px 30px rgba(0, 0, 0, 0.2);
-  transform: translateX(5px);
-}
-
-.incidentContent {
-  background: transparent;
-}
-
-.title,
-.description,
-.timestamp {
-  transition:
-    color var(--transition-normal),
-    transform var(--transition-normal);
-}
-
-.incidentCard:hover .title {
-  color: var(--incident-color);
-  transform: translateX(2px);
-}
-
-.incidentCard:hover .description,
-.incidentCard:hover .timestamp {
-  color: var(--color-text-primary);
-}
-
-@keyframes sectionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }

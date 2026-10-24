@@ -1,13 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { Button } from "@/components/ui"
 import styles from "./error.module.css"
 
 export default function Error({ error, reset }) {
-  useEffect(() => {
-    console.error("Status page error:", error)
-  }, [error])
-
   return (
     <div className={styles.container} role="alert">
       <div className={styles.errorIcon} aria-hidden="true">
@@ -30,21 +26,21 @@ export default function Error({ error, reset }) {
         We couldn&apos;t load the system status page. This might be a temporary issue.
       </p>
 
-      {process.env.NODE_ENV === "development" && (
-        <pre className={styles.errorDetails}>{error?.message || "Unknown error"}</pre>
+      {process.env.NODE_ENV === "development" && error?.message && (
+        <pre className={styles.errorDetails}>{error.message}</pre>
       )}
 
       <div className={styles.actions}>
-        <button onClick={() => reset()} className="retry-button primary">
+        <Button variant="primary" fullWidth onClick={() => reset()}>
           Try again
-        </button>
-        <button onClick={() => window.location.reload()} className="retry-button secondary">
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => window.location.reload()}>
           Reload page
-        </button>
+        </Button>
       </div>
 
       <p className={styles.helpText}>
-        If the problem persists, please contact support or check our status page at
+        If the problem persists, please contact support or check our status page at{" "}
         <a href="/status" target="_blank" rel="noopener noreferrer">
           status.spendsmart.app
         </a>
