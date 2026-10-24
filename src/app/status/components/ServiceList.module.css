@@ -10,9 +10,7 @@
 .servicesIcon {
   color: var(--color-mercury);
   background: rgba(0, 212, 170, 0.08);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 212, 170, 0.16),
-    0 0 18px rgba(0, 212, 170, 0.08);
+  box-shadow: 0 0 18px rgba(0, 212, 170, 0.08);
 }
 
 .grid {

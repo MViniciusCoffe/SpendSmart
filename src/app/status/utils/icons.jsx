@@ -439,8 +439,8 @@ export const statusIconMap = {
 }
 
 export const metricIconMap = {
-  apiLatency: APIIcon,
-  dbLatency: DatabaseIcon,
+  api: APIIcon,
+  db: DatabaseIcon,
   uptime: UptimeIcon,
   services: ServicesIcon
 }
