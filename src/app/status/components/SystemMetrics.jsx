@@ -16,10 +16,6 @@ import sharedStyles from "./StatusShared.module.css"
 import { MetricsIcon, HomeIcon, metricIconMap } from "../utils/icons"
 
 export function SystemMetrics({ metrics }) {
-  if (!metrics) {
-    return <SystemMetricsSkeleton />
-  }
-
   return (
     <section
       className={`${sharedStyles.section} ${styles.metricsSection}`}
@@ -154,63 +150,4 @@ function getTrendIndicator(key, metrics) {
     )
   }
   return null
-}
-
-function SystemMetricsSkeleton() {
-  return (
-    <section
-      className={`${sharedStyles.section} ${styles.metricsSection}`}
-      aria-labelledby="metrics-heading"
-    >
-      <div className={styles.sectionHeader}>
-        <div className={styles.titleGroup}>
-          <h2 id="metrics-heading" className={sharedStyles.sectionTitle}>
-            <span
-              className={`${sharedStyles.sectionIcon} ${styles.metricsIcon}`}
-              aria-hidden="true"
-            >
-              <MetricsIcon width={24} height={24} />
-            </span>
-            System Metrics
-          </h2>
-          <p className={styles.sectionSubtitle}>
-            Real-time performance indicators across all infrastructure
-          </p>
-        </div>
-        <div className={styles.headerActions}>
-          <div className={styles.skeletonLastCheck} />
-          <div className={styles.skeletonHomeLink}>
-            <div className={styles.skeletonHomeIcon} />
-            <div className={styles.skeletonHomeText} />
-          </div>
-        </div>
-      </div>
-      <div className={styles.grid} role="list" aria-label="System metrics loading" aria-busy="true">
-        {[1, 2, 3, 4].map(i => (
-          <article key={i} className={styles.skeletonCard} role="listitem">
-            <div className={styles.skeletonCardInner}>
-              <div className={styles.skeletonCardHeader}>
-                <div className={styles.skeletonMetricTitleWrapper}>
-                  <div className={styles.skeletonIcon} />
-                  <div className={styles.skeletonTitle} />
-                </div>
-                <div className={styles.skeletonBadge} />
-              </div>
-              <div className={styles.skeletonMetricValueWrapper}>
-                <div className={styles.skeletonMetricMain}>
-                  <div className={styles.skeletonValue}>
-                    <div className={styles.skeletonValueNumber} />
-                    <div className={styles.skeletonValueUnit} />
-                  </div>
-                  <div className={styles.skeletonAvg} />
-                </div>
-                <div className={styles.skeletonSubLabel} />
-                <div className={styles.skeletonTrend} />
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
 }

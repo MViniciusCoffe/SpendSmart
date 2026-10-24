@@ -1,37 +1,3 @@
-.container {
-  padding: var(--space-6);
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .container {
-    padding: var(--space-8);
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: var(--space-10);
-  }
-}
-
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-8);
-  flex-wrap: wrap;
-}
-
-.headerSkeleton {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  flex: 1;
-}
-
 .shimmerBase {
   background: linear-gradient(
     90deg,
@@ -42,236 +8,6 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-sm);
-}
-
-.skeletonTitle {
-  composes: shimmerBase;
-  height: 36px;
-  width: 40%;
-  min-width: 200px;
-}
-
-.skeletonSubtitle {
-  composes: shimmerBase;
-  height: 16px;
-  width: 60%;
-  max-width: 320px;
-}
-
-.skeletonBadge {
-  composes: shimmerBase;
-  height: 28px;
-  width: 80px;
-  border-radius: var(--radius-full);
-}
-
-.sectionSkeleton {
-  margin-bottom: var(--space-8);
-}
-
-.skeletonSectionTitle {
-  composes: shimmerBase;
-  height: 24px;
-  width: 25%;
-  min-width: 160px;
-  margin-bottom: var(--space-4);
-}
-
-.metricsSection {
-  margin-bottom: var(--space-8);
-}
-
-.metricsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-4);
-}
-
-.metricSkeleton {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.skeletonMetricTitle {
-  composes: shimmerBase;
-  height: 16px;
-  width: 60%;
-  margin-bottom: var(--space-3);
-}
-
-.skeletonMetricValue {
-  composes: shimmerBase;
-  height: 36px;
-  width: 50%;
-  margin-bottom: var(--space-2);
-}
-
-.skeletonMetricTrend {
-  composes: shimmerBase;
-  height: 24px;
-  width: 35%;
-  border-radius: var(--radius-full);
-}
-
-.servicesSection {
-  margin-bottom: var(--space-8);
-}
-
-.servicesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-4);
-}
-
-.serviceSkeleton {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.skeletonServiceTitle {
-  composes: shimmerBase;
-  height: 16px;
-  width: 60%;
-  margin-bottom: var(--space-3);
-}
-
-.skeletonServiceValue {
-  composes: shimmerBase;
-  height: 24px;
-  width: 40%;
-  margin-bottom: var(--space-3);
-}
-
-.skeletonServiceBadge {
-  composes: shimmerBase;
-  height: 22px;
-  width: 30%;
-  border-radius: var(--radius-full);
-}
-
-.incidentsSection {
-  margin-bottom: var(--space-8);
-}
-
-.incidentsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.incidentSkeleton {
-  display: flex;
-  gap: var(--space-4);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.skeletonMarker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 24px;
-}
-
-.skeletonDot {
-  width: 14px;
-  height: 14px;
-  border-radius: var(--radius-full);
-  background: var(--color-border);
-  flex-shrink: 0;
-}
-
-.skeletonLine {
-  flex: 1;
-  width: 2px;
-  background: var(--color-border);
-  margin-top: var(--space-2);
-}
-
-.skeletonContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.skeletonHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.skeletonIncidentTitle {
-  composes: shimmerBase;
-  height: 18px;
-  width: 50%;
-}
-
-.skeletonIncidentBadge {
-  composes: shimmerBase;
-  height: 22px;
-  width: 80px;
-  border-radius: var(--radius-full);
-}
-
-.skeletonTimestamp {
-  composes: shimmerBase;
-  height: 14px;
-  width: 30%;
-}
-
-.skeletonDescription {
-  composes: shimmerBase;
-  height: 14px;
-  width: 85%;
-}
-
-.skeletonAffected {
-  composes: shimmerBase;
-  height: 24px;
-  width: 60%;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: var(--space-4);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .container * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
 }
 
 /* Match the loading route to the rendered status page composition. */
@@ -648,6 +384,25 @@
 
 .skeletonIncidentBadge {
   height: 28px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @media (max-width: 900px) {

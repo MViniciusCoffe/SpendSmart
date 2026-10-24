@@ -136,56 +136,6 @@ export function IncidentTimeline({ incidents }) {
   )
 }
 
-export function IncidentTimelineSkeleton() {
-  return (
-    <section
-      className={`${sharedStyles.section} ${styles.incidentsSection}`}
-      aria-labelledby="incidents-heading"
-    >
-      <h2 id="incidents-heading" className={sharedStyles.sectionTitle}>
-        <span className={`${sharedStyles.sectionIcon} ${styles.incidentsIcon}`} aria-hidden="true">
-          <IncidentIcon width={24} height={24} />
-        </span>
-        Incident History
-      </h2>
-      <div className={styles.timeline} role="list" aria-label="Incidents loading" aria-busy="true">
-        {[1, 2, 3].map(i => (
-          <article key={i} className={styles.skeletonItem} role="listitem">
-            <div className={styles.skeletonMarkerColumn}>
-              <div className={styles.skeletonDot} />
-              <div className={styles.skeletonLine} />
-            </div>
-            <div className={styles.skeletonCard}>
-              <div className={styles.skeletonContent}>
-                <div className={styles.skeletonHeader}>
-                  <div className={styles.skeletonTitle} />
-                  <div className={styles.skeletonHeaderMeta}>
-                    <div className={styles.skeletonBadge} />
-                    <div className={styles.skeletonTimestamp} />
-                  </div>
-                </div>
-                <div className={styles.skeletonDescription} />
-                <div className={styles.skeletonAffected}>
-                  <div className={styles.skeletonAffectedLabel} />
-                  <div className={styles.skeletonAffectedList}>
-                    <div className={styles.skeletonAffectedItem} />
-                    <div className={styles.skeletonAffectedItem} />
-                  </div>
-                </div>
-                <div className={styles.skeletonResolved}>
-                  <div className={styles.skeletonResolvedLabel} />
-                  <div className={styles.skeletonResolvedTime} />
-                  <div className={styles.skeletonResolvedDuration} />
-                </div>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function formatDate(isoString) {
   const date = new Date(isoString)
   return date.toLocaleString(undefined, {
