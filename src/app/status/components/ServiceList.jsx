@@ -91,3 +91,44 @@ export function ServiceList({ services }) {
     </section>
   )
 }
+
+export function ServiceListSkeleton() {
+  return (
+    <section
+      className={`${sharedStyles.section} ${styles.servicesSection}`}
+      aria-labelledby="services-heading"
+    >
+      <h2 id="services-heading" className={sharedStyles.sectionTitle}>
+        <span className={`${sharedStyles.sectionIcon} ${styles.servicesIcon}`} aria-hidden="true">
+          <ServicesListIcon width={20} height={20} />
+        </span>
+        Services
+      </h2>
+      <div className={styles.grid} role="list" aria-label="Services loading" aria-busy="true">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <article key={i} className={styles.skeletonCard} role="listitem">
+            <div className={styles.skeletonCardInner}>
+              <div className={styles.skeletonMain}>
+                <div className={styles.skeletonInfo}>
+                  <div className={styles.skeletonIcon} />
+                  <div className={styles.skeletonText}>
+                    <div className={styles.skeletonTitle} />
+                    <div className={styles.skeletonDescription} />
+                  </div>
+                </div>
+                <div className={styles.skeletonBadge} />
+              </div>
+              <div className={styles.skeletonMeta}>
+                <div className={styles.skeletonLatency}>
+                  <div className={styles.skeletonLatencyIcon} />
+                  <div className={styles.skeletonLatencyValue} />
+                  <div className={styles.skeletonLatencyUnit} />
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}

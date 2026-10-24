@@ -1,15 +1,15 @@
 "use client"
 
-import { Suspense, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { StatusBanner } from "./StatusBanner"
 import { ServiceList } from "./ServiceList"
 import { IncidentTimeline } from "./IncidentTimeline"
 import { SystemMetrics } from "./SystemMetrics"
-import { LoadingSkeleton } from "@/components/feedback"
 import { PageContainer, PageHeader } from "@/components/layout"
 import { Button } from "@/components/ui"
+import { StatusPageSkeleton } from "../loading"
 import styles from "./StatusPageContent.module.css"
 
 export function StatusPageContent() {
@@ -61,6 +61,10 @@ export function StatusPageContent() {
     )
   }
 
+  if (!data) {
+    return <StatusPageSkeleton />
+  }
+
   return (
     <PageContainer className={styles.page} maxWidth="full" padding="md">
       <header className={styles.masthead}>
@@ -88,28 +92,14 @@ export function StatusPageContent() {
         </Link>
       </header>
 
-      {data ? (
-        <div className={styles.content}>
-          <StatusBanner status={data.status} timestamp={data.timestamp} />
-          <SystemMetrics metrics={data.metrics} />
-          <div className={styles.lowerGrid}>
-            <ServiceList services={data.services} />
-            <IncidentTimeline incidents={data.incidents} />
-          </div>
+      <div className={styles.content}>
+        <StatusBanner status={data.status} timestamp={data.timestamp} />
+        <SystemMetrics metrics={data.metrics} />
+        <div className={styles.lowerGrid}>
+          <ServiceList services={data.services} />
+          <IncidentTimeline incidents={data.incidents} />
         </div>
-      ) : (
-        <Suspense fallback={<SystemMetricsSkeleton />}>
-          <SystemMetrics metrics={null} />
-        </Suspense>
-      )}
+      </div>
     </PageContainer>
-  )
-}
-
-function SystemMetricsSkeleton() {
-  return (
-    <div className={styles.metricsSkeleton}>
-      <LoadingSkeleton variant="card" count={4} />
-    </div>
   )
 }

@@ -1,74 +1,95 @@
-/**
- * Status Page Loading UI
- * Shown immediately during navigation and while data loads
- */
-
 import styles from "./loading.module.css"
 
 export default function Loading() {
+  return <StatusPageSkeleton />
+}
+
+export function StatusPageSkeleton() {
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.headerSkeleton}>
+    <div className={styles.container} aria-busy="true" aria-label="Loading system status">
+      <header className={styles.masthead}>
+        <div className={styles.mastheadCopy}>
+          <div className={styles.skeletonEyebrow} />
           <div className={styles.skeletonTitle} />
           <div className={styles.skeletonSubtitle} />
         </div>
-        <div className={styles.skeletonBadge} />
-      </div>
+        <div className={styles.skeletonDashboardLink} />
+      </header>
 
-      <div className={styles.metricsSection}>
-        <div className={styles.sectionSkeleton}>
-          <div className={styles.skeletonSectionTitle} />
-          <div className={styles.metricsGrid}>
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className={styles.metricSkeleton}>
+      <section className={styles.statusBanner}>
+        <div className={styles.statusMain}>
+          <div className={styles.statusIcon} />
+          <div className={styles.statusCopy}>
+            <div className={styles.skeletonKicker} />
+            <div className={styles.skeletonStatusTitle} />
+            <div className={styles.skeletonStatusDescription} />
+          </div>
+        </div>
+        <div className={styles.statusMeta}>
+          <div className={styles.skeletonStatusBadge} />
+          <div className={styles.skeletonTimestamp} />
+        </div>
+        <div className={styles.statusLine} />
+      </section>
+
+      <section className={styles.metricsSection}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle} />
+          <div className={styles.sectionActions}>
+            <div className={styles.skeletonAction} />
+            <div className={styles.skeletonActionWide} />
+          </div>
+        </div>
+        <div className={styles.metricsGrid}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className={styles.metricSkeleton}>
+              <div className={styles.metricTop}>
+                <div className={styles.skeletonMetricIcon} />
                 <div className={styles.skeletonMetricTitle} />
-                <div className={styles.skeletonMetricValue} />
-                <div className={styles.skeletonMetricTrend} />
+                <div className={styles.skeletonMetricBadge} />
               </div>
-            ))}
-          </div>
+              <div className={styles.skeletonMetricValue} />
+              <div className={styles.skeletonMetricTrend} />
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      <div className={styles.servicesSection}>
-        <div className={styles.sectionSkeleton}>
-          <div className={styles.skeletonSectionTitle} />
-          <div className={styles.servicesGrid}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+      <div className={styles.lowerGrid}>
+        <section className={styles.lowerSection}>
+          <div className={styles.lowerSectionHeader}>
+            <div className={styles.sectionTitle} />
+          </div>
+          <div className={styles.servicesList}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className={styles.serviceSkeleton}>
-                <div className={styles.skeletonServiceTitle} />
-                <div className={styles.skeletonServiceValue} />
-                <div className={styles.skeletonServiceBadge} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.incidentsSection}>
-        <div className={styles.sectionSkeleton}>
-          <div className={styles.skeletonSectionTitle} />
-          <div className={styles.incidentsList}>
-            {[1, 2, 3].map(i => (
-              <div key={i} className={styles.incidentSkeleton}>
-                <div className={styles.skeletonMarker}>
-                  <div className={styles.skeletonDot} />
-                  <div className={styles.skeletonLine} />
-                </div>
-                <div className={styles.skeletonContent}>
-                  <div className={styles.skeletonHeader}>
-                    <div className={styles.skeletonIncidentTitle} />
-                    <div className={styles.skeletonIncidentBadge} />
+                <div className={styles.serviceInfo}>
+                  <div className={styles.skeletonServiceIcon} />
+                  <div className={styles.serviceText}>
+                    <div className={styles.skeletonServiceTitle} />
+                    <div className={styles.skeletonServiceDescription} />
                   </div>
-                  <div className={styles.skeletonTimestamp} />
-                  <div className={styles.skeletonDescription} />
-                  <div className={styles.skeletonAffected} />
+                </div>
+                <div className={styles.serviceMeta}>
+                  <div className={styles.skeletonServiceBadge} />
+                  <div className={styles.skeletonLatency} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
+
+        <section className={styles.lowerSection}>
+          <div className={styles.lowerSectionHeader}>
+            <div className={styles.sectionTitle} />
+          </div>
+          <div className={styles.incidentSkeleton}>
+            <div className={styles.skeletonEmptyIcon} />
+            <div className={styles.skeletonIncidentTitle} />
+            <div className={styles.skeletonIncidentDescription} />
+            <div className={styles.skeletonIncidentBadge} />
+          </div>
+        </section>
       </div>
     </div>
   )
