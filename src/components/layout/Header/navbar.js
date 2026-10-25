@@ -17,8 +17,23 @@ function Navbar() {
 
   return (
     <nav className={styles.navbar} aria-label="Navegação principal">
-      <Link href="/" className={styles.logo} onClick={closeMenu}>
-        <img src="/images/logo.svg" alt="SpendSmart" className={styles.logoImg} />
+      <Link href="/" className={styles.logo} onClick={closeMenu} aria-label="SpendSmart - Início">
+        <span className={styles.logoIcon} aria-hidden="true">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+        </span>
         <span className={styles.logoText}>SpendSmart</span>
       </Link>
 

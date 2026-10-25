@@ -39,6 +39,18 @@
   transform: scale(1.05);
 }
 
+.logoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury, #00d4aa);
+  transition: transform var(--duration-fast, 150ms) ease;
+}
+
+.logo:hover .logoIcon {
+  transform: scale(1.1) rotate(-3deg);
+}
+
 .logoText {
   font-family: var(--font-display, sans-serif);
   font-size: var(--text-lg, 1.125rem);
@@ -121,6 +133,7 @@
 
 .registerBtn:hover {
   background-color: var(--color-mercury-hover, #00f0c0);
+  color: var(--color-surface-950, #04090b);
   transform: translateY(-1px);
 }
 
