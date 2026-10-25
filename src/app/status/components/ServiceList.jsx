@@ -10,17 +10,13 @@ import {
 } from "../utils/statusConfig"
 import { LatencyIcon, ServicesListIcon, serviceIconMap } from "../utils/icons"
 import styles from "./ServiceList.module.css"
-import sharedStyles from "./StatusShared.module.css"
 
 export function ServiceList({ services }) {
   if (!services || services.length === 0) {
     return (
-      <section
-        className={`${sharedStyles.section} ${styles.servicesSection}`}
-        aria-labelledby="services-heading"
-      >
-        <h2 id="services-heading" className={sharedStyles.sectionTitle}>
-          <span className={`${sharedStyles.sectionIcon} ${styles.servicesIcon}`} aria-hidden="true">
+      <section className={styles.servicesSection} aria-labelledby="services-heading">
+        <h2 id="services-heading" className={styles.sectionTitle}>
+          <span className={styles.servicesIcon} aria-hidden="true">
             <ServicesListIcon width={20} height={20} />
           </span>
           Services
@@ -33,12 +29,9 @@ export function ServiceList({ services }) {
   }
 
   return (
-    <section
-      className={`${sharedStyles.section} ${styles.servicesSection}`}
-      aria-labelledby="services-heading"
-    >
-      <h2 id="services-heading" className={sharedStyles.sectionTitle}>
-        <span className={`${sharedStyles.sectionIcon} ${styles.servicesIcon}`} aria-hidden="true">
+    <section className={styles.servicesSection} aria-labelledby="services-heading">
+      <h2 id="services-heading" className={styles.sectionTitle}>
+        <span className={styles.servicesIcon} aria-hidden="true">
           <ServicesListIcon width={20} height={20} />
         </span>
         Services

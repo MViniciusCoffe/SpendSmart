@@ -1,5 +1,6 @@
 /**
  * Badge Component Styles
+ * Uses design tokens from design-tokens.css
  */
 
 .badge {
@@ -9,9 +10,12 @@
   gap: var(--space-1);
   font-family: var(--font-sans);
   font-weight: var(--font-weight-semibold);
-  border-radius: var(--radius-badge);
+  border-radius: var(--radius-full);
   white-space: nowrap;
-  transition: var(--transition-button);
+  transition:
+    background-color var(--duration-fast) var(--easing-ease-out),
+    border-color var(--duration-fast) var(--easing-ease-out),
+    color var(--duration-fast) var(--easing-ease-out);
 }
 
 /* Variants */
@@ -33,12 +37,12 @@
 
 .error {
   background: var(--color-error);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .info {
   background: var(--color-info);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .primary {
@@ -55,7 +59,7 @@
 }
 
 .md {
-  padding: var(--space-1-5) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-semibold);
   min-height: 24px;
@@ -111,7 +115,7 @@
 }
 
 .badge {
-  animation: popIn 0.2s var(--easing-ease-out-back);
+  animation: popIn 0.2s var(--easing-spring);
 }
 
 /* Pulsing for live status */

@@ -1,7 +1,7 @@
 import React from "react"
-import Link from "next/link"
-import Navbar from "@/components/layout/Header/navbar"
-import sharedStyles from "@/components/layout/Header/public-shared.module.css"
+import { Navbar, Footer } from "@/components/layout"
+import { Button, Card, Badge, Icon, Section } from "@/components/ui"
+import { siteConfig } from "@/lib/config/siteConfig"
 import styles from "./about.module.css"
 
 export const metadata = {
@@ -13,401 +13,455 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <div className={styles.pageWrapper}>
-      <Navbar />
+      <Navbar variant="public" />
 
       <main>
         {/* Hero Section */}
-        <section className={styles.heroSection}>
-          <div className={sharedStyles.container}>
-            <div className={`${styles.heroContent} ${sharedStyles.slideUp}`}>
-              <span className={styles.badge}>Contexto Acadêmico — BSI UFRN 2026</span>
-              <h1 className={styles.heroTitle}>Sobre o SpendSmart</h1>
-              <p className={styles.heroSub}>
-                Uma plataforma moderna de gestão financeira pessoal desenvolvida no contexto da
-                disciplina de Testes de Software com foco rigoroso em engenharia de qualidade.
-              </p>
-            </div>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <div className={`${styles.heroContent} animate-slide-up`}>
+            <Badge variant="success" dot size="sm">
+              Contexto Acadêmico — BSI UFRN 2026
+            </Badge>
+            <h1 className={styles.heroTitle}>Sobre o SpendSmart</h1>
+            <p className={styles.heroSub}>
+              Uma plataforma moderna de gestão financeira pessoal desenvolvida no contexto da
+              disciplina de Testes de Software com foco rigoroso em engenharia de qualidade.
+            </p>
           </div>
-        </section>
+        </Section>
 
         {/* Mission Section */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.missionCard}>
-              <div className={styles.missionHighlight}>
-                &ldquo;Projeto acadêmico da disciplina Testes de Software (BSI UFRN 2026) — Controle
-                financeiro pessoal com arquitetura moderna e testes automatizados.&rdquo;
-              </div>
-              <p className={styles.missionDetails}>
-                O SpendSmart nasceu para ir além de um simples gerenciador de despesas: o objetivo é
-                demonstrar na prática os pilares de uma aplicação escalável e segura. Desenvolvido
-                com arquitetura em camadas, separação clara de responsabilidades, cobertura de
-                testes unitários de 100% na camada de negócio (services) e políticas ativas de RLS
-                (Row Level Security) no banco de dados PostgreSQL.
-              </p>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <Card
+            variant="elevated"
+            style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 2rem" }}
+          >
+            <div className={styles.missionHighlight}>
+              &ldquo;Projeto acadêmico da disciplina Testes de Software (BSI UFRN 2026) — Controle
+              financeiro pessoal com arquitetura moderna e testes automatizados.&rdquo;
             </div>
-          </div>
-        </section>
+            <p className={styles.missionDetails}>
+              O SpendSmart nasceu para ir além de um simples gerenciador de despesas: o objetivo é
+              demonstrar na prática os pilares de uma aplicação escalável e segura. Desenvolvido com
+              arquitetura em camadas, separação clara de responsabilidades, cobertura de testes
+              unitários de 100% na camada de negócio (services) e políticas ativas de RLS (Row Level
+              Security) no banco de dados PostgreSQL.
+            </p>
+          </Card>
+        </Section>
 
         {/* Detailed Features */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Recursos em Detalhes</h2>
-              <p className={styles.sectionDescription}>
-                Conheça como cada módulo foi planejado para fornecer uma experiência fluida e
-                confiável.
-              </p>
-            </div>
-
-            <div className={styles.featuresGrid}>
-              <div className={styles.featureDetailCard}>
-                <div className={styles.featureIcon}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                </div>
-                <h3 className={styles.featureTitle}>Dashboard Inteligente</h3>
-                <p className={styles.featureText}>
-                  Agrega dados de receitas e despesas com cálculos dinâmicos de saldo líquido,
-                  gráficos interativos renderizados via Chart.js e filtros cronológicos para tomada
-                  de decisão rápida.
-                </p>
-              </div>
-
-              <div className={styles.featureDetailCard}>
-                <div className={styles.featureIcon}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                    <line x1="1" y1="10" x2="23" y2="10"></line>
-                  </svg>
-                </div>
-                <h3 className={styles.featureTitle}>Transações Simples</h3>
-                <p className={styles.featureText}>
-                  Lançamentos tipados com validação preventiva de valores positivos
-                  (`numeric(12,2)`), métodos de pagamento flexíveis e suporte a histórico auditável
-                  com isolamento por usuário.
-                </p>
-              </div>
-
-              <div className={styles.featureDetailCard}>
-                <div className={styles.featureIcon}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                  </svg>
-                </div>
-                <h3 className={styles.featureTitle}>Categorias Personalizadas</h3>
-                <p className={styles.featureText}>
-                  Organização intuitiva com cores personalizadas e separação rígida entre receitas e
-                  despesas, protegidas por constraints de integridade e soft delete para impedir
-                  perda involuntária de dados.
-                </p>
-              </div>
-
-              <div className={styles.featureDetailCard}>
-                <div className={styles.featureIcon}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                  </svg>
-                </div>
-                <h3 className={styles.featureTitle}>Status do Sistema</h3>
-                <p className={styles.featureText}>
-                  Página de status aberta que monitora a saúde das conexões com Supabase Auth,
-                  PostgreSQL e endpoints de API, oferecendo total transparência e histórico de
-                  incidentes em tempo real.
-                </p>
-              </div>
-            </div>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Recursos em Detalhes</h2>
+            <p className={styles.sectionDescription}>
+              Conheça como cada módulo foi planejado para fornecer uma experiência fluida e
+              confiável.
+            </p>
           </div>
-        </section>
+
+          <div className={styles.featuresGrid}>
+            <Card hover>
+              <div className={styles.featureIcon}>
+                <Icon name="chart-bar" size={24} />
+              </div>
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Dashboard Inteligente
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1.55",
+                  color: "var(--color-text-secondary)"
+                }}
+              >
+                Agrega dados de receitas e despesas com cálculos dinâmicos de saldo líquido,
+                gráficos interativos renderizados via Chart.js e filtros cronológicos para tomada de
+                decisão rápida.
+              </p>
+            </Card>
+
+            <Card hover>
+              <div className={styles.featureIcon}>
+                <Icon name="credit-card" size={24} />
+              </div>
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Transações Simples
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1.55",
+                  color: "var(--color-text-secondary)"
+                }}
+              >
+                Lançamentos tipados com validação preventiva de valores positivos, métodos de
+                pagamento flexíveis e suporte a histórico auditável com isolamento por usuário.
+              </p>
+            </Card>
+
+            <Card hover>
+              <div className={styles.featureIcon}>
+                <Icon name="tag" size={24} />
+              </div>
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Categorias Personalizadas
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1.55",
+                  color: "var(--color-text-secondary)"
+                }}
+              >
+                Organização intuitiva com cores personalizadas e separação rígida entre receitas e
+                despesas, protegidas por constraints de integridade e soft delete.
+              </p>
+            </Card>
+
+            <Card hover>
+              <div className={styles.featureIcon}>
+                <Icon name="activity" size={24} />
+              </div>
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Status do Sistema
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1.55",
+                  color: "var(--color-text-secondary)"
+                }}
+              >
+                Página de status aberta que monitora a saúde das conexões com Supabase Auth,
+                PostgreSQL e endpoints de API, oferecendo total transparência.
+              </p>
+            </Card>
+          </div>
+        </Section>
 
         {/* Tech Stack */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Tecnologias Utilizadas</h2>
-              <p className={styles.sectionDescription}>
-                Stack moderna construída com as ferramentas mais sólidas do ecossistema JavaScript.
-              </p>
-            </div>
-
-            <div className={styles.techGrid}>
-              <a
-                href="https://nextjs.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>Next.js 16</span>
-                <span className={styles.techRole}>Framework React</span>
-              </a>
-
-              <a
-                href="https://supabase.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>Supabase</span>
-                <span className={styles.techRole}>Auth + Postgres RLS</span>
-              </a>
-
-              <a
-                href="https://react.dev"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>React 19</span>
-                <span className={styles.techRole}>Interface Declarativa</span>
-              </a>
-
-              <a
-                href="https://www.chartjs.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>Chart.js</span>
-                <span className={styles.techRole}>Visualização de Dados</span>
-              </a>
-
-              <a
-                href="https://jestjs.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>Jest</span>
-                <span className={styles.techRole}>Suíte de Testes</span>
-              </a>
-
-              <a
-                href="https://eslint.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.techCard}
-              >
-                <span className={styles.techName}>ESLint 9</span>
-                <span className={styles.techRole}>Qualidade Estática</span>
-              </a>
-            </div>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Tecnologias Utilizadas</h2>
+            <p className={styles.sectionDescription}>
+              Stack moderna construída com as ferramentas mais sólidas do ecossistema JavaScript.
+            </p>
           </div>
-        </section>
+
+          <div className={styles.techGrid}>
+            {siteConfig.techBadges.map(tech => (
+              <a
+                key={tech.name}
+                href={tech.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.techCard}
+              >
+                <Card hover style={{ width: "100%", padding: "1.25rem 1rem" }}>
+                  <span className={styles.techName}>{tech.name}</span>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </Section>
 
         {/* Architecture */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Pilares de Arquitetura</h2>
-              <p className={styles.sectionDescription}>
-                Princípios de software aplicados para garantir resiliência, manutenibilidade e
-                segurança.
-              </p>
-            </div>
-
-            <div className={styles.archGrid}>
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>services/</span>
-                <h3 className={styles.archTitle}>Camada de Negócio</h3>
-                <p className={styles.archDesc}>
-                  Centralização de validações, tradução de erros e regras de domínio isoladas da
-                  interface, facilitando cobertura de testes automatizados e independência de
-                  framework.
-                </p>
-              </div>
-
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>PostgreSQL</span>
-                <h3 className={styles.archTitle}>Row Level Security (RLS)</h3>
-                <p className={styles.archDesc}>
-                  Políticas ativas a nível de banco de dados onde cada usuário só acessa e manipula
-                  seus próprios dados, eliminando riscos de vazamento entre tenants.
-                </p>
-              </div>
-
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>Audit & Safe</span>
-                <h3 className={styles.archTitle}>Soft Delete</h3>
-                <p className={styles.archDesc}>
-                  Exclusões lógicas por meio de `deleted_at`, garantindo rastreabilidade histórica e
-                  preservando a integridade referencial com tabelas dependentes.
-                </p>
-              </div>
-
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>Jest Projects</span>
-                <h3 className={styles.archTitle}>Testes Multi-nível</h3>
-                <p className={styles.archDesc}>
-                  Suíte completa com 4 projetos Jest: testes de unidade com mocks, integração em
-                  memória com pg-mem, testes reais de RLS e suíte de regressão nomeada por issues.
-                </p>
-              </div>
-
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>GitHub Actions</span>
-                <h3 className={styles.archTitle}>CI/CD Automatizado</h3>
-                <p className={styles.archDesc}>
-                  Pipelines contínuos executando linting, testes com thresholds de cobertura e
-                  análise de código estático no SonarQube a cada commit e pull request.
-                </p>
-              </div>
-
-              <div className={styles.archCard}>
-                <span className={styles.archTag}>Serverless API</span>
-                <h3 className={styles.archTitle}>Operações Privilegiadas</h3>
-                <p className={styles.archDesc}>
-                  Rotas serverless seguras com service role restrito exclusivamente ao servidor para
-                  criação de perfis e exclusão auditada de contas.
-                </p>
-              </div>
-            </div>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Pilares de Arquitetura</h2>
+            <p className={styles.sectionDescription}>
+              Princípios de software aplicados para garantir resiliência, manutenibilidade e
+              segurança.
+            </p>
           </div>
-        </section>
+
+          <div className={styles.archGrid}>
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                services/
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Camada de Negócio
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                Centralização de validações, tradução de erros e regras de domínio isoladas da
+                interface.
+              </p>
+            </Card>
+
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                PostgreSQL
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Row Level Security (RLS)
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                Políticas ativas no banco onde cada usuário só manipula seus próprios registros.
+              </p>
+            </Card>
+
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                Audit & Safe
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Soft Delete
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                Exclusões lógicas via `deleted_at`, preservando integridade referencial.
+              </p>
+            </Card>
+
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                Jest Projects
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Testes Multi-nível
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                4 projetos Jest: unitários com mocks, integração pg-mem, RLS real e testes de
+                regressão.
+              </p>
+            </Card>
+
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                GitHub Actions
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                CI/CD Automatizado
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                Pipelines contínuos com linting, testes automatizados e análise estática SonarQube.
+              </p>
+            </Card>
+
+            <Card hover>
+              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+                Serverless API
+              </Badge>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                Operações Privilegiadas
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-text-secondary)",
+                  lineHeight: "1.55"
+                }}
+              >
+                Rotas serverless seguras com service role restrito ao servidor para contas e perfis.
+              </p>
+            </Card>
+          </div>
+        </Section>
 
         {/* Team Section */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Equipe do Projeto</h2>
-              <p className={styles.sectionDescription}>
-                Estrutura de papéis colaborativa focada em entregas de qualidade.
-              </p>
-            </div>
-
-            <div className={styles.teamGrid}>
-              <div className={styles.teamCard}>
-                <div className={styles.teamAvatar}>QA</div>
-                <h3 className={styles.teamName}>Gerência & QA</h3>
-                <span className={styles.teamRole}>Garantia da Qualidade</span>
-                <p className={styles.teamBio}>
-                  Planejamento de casos de teste, validação de regras de negócio, testes de
-                  regressão e conformidade com requisitos da disciplina.
-                </p>
-              </div>
-
-              <div className={styles.teamCard}>
-                <div className={styles.teamAvatar}>DEV</div>
-                <h3 className={styles.teamName}>Desenvolvedor Principal</h3>
-                <span className={styles.teamRole}>Fullstack & Engenharia</span>
-                <p className={styles.teamBio}>
-                  Implementação fullstack, design tokens Mercury, migrações de banco de dados,
-                  integrações com Supabase e suíte de testes Jest.
-                </p>
-              </div>
-            </div>
+        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Equipe do Projeto</h2>
+            <p className={styles.sectionDescription}>
+              Estrutura colaborativa focada em entregas de qualidade.
+            </p>
           </div>
-        </section>
+
+          <div className={styles.teamGrid}>
+            <Card hover style={{ textAlign: "center", padding: "2rem" }}>
+              <div className={styles.teamAvatar}>QA</div>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.25rem"
+                }}
+              >
+                Gerência & QA
+              </h3>
+              <span
+                style={{ fontSize: "0.875rem", color: "var(--color-mercury)", fontWeight: "500" }}
+              >
+                Garantia da Qualidade
+              </span>
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  lineHeight: "1.5",
+                  color: "var(--color-text-secondary)",
+                  marginTop: "0.75rem"
+                }}
+              >
+                Planejamento de testes, validação de regras de negócio e regressão.
+              </p>
+            </Card>
+
+            <Card hover style={{ textAlign: "center", padding: "2rem" }}>
+              <div className={styles.teamAvatar}>DEV</div>
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#ffffff",
+                  marginBottom: "0.25rem"
+                }}
+              >
+                Desenvolvedor Principal
+              </h3>
+              <span
+                style={{ fontSize: "0.875rem", color: "var(--color-mercury)", fontWeight: "500" }}
+              >
+                Fullstack & Engenharia
+              </span>
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  lineHeight: "1.5",
+                  color: "var(--color-text-secondary)",
+                  marginTop: "0.75rem"
+                }}
+              >
+                Implementação fullstack, design tokens, integrações Supabase e suíte Jest.
+              </p>
+            </Card>
+          </div>
+        </Section>
 
         {/* Final CTA */}
-        <section className={styles.sectionBlock}>
-          <div className={sharedStyles.container}>
-            <div className={styles.ctaCard}>
-              <h2 className={styles.ctaTitle}>Conheça o Código Aberto</h2>
-              <p className={styles.ctaDesc}>
-                O projeto é 100% aberto. Explore os repositórios, documentação de testes, relatórios
-                de cobertura e arquitetura no GitHub.
-              </p>
-              <a
-                href="https://github.com/MViniciusCoffe/SpendSmart"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${sharedStyles.btn} ${sharedStyles.btnPrimary}`}
-              >
+        <Section size="lg">
+          <Card variant="elevated" className={styles.ctaCard} style={{ padding: "3.5rem 2rem" }}>
+            <h2 style={{ fontSize: "2rem", fontWeight: "700", color: "#ffffff", margin: 0 }}>
+              Conheça o Código Aberto
+            </h2>
+            <p
+              style={{
+                fontSize: "1rem",
+                color: "var(--color-text-secondary)",
+                maxWidth: "500px",
+                margin: 0
+              }}
+            >
+              O projeto é 100% aberto. Explore os repositórios, documentação de testes e arquitetura
+              no GitHub.
+            </p>
+            <a
+              href={siteConfig.links.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none", marginTop: "0.5rem" }}
+            >
+              <Button variant="primary" size="lg">
                 Ver no GitHub
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-              </a>
-            </div>
-          </div>
-        </section>
+                <Icon name="github" size={18} />
+              </Button>
+            </a>
+          </Card>
+        </Section>
       </main>
 
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)", padding: "3rem 0 2rem" }}>
-        <div className={sharedStyles.container}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "1rem",
-              fontSize: "0.875rem",
-              color: "var(--color-text-secondary, #94a3b8)"
-            }}
-          >
-            <div>© 2025 SpendSmart — BSI UFRN, Testes de Software</div>
-            <div style={{ display: "flex", gap: "1.5rem" }}>
-              <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-                Início
-              </Link>
-              <Link href="/contact" style={{ color: "inherit", textDecoration: "none" }}>
-                Contato
-              </Link>
-              <Link href="/status" style={{ color: "inherit", textDecoration: "none" }}>
-                Status
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

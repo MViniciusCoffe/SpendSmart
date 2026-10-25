@@ -4,13 +4,45 @@
  */
 
 .servicesSection {
-  animation-delay: 0.2s;
+  position: relative;
+  margin-bottom: var(--space-12, 3rem);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin: 0 0 var(--space-4, 1rem);
+  padding-bottom: var(--space-4, 1rem);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary, #f0f6fc);
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-weight-bold, 700);
+  letter-spacing: -0.03em;
 }
 
 .servicesIcon {
-  color: var(--color-mercury);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md, 0.5rem);
+  color: var(--color-mercury, #00d4aa);
   background: rgba(0, 212, 170, 0.08);
   box-shadow: 0 0 18px rgba(0, 212, 170, 0.08);
+}
+
+.emptyCard {
+  padding: var(--space-12, 3rem) var(--space-6, 1.5rem);
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--color-text-muted, #64748b);
+  font-size: var(--text-base, 1rem);
 }
 
 .grid {

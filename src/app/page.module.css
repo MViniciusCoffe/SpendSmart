@@ -4,16 +4,12 @@
   flex-direction: column;
   background-color: var(--color-bg-primary, #04090b);
   color: var(--color-text-primary, #f0f6fc);
-  padding-top: 4rem; /* navbar height */
+  padding-top: 4rem;
 }
 
-/* ==========================================================================
-   Hero Section
-   ========================================================================== */
 .heroSection {
   position: relative;
   overflow: hidden;
-  padding: 4rem 0 6rem 0;
   border-bottom: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
   background: radial-gradient(circle at 50% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 60%);
 }
@@ -21,43 +17,28 @@
 .heroGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
+  gap: var(--space-12, 3rem);
   align-items: center;
 }
 
 @media (min-width: 1024px) {
   .heroGrid {
     grid-template-columns: 1.1fr 0.9fr;
-    gap: 4rem;
+    gap: var(--space-16, 4rem);
   }
 }
 
 .heroContent {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-6, 1.5rem);
 }
 
 .heroBadge {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(0, 212, 170, 0.1);
-  border: 1px solid rgba(0, 212, 170, 0.25);
-  color: var(--color-mercury, #00d4aa);
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.heroBadgePulse {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--color-mercury, #00d4aa);
-  box-shadow: 0 0 8px var(--color-mercury, #00d4aa);
+  gap: var(--space-2, 0.5rem);
 }
 
 .heroHeadline {
@@ -98,11 +79,10 @@
 .heroActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  padding-top: 0.5rem;
+  gap: var(--space-4, 1rem);
+  padding-top: var(--space-2, 0.5rem);
 }
 
-/* Hero Illustration Container */
 .heroIllustrationWrapper {
   display: flex;
   justify-content: center;
@@ -115,12 +95,12 @@
   max-width: 520px;
   background: linear-gradient(180deg, rgba(19, 27, 32, 0.9) 0%, rgba(11, 17, 21, 0.95) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
+  border-radius: var(--radius-xl, 1rem);
   box-shadow:
     0 20px 50px -15px rgba(0, 0, 0, 0.7),
     0 0 40px -10px rgba(0, 212, 170, 0.15);
   overflow: hidden;
-  padding: 1.25rem;
+  padding: var(--space-5, 1.25rem);
 }
 
 .heroSvg {
@@ -129,21 +109,13 @@
   display: block;
 }
 
-/* ==========================================================================
-   Features Section
-   ========================================================================== */
-.featuresSection {
-  padding: 5rem 0 6rem 0;
-  background-color: var(--color-bg-primary, #04090b);
-}
-
 .featuresHeader {
   text-align: center;
   max-width: 640px;
-  margin: 0 auto 4rem auto;
+  margin: 0 auto var(--space-12, 3rem) auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-3, 0.75rem);
 }
 
 .featuresHeaderTitle {
@@ -170,7 +142,7 @@
 .featuresGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: var(--space-6, 1.5rem);
 }
 
 @media (min-width: 640px) {
@@ -185,43 +157,24 @@
   }
 }
 
-.featureCard {
-  background: var(--color-surface-900, #0b1115);
-  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
-  border-radius: 0.875rem;
-  padding: 1.75rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.featureCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(0, 212, 170, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-}
-
 .featureIconBox {
   width: 3rem;
   height: 3rem;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-md, 0.5rem);
   background: rgba(0, 212, 170, 0.1);
   border: 1px solid rgba(0, 212, 170, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-mercury, #00d4aa);
+  margin-bottom: var(--space-4, 1rem);
 }
 
 .featureTitle {
   font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
-  margin: 0;
+  margin: 0 0 var(--space-2, 0.5rem) 0;
 }
 
 .featureDescription {
@@ -229,97 +182,4 @@
   line-height: 1.55;
   color: var(--color-text-secondary, #94a3b8);
   margin: 0;
-}
-
-/* ==========================================================================
-   Footer Section
-   ========================================================================== */
-.footer {
-  margin-top: auto;
-  background-color: var(--color-surface-950, #04090b);
-  border-top: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
-  padding: 4rem 0 2.5rem 0;
-}
-
-.footerGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
-  margin-bottom: 3rem;
-}
-
-@media (min-width: 768px) {
-  .footerGrid {
-    grid-template-columns: 1.5fr 1fr 1.5fr;
-    gap: 2.5rem;
-  }
-}
-
-.footerBrand {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.footerBrandDesc {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--color-text-secondary, #94a3b8);
-  margin: 0;
-  max-width: 320px;
-}
-
-.footerNavTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #ffffff;
-  margin: 0 0 1rem 0;
-}
-
-.footerNavList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.footerNavLink {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary, #94a3b8);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.footerNavLink:hover {
-  color: var(--color-mercury, #00d4aa);
-}
-
-.footerTechBadges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.footerBottom {
-  padding-top: 2rem;
-  border-top: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.06));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted, #64748b);
-  text-align: center;
-}
-
-@media (min-width: 640px) {
-  .footerBottom {
-    flex-direction: row;
-    text-align: left;
-  }
 }

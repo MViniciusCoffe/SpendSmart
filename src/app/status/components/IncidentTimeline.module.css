@@ -4,13 +4,39 @@
  */
 
 .incidentsSection {
-  animation-delay: 0.3s;
+  position: relative;
+  margin-bottom: var(--space-12, 3rem);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin: 0 0 var(--space-4, 1rem);
+  padding-bottom: var(--space-4, 1rem);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary, #f0f6fc);
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-weight-bold, 700);
+  letter-spacing: -0.03em;
 }
 
 .incidentsIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md, 0.5rem);
   color: var(--color-warning);
   background: rgba(255, 179, 0, 0.08);
   box-shadow: 0 0 18px rgba(255, 179, 0, 0.1);
+}
+
+.emptyCard {
+  padding: var(--space-12, 3rem) var(--space-6, 1.5rem);
+  text-align: center;
 }
 
 .timeline {

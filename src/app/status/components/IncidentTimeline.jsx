@@ -6,20 +6,13 @@ import { Divider } from "@/components/ui"
 import { getSeverityConfig } from "../utils/statusConfig"
 import { IncidentIcon, SuccessEmptyIcon } from "../utils/icons"
 import styles from "./IncidentTimeline.module.css"
-import sharedStyles from "./StatusShared.module.css"
 
 export function IncidentTimeline({ incidents }) {
   if (!incidents || incidents.length === 0) {
     return (
-      <section
-        className={`${sharedStyles.section} ${styles.incidentsSection}`}
-        aria-labelledby="incidents-heading"
-      >
-        <h2 id="incidents-heading" className={sharedStyles.sectionTitle}>
-          <span
-            className={`${sharedStyles.sectionIcon} ${styles.incidentsIcon}`}
-            aria-hidden="true"
-          >
+      <section className={styles.incidentsSection} aria-labelledby="incidents-heading">
+        <h2 id="incidents-heading" className={styles.sectionTitle}>
+          <span className={styles.incidentsIcon} aria-hidden="true">
             <IncidentIcon width={24} height={24} />
           </span>
           Incident History
@@ -44,12 +37,9 @@ export function IncidentTimeline({ incidents }) {
   }
 
   return (
-    <section
-      className={`${sharedStyles.section} ${styles.incidentsSection}`}
-      aria-labelledby="incidents-heading"
-    >
-      <h2 id="incidents-heading" className={sharedStyles.sectionTitle}>
-        <span className={`${sharedStyles.sectionIcon} ${styles.incidentsIcon}`} aria-hidden="true">
+    <section className={styles.incidentsSection} aria-labelledby="incidents-heading">
+      <h2 id="incidents-heading" className={styles.sectionTitle}>
+        <span className={styles.incidentsIcon} aria-hidden="true">
           <IncidentIcon width={24} height={24} />
         </span>
         Incident History

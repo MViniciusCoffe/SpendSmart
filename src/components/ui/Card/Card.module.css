@@ -1,18 +1,22 @@
 /**
  * Card Component Styles
+ * Uses design tokens from design-tokens.css
  */
 
 .card {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  transition: var(--transition-card);
+  border-radius: var(--radius-xl);
+  transition:
+    border-color var(--duration-normal) var(--easing-ease-out),
+    box-shadow var(--duration-normal) var(--easing-ease-out),
+    transform var(--duration-normal) var(--easing-ease-out);
   overflow: hidden;
 }
 
 .card:hover {
   border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -31,11 +35,11 @@
 .elevated {
   background: var(--color-bg-secondary);
   border: none;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-md);
 }
 
 .elevated:hover {
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-xl);
   transform: translateY(-4px);
 }
 
@@ -68,12 +72,15 @@
 
 /* Hover effect */
 .hover {
-  transition: var(--transition-card);
+  transition:
+    border-color var(--duration-normal) var(--easing-ease-out),
+    box-shadow var(--duration-normal) var(--easing-ease-out),
+    transform var(--duration-normal) var(--easing-ease-out);
 }
 
 .hover:hover {
   border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -93,14 +100,14 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
-  line-height: var(--leading-snug);
+  line-height: var(--line-height-tight);
 }
 
 .description {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin: var(--space-1) 0 0 0;
-  line-height: var(--leading-normal);
+  line-height: var(--line-height-normal);
 }
 
 .content {

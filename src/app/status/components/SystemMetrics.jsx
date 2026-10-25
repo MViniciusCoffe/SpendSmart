@@ -11,23 +11,16 @@ import {
   getMetricColor
 } from "../utils/statusConfig"
 import styles from "./SystemMetrics.module.css"
-import sharedStyles from "./StatusShared.module.css"
 
 import { MetricsIcon, HomeIcon, metricIconMap } from "../utils/icons"
 
 export function SystemMetrics({ metrics }) {
   return (
-    <section
-      className={`${sharedStyles.section} ${styles.metricsSection}`}
-      aria-labelledby="metrics-heading"
-    >
+    <section className={styles.metricsSection} aria-labelledby="metrics-heading">
       <div className={styles.sectionHeader}>
         <div className={styles.titleGroup}>
-          <h2 id="metrics-heading" className={sharedStyles.sectionTitle}>
-            <span
-              className={`${sharedStyles.sectionIcon} ${styles.metricsIcon}`}
-              aria-hidden="true"
-            >
+          <h2 id="metrics-heading" className={styles.sectionTitle}>
+            <span className={styles.metricsIcon} aria-hidden="true">
               <MetricsIcon width={24} height={24} />
             </span>
             System Metrics

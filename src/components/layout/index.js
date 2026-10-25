@@ -1,3 +1,6 @@
-export { Header } from "./Header/Header"
+export { Navbar } from "./Header"
+export { default as NavbarDefault } from "./Header/Navbar"
+export { Footer } from "./Footer"
+export { Header } from "./Header"
 export { PageContainer, PageHeader } from "./PageContainer"
 export { Sidebar } from "./Sidebar/Sidebar"

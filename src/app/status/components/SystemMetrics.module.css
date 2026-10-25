@@ -5,15 +5,32 @@
 
 .metricsSection {
   position: relative;
+  margin-bottom: var(--space-12, 3rem);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  margin: 0;
+  color: var(--color-text-primary, #f0f6fc);
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-weight-bold, 700);
+  letter-spacing: -0.03em;
 }
 
 .metricsIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
   background: rgba(0, 212, 170, 0.08);
   border: 0;
   border-radius: var(--radius-md);
   box-shadow: 0 0 18px rgba(0, 212, 170, 0.12);
+  color: var(--color-mercury, #00d4aa);
 }
 
 .sectionHeader {
