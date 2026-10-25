@@ -1,0 +1,371 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-primary, #04090b);
+  color: var(--color-text-primary, #f0f6fc);
+  padding-top: 4rem;
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+.heroSection {
+  padding: 4rem 0 3rem 0;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  background: radial-gradient(circle at 50% 10%, rgba(0, 212, 170, 0.06) 0%, transparent 60%);
+}
+
+.heroContent {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(0, 212, 170, 0.1);
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  color: var(--color-mercury, #00d4aa);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.heroTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .heroTitle {
+    font-size: 3.25rem;
+  }
+}
+
+.heroSub {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #94a3b8);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Section Common
+   ========================================================================== */
+.sectionBlock {
+  padding: 4rem 0;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.06));
+}
+
+.sectionHeader {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin: 0;
+}
+
+.sectionDescription {
+  font-size: 1rem;
+  color: var(--color-text-secondary, #94a3b8);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Mission & Academic Context Card
+   ========================================================================== */
+.missionCard {
+  background: linear-gradient(180deg, rgba(19, 27, 32, 0.8) 0%, rgba(11, 17, 21, 0.95) 100%);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.missionHighlight {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #ffffff;
+  border-left: 3px solid var(--color-mercury, #00d4aa);
+  padding-left: 1.25rem;
+}
+
+.missionDetails {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #94a3b8);
+}
+
+/* ==========================================================================
+   Features Detailed Grid
+   ========================================================================== */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.featureDetailCard {
+  background: var(--color-surface-900, #0b1115);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 0.875rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.featureIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 212, 170, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury, #00d4aa);
+}
+
+.featureTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.featureText {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary, #94a3b8);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Tech Stack Grid
+   ========================================================================== */
+.techGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .techGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .techGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.techCard {
+  background: var(--color-surface-900, #0b1115);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.techCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-mercury, #00d4aa);
+}
+
+.techName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.techRole {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* ==========================================================================
+   Architecture Cards
+   ========================================================================== */
+.archGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .archGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.archCard {
+  background: var(--color-surface-900, #0b1115);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 0.875rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.archTag {
+  align-self: flex-start;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--color-mercury, #00d4aa);
+  background: rgba(0, 212, 170, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.archTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.archDesc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary, #94a3b8);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Team Section
+   ========================================================================== */
+.teamGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .teamGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.teamCard {
+  background: var(--color-surface-900, #0b1115);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 0.875rem;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.teamAvatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2) 0%, rgba(19, 27, 32, 1) 100%);
+  border: 2px solid var(--color-mercury, #00d4aa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.teamName {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.teamRole {
+  font-size: 0.875rem;
+  color: var(--color-mercury, #00d4aa);
+  font-weight: 500;
+}
+
+.teamBio {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #94a3b8);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Final CTA
+   ========================================================================== */
+.ctaCard {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 212, 170, 0.12) 0%,
+    rgba(11, 17, 21, 0.95) 100%
+  );
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  border-radius: 1rem;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.ctaTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.ctaDesc {
+  font-size: 1rem;
+  color: var(--color-text-secondary, #94a3b8);
+  max-width: 500px;
+  margin: 0;
+}

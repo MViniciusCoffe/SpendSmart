@@ -1,30 +1,100 @@
+"use client"
+
+import React, { useState } from "react"
 import Link from "next/link"
 import styles from "./navbar.module.css"
 
-function navbar() {
+function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const toggleMenu = () => {
+    setIsMenuOpen(prev => !prev)
+  }
+
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+
   return (
-    <div className={styles.navbar}>
-      <div className={styles.logo}>
-        <img src="/images/logo.svg" alt="Logo do Spend Smart"></img>
-      </div>
+    <nav className={styles.navbar} aria-label="Navegação principal">
+      <Link href="/" className={styles.logo} onClick={closeMenu}>
+        <img src="/images/logo.svg" alt="SpendSmart" className={styles.logoImg} />
+        <span className={styles.logoText}>SpendSmart</span>
+      </Link>
+
       <div className={styles.navigation}>
         <ul className={styles.links}>
           <li>
-            <Link href="/">Home</Link>
+            <Link href="/" className={styles.navLink}>
+              Início
+            </Link>
           </li>
           <li>
-            <Link href="/about">Sobre</Link>
+            <Link href="/about" className={styles.navLink}>
+              Sobre
+            </Link>
           </li>
           <li>
-            <Link href="/contact">Contatos</Link>
+            <Link href="/contact" className={styles.navLink}>
+              Contato
+            </Link>
           </li>
           <li>
-            <Link href="/login">Login</Link>
+            <Link href="/status" className={styles.navLink}>
+              Status
+            </Link>
           </li>
         </ul>
       </div>
-    </div>
+
+      <div className={styles.authGroup}>
+        <Link href="/login" className={styles.loginBtn}>
+          Entrar
+        </Link>
+        <Link href="/register" className={styles.registerBtn}>
+          Começar grátis
+        </Link>
+      </div>
+
+      <button
+        type="button"
+        className={`${styles.hamburger} ${isMenuOpen ? styles.hamburgerOpen : ""}`}
+        onClick={toggleMenu}
+        aria-expanded={isMenuOpen}
+        aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
+      >
+        <span className={styles.hamburgerLine}></span>
+        <span className={styles.hamburgerLine}></span>
+        <span className={styles.hamburgerLine}></span>
+      </button>
+
+      <div
+        className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ""}`}
+        aria-hidden={!isMenuOpen}
+      >
+        <Link href="/" className={styles.mobileNavLink} onClick={closeMenu}>
+          Início
+        </Link>
+        <Link href="/about" className={styles.mobileNavLink} onClick={closeMenu}>
+          Sobre
+        </Link>
+        <Link href="/contact" className={styles.mobileNavLink} onClick={closeMenu}>
+          Contato
+        </Link>
+        <Link href="/status" className={styles.mobileNavLink} onClick={closeMenu}>
+          Status
+        </Link>
+        <div className={styles.mobileAuthButtons}>
+          <Link href="/login" className={styles.loginBtn} onClick={closeMenu}>
+            Entrar
+          </Link>
+          <Link href="/register" className={styles.registerBtn} onClick={closeMenu}>
+            Começar grátis
+          </Link>
+        </div>
+      </div>
+    </nav>
   )
 }
 
-export default navbar
+export default Navbar
