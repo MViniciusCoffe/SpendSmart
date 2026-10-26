@@ -7,6 +7,9 @@
   flex-direction: column;
   min-height: calc(100vh - var(--header-height));
   padding-top: var(--header-height);
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
 }
 
 /* Max Width Variants */

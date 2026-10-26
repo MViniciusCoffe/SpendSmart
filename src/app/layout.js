@@ -1,5 +1,6 @@
 import { Providers } from "./providers"
 import "@/styles/globals.css"
+import { Header } from "@/components/layout/Header"
 
 /**
  * @typedef {Object} RootLayoutProps
@@ -53,7 +54,10 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
         className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] antialiased"
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   )

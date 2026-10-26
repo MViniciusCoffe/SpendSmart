@@ -12,6 +12,7 @@
     box-shadow var(--duration-normal) var(--easing-ease-out),
     transform var(--duration-normal) var(--easing-ease-out);
   overflow: hidden;
+  z-index: 1;
 }
 
 .card:hover {

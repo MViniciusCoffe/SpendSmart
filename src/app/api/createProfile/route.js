@@ -5,15 +5,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método não permitido" })
-  }
+export async function POST(request) {
+  const token = request.headers.get("authorization")?.split(" ")[1]
+  if (!token) return Response.json({ message: "Não autorizado" }, { status: 401 })
 
-  const token = req.headers.authorization?.split(" ")[1]
-  if (!token) return res.status(401).json({ message: "Não autorizado" })
-
-  const { full_name, birth_date, phone } = req.body
+  const { full_name, birth_date, phone } = await request.json()
 
   try {
     const supabase = createClient(
@@ -40,9 +36,13 @@ export default async function handler(req, res) {
       throw insertError
     }
 
-    return res.status(200).json({ message: "Perfil criado com sucesso" })
+    return Response.json({ message: "Perfil criado com sucesso" })
   } catch (error) {
     console.error("[Create Profile API Error]", error)
-    return res.status(500).json({ message: "Erro ao criar perfil", error: error.message })
+    return Response.json({ message: "Erro ao criar perfil", error: error.message }, { status: 500 })
   }
+}
+
+export function GET() {
+  return Response.json({ message: "Método não permitido" }, { status: 405 })
 }

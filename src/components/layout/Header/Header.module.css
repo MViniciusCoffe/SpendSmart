@@ -10,7 +10,7 @@
   height: var(--header-height);
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
-  z-index: var(--z-header);
+  z-index: var(--z-devtools); /* Ensure header stays on top */
   transition: var(--transition-normal);
 }
 

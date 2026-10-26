@@ -2,6 +2,30 @@ import { supabase } from "@/lib/supabase"
 import { handleSupabaseError } from "@/services/utils/baseService"
 
 export const profileService = {
+  async getProfile() {
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession()
+    if (sessionError || !session) throw new Error("Usuário não autenticado.")
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", session.user.id)
+      .maybeSingle()
+
+    if (error) {
+      handleSupabaseError(
+        error,
+        { generica: "Não foi possível carregar os dados do perfil." },
+        "getProfile"
+      )
+    }
+
+    return data
+  },
+
   async updateProfile({ full_name, password, birth_date, phone }) {
     const {
       data: { session },

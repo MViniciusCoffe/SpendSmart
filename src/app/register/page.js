@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation"
 import styles from "./register.module.css"
 import { useState } from "react"
 import { authService } from "../../services/authServices"
+import { useToast } from "../../contexts/ToastContext"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { success } = useToast()
 
   const [nomeCompleto, setNomeCompleto] = useState("")
   const [email, setEmail] = useState("")
@@ -45,7 +47,7 @@ export default function RegisterPage() {
       router.push("/dashboard")
     } catch (error) {
       if (error.message === "Sessão não iniciada após cadastro.") {
-        alert("Conta criada! Faça login para continuar.")
+        success("Conta criada! Faça login para continuar.")
         router.push("/login")
       } else {
         setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`)

@@ -10,6 +10,7 @@ import { Card, Badge, Avatar, EmptyState, LoadingSpinner } from "@/components/ui
 import { ChartContainer, createGradient } from "@/components/ui"
 import { transactionService } from "@/services/transactionService"
 import { categoryService } from "@/services/categoryService"
+import { profileService } from "@/services/profileService"
 import withAuth from "@/components/withAuth.js"
 
 function DashboardContent() {
@@ -28,19 +29,9 @@ function DashboardContent() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const {
-          data: { user }
-        } = await window.supabase?.auth?.getUser?.()
-        if (user) {
-          const { data: profile } = await window.supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", user.id)
-            .single()
-
-          if (profile?.full_name) {
-            setNomeUsuario(profile.full_name)
-          }
+        const profile = await profileService.getProfile()
+        if (profile?.full_name) {
+          setNomeUsuario(profile.full_name)
         }
       } catch (error) {
         console.error("Erro ao buscar perfil:", error)
