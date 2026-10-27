@@ -1,35 +1,28 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { authService } from "../services/authServices.js"
+import { useAuth } from "@/contexts/AuthContext"
+import { LoadingSpinner } from "@/components/feedback"
+import styles from "./withAuth.module.css"
 
+// Session comes from AuthContext, the single source of truth shared with the header
 const withAuth = WrappedComponent => {
   const AuthenticatedPage = props => {
     const router = useRouter()
-    const [isAuthorized, setIsAuthorized] = useState(false)
+    const { user, loading } = useAuth()
 
     useEffect(() => {
-      const checkAuth = async () => {
-        try {
-          const session = await authService.getSession()
+      // Replace instead of push so protected pages don't pollute the history
+      if (!loading && !user) router.replace("/login")
+    }, [loading, user, router])
 
-          if (!session) {
-            // Replace instead of push so protected pages don't pollute the history
-            router.replace("/login")
-          } else {
-            setIsAuthorized(true)
-          }
-        } catch (error) {
-          router.replace("/login")
-        }
-      }
-
-      checkAuth()
-    }, [router])
-
-    if (!isAuthorized) {
-      return null // TODO: loading component
+    if (loading || !user) {
+      return (
+        <div className={styles.loading}>
+          <LoadingSpinner size="lg" ariaLabel="Verificando sessão" />
+        </div>
+      )
     }
 
     return <WrappedComponent {...props} />

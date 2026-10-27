@@ -6,11 +6,10 @@ import { useEffect, useState } from "react"
 import { AuthShell, AuthError, AuthField, AuthForm } from "@/components/layout"
 import { Button, Input, Label } from "@/components/ui"
 import { useAuth } from "@/contexts/AuthContext"
-import { authService } from "@/services/authServices"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, user, loading } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,12 +18,8 @@ export default function LoginPage() {
 
   // Redirect to "/dashboard" when a Supabase session already exists
   useEffect(() => {
-    const checkSession = async () => {
-      const session = await authService.getSession()
-      if (session) router.replace("/dashboard")
-    }
-    checkSession()
-  }, [router])
+    if (!loading && user) router.replace("/dashboard")
+  }, [loading, user, router])
 
   const handleLogin = async e => {
     e.preventDefault()
