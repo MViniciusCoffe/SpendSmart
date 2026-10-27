@@ -2,12 +2,15 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import styles from "./login.module.css"
 import { useEffect, useState } from "react"
-import { authService } from "../../services/authServices"
+import { AuthShell, AuthError, AuthField, AuthForm } from "@/components/layout"
+import { Button, Input, Label } from "@/components/ui"
+import { useAuth } from "@/contexts/AuthContext"
+import { authService } from "@/services/authServices"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -18,9 +21,7 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       const session = await authService.getSession()
-      if (session) {
-        router.push("/dashboard")
-      }
+      if (session) router.replace("/dashboard")
     }
     checkSession()
   }, [router])
@@ -37,10 +38,8 @@ export default function LoginPage() {
     setErrorMessage("")
 
     try {
-      // Supabase valida credenciais
-      await authService.loginUser({ email, password: password })
-
-      // On success go to the dashboard; Supabase already persisted the session
+      // Login through the context so the header knows the user right away
+      await login(email, password)
       router.push("/dashboard")
     } catch (error) {
       setErrorMessage(error.message)
@@ -50,59 +49,61 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <div className={styles.login_content}>
-        <div className={styles.login}>
-          <Link href="/" className={styles.back_button}>
-            Voltar
-          </Link>
-          <h2>Fazer Login</h2>
-          <form onSubmit={handleLogin}>
-            <div>
-              <div className={styles.input_group}>
-                <label htmlFor="email">E-mail:</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Digite seu e-mail"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+    <AuthShell
+      title="Bem-vindo de volta"
+      subtitle="Entre para acompanhar suas receitas e despesas."
+      footer={
+        <>
+          Ainda não tem conta? <Link href="/register">Criar conta</Link>
+        </>
+      }
+    >
+      <AuthForm onSubmit={handleLogin}>
+        <AuthField>
+          <Label htmlFor="email" required>
+            E-mail
+          </Label>
+          <Input
+            type="email"
+            id="email"
+            name="email"
+            autoComplete="email"
+            placeholder="voce@exemplo.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </AuthField>
 
-              <div className={styles.input_group}>
-                <label htmlFor="password">Senha:</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Digite sua senha"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                />
-              </div>
+        <AuthField>
+          <Label htmlFor="password" required>
+            Senha
+          </Label>
+          <Input
+            type="password"
+            id="password"
+            name="password"
+            autoComplete="current-password"
+            placeholder="Sua senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </AuthField>
 
-              {errorMessage && <p className={styles.error_message}>{errorMessage}</p>}
-            </div>
+        <AuthError>{errorMessage}</AuthError>
 
-            <div className={styles.button_group}>
-              <button
-                type="submit"
-                className={styles.login_button}
-                disabled={isLoading || !email || !password}
-              >
-                {isLoading ? "Entrando..." : "Entrar"}
-              </button>
-              <Link href="/register" className={styles.create_button}>
-                Criar conta
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
-    </>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={isLoading}
+          disabled={!email || !password}
+        >
+          Entrar
+        </Button>
+      </AuthForm>
+    </AuthShell>
   )
 }
