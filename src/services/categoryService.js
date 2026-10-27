@@ -125,6 +125,20 @@ export const categoryService = {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
+          // Soft delete never triggers the FK's ON DELETE RESTRICT, so check here
+          const { count, error: countError } = await supabase
+            .from("transactions")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", id)
+            .eq("user_id", session.user.id)
+            .is("deleted_at", null)
+          if (countError) throw countError
+          if (count > 0) {
+            throw new Error(
+              `Não é possível excluir esta categoria: ${count} ${count === 1 ? "transação usa" : "transações usam"} ela. Mova ou exclua as transações antes.`
+            )
+          }
+
           const { error } = await supabase
             .from("categories")
             .update({ deleted_at: new Date().toISOString() })

@@ -316,6 +316,57 @@ describe("deleteCategory", () => {
   })
 })
 
+describe("deleteCategory com transações", () => {
+  it("recusa excluir categoria com transações ativas e não marca deleted_at", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const txBuilder = criarBuilder({ count: 2, error: null })
+    const categoryBuilder = criarBuilder({ error: null })
+    supabase.from.mockImplementation(table =>
+      table === "transactions" ? txBuilder : categoryBuilder
+    )
+
+    await expect(categoryService.deleteCategory(7)).rejects.toThrow(
+      "Não é possível excluir esta categoria: 2 transações usam ela."
+    )
+    expect(txBuilder.eq).toHaveBeenCalledWith("category_id", 7)
+    expect(txBuilder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(categoryBuilder.update).not.toHaveBeenCalled()
+  })
+
+  it("traduz erro ao contar as transações", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({ count: null, error: { code: "08006", message: "timeout" } })
+    )
+
+    await expect(categoryService.deleteCategory(7)).rejects.toThrow(
+      "Não foi possível deletar a categoria."
+    )
+  })
+
+  it("traduz erro do update quando não há transações", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const txBuilder = criarBuilder({ count: 0, error: null })
+    const categoryBuilder = criarBuilder({ error: { code: "23503", message: "fk" } })
+    supabase.from.mockImplementation(table =>
+      table === "transactions" ? txBuilder : categoryBuilder
+    )
+
+    await expect(categoryService.deleteCategory(7)).rejects.toThrow(
+      "Não é possível deletar esta categoria pois existem transações usando ela."
+    )
+  })
+
+  it("usa singular para uma transação", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(criarBuilder({ count: 1, error: null }))
+
+    await expect(categoryService.deleteCategory(7)).rejects.toThrow("1 transação usa ela.")
+  })
+})
+
 describe("countTransactions", () => {
   it("recusa sem sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(semSessao)
