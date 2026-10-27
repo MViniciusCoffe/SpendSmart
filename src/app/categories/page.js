@@ -32,6 +32,8 @@ function CategoriesPage() {
   const [addFormKey, setAddFormKey] = useState(0)
   const [editId, setEditId] = useState(null)
   const [deleteId, setDeleteId] = useState(null)
+  // Set when an edit changes the type of a category that already has transactions
+  const [pendingTypeChange, setPendingTypeChange] = useState(null)
 
   const editCategory = categories.find(c => c.id === editId) || null
   const deleteCategory = categories.find(c => c.id === deleteId) || null
@@ -79,13 +81,35 @@ function CategoriesPage() {
     if (ok) setAddFormKey(key => key + 1)
   }
 
-  const handleEdit = async formData => {
+  const saveEdit = async (formData, updateTransactionsType = false) => {
     const ok = await runAction(
-      () => categoryService.updateCategory({ ...formData, id: editId }),
+      () => categoryService.updateCategory({ ...formData, id: editId, updateTransactionsType }),
       "Categoria atualizada com sucesso",
       "Não foi possível atualizar a categoria"
     )
     if (ok) setEditId(null)
+  }
+
+  const handleEdit = async formData => {
+    if (formData.type !== editCategory.type) {
+      try {
+        const transactionCount = await categoryService.countTransactions(editId)
+        if (transactionCount > 0) {
+          setPendingTypeChange({ formData, transactionCount })
+          return
+        }
+      } catch (err) {
+        toastError(err.message)
+        return
+      }
+    }
+    await saveEdit(formData)
+  }
+
+  const confirmTypeChange = async () => {
+    const { formData } = pendingTypeChange
+    setPendingTypeChange(null)
+    await saveEdit(formData, true)
   }
 
   const handleDelete = async event => {
@@ -218,6 +242,36 @@ function CategoriesPage() {
           </TabPanel>
         </Tabs>
       </div>
+
+      {pendingTypeChange && (
+        <div
+          className={styles.modal_overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="type-change-title"
+        >
+          <div className={styles.modal}>
+            <h2 id="type-change-title" className={styles.modal_title}>
+              Mudar tipo da categoria?
+            </h2>
+            <p className={styles.modal_text}>
+              Esta categoria tem {pendingTypeChange.transactionCount}{" "}
+              {pendingTypeChange.transactionCount === 1 ? "transação" : "transações"}. Para manter
+              os totais corretos, {pendingTypeChange.transactionCount === 1 ? "ela" : "elas"} também
+              passará{pendingTypeChange.transactionCount === 1 ? "" : "ão"} a ser{" "}
+              {TYPE_LABELS[pendingTypeChange.formData.type].toLowerCase()}.
+            </p>
+            <div className={styles.modal_actions}>
+              <Button variant="ghost" onClick={() => setPendingTypeChange(null)}>
+                Cancelar
+              </Button>
+              <Button variant="primary" onClick={confirmTypeChange} loading={isSaving}>
+                Mudar categoria e transações
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }

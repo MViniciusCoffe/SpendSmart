@@ -57,7 +57,27 @@ export const categoryService = {
     })
   },
 
-  async updateCategory({ id, name, type, description, color }) {
+  async countTransactions(categoryId) {
+    return withSession(async session => {
+      return withErrorHandling(
+        async () => {
+          const { count, error } = await supabase
+            .from("transactions")
+            .select("id", { count: "exact", head: true })
+            .eq("category_id", categoryId)
+            .eq("user_id", session.user.id)
+            .is("deleted_at", null)
+          if (error) throw error
+          return count ?? 0
+        },
+        "countTransactions",
+        { generica: "Não foi possível verificar as transações da categoria." }
+      )
+    })
+  },
+
+  // updateTransactionsType keeps the category's transactions on the same type
+  async updateCategory({ id, name, type, description, color, updateTransactionsType = false }) {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
@@ -79,6 +99,17 @@ export const categoryService = {
             .select()
             .single()
           if (error) throw error
+
+          if (updateTransactionsType) {
+            const { error: txError } = await supabase
+              .from("transactions")
+              .update({ type: validType })
+              .eq("category_id", id)
+              .eq("user_id", session.user.id)
+              .is("deleted_at", null)
+            if (txError) throw txError
+          }
+
           return categoryTypeMap(data)
         },
         "updateCategory",

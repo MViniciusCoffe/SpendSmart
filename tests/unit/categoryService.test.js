@@ -315,3 +315,97 @@ describe("deleteCategory", () => {
     )
   })
 })
+
+describe("countTransactions", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(categoryService.countTransactions(1)).rejects.toThrow("Usuário não autenticado.")
+  })
+
+  it("conta transações ativas da categoria do usuário", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ count: 2, error: null })
+    supabase.from.mockReturnValue(builder)
+
+    const resultado = await categoryService.countTransactions(7)
+
+    expect(supabase.from).toHaveBeenCalledWith("transactions")
+    expect(builder.select).toHaveBeenCalledWith("id", { count: "exact", head: true })
+    expect(builder.eq).toHaveBeenCalledWith("category_id", 7)
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
+    expect(resultado).toBe(2)
+  })
+
+  it("devolve 0 quando count vem nulo", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(criarBuilder({ count: null, error: null }))
+
+    expect(await categoryService.countTransactions(7)).toBe(0)
+  })
+
+  it("traduz erro do banco", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({ count: null, error: { code: "08006", message: "timeout" } })
+    )
+
+    await expect(categoryService.countTransactions(7)).rejects.toThrow(
+      "Não foi possível verificar as transações da categoria."
+    )
+  })
+})
+
+describe("updateCategory com updateTransactionsType", () => {
+  it("não toca em transactions por padrão", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
+
+    await categoryService.updateCategory({ id: 1, name: "X", type: "income" })
+
+    expect(supabase.from).not.toHaveBeenCalledWith("transactions")
+  })
+
+  it("atualiza o tipo das transações da categoria do usuário", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const categoryBuilder = criarBuilder({ data: linhaCategoria({ type: "income" }), error: null })
+    const txBuilder = criarBuilder({ error: null })
+    supabase.from.mockImplementation(table =>
+      table === "transactions" ? txBuilder : categoryBuilder
+    )
+
+    await categoryService.updateCategory({
+      id: 1,
+      name: "X",
+      type: "income",
+      updateTransactionsType: true
+    })
+
+    expect(txBuilder.update).toHaveBeenCalledWith({ type: "income" })
+    expect(txBuilder.eq).toHaveBeenCalledWith("category_id", 1)
+    expect(txBuilder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(txBuilder.is).toHaveBeenCalledWith("deleted_at", null)
+  })
+
+  it("traduz erro ao atualizar as transações", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const categoryBuilder = criarBuilder({ data: linhaCategoria(), error: null })
+    const txBuilder = criarBuilder({ error: { code: "08006", message: "timeout" } })
+    supabase.from.mockImplementation(table =>
+      table === "transactions" ? txBuilder : categoryBuilder
+    )
+
+    await expect(
+      categoryService.updateCategory({
+        id: 1,
+        name: "X",
+        type: "income",
+        updateTransactionsType: true
+      })
+    ).rejects.toThrow("Não foi possível atualizar a categoria.")
+  })
+})
