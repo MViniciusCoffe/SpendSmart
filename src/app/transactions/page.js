@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import withAuth from "@/components/withAuth.js"
 import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { PageContainer, PageHeader } from "@/components/layout"
@@ -21,6 +21,7 @@ import {
   Dropdown
 } from "@/components/ui"
 import { TransactionForm } from "@/components/forms"
+import { useToast } from "@/contexts/ToastContext"
 import { transactionService } from "@/services/transactionService"
 import { categoryService } from "@/services/categoryService"
 import styles from "./page.module.css"
@@ -35,6 +36,7 @@ const PAYMENT_METHOD_OPTIONS = [
 ]
 
 function TransactionsContent() {
+  const { error: toastError, success: toastSuccess } = useToast()
   const [activeTab, setActiveTab] = useState("list")
   const [categories, setCategories] = useState([])
   const [transactions, setTransactions] = useState([])
@@ -54,42 +56,27 @@ function TransactionsContent() {
   const expenseTransactions = rows.filter(t => t.type === "expense")
   const incomeTransactions = rows.filter(t => t.type === "income")
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const allCategories = await categoryService.getCategories()
-        setCategories(allCategories)
-
-        const allTransactions = await transactionService.getTransactions()
-        setTransactions(allTransactions)
-
-        setErrorMessage("")
-      } catch (error) {
-        console.error("Error fetching data:", error)
-        setErrorMessage("Não foi possível carregar as transações.")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  const handleRefresh = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const allCategories = await categoryService.getCategories()
+      const [allCategories, allTransactions] = await Promise.all([
+        categoryService.getCategories(),
+        transactionService.getTransactions()
+      ])
       setCategories(allCategories)
-
-      const allTransactions = await transactionService.getTransactions()
       setTransactions(allTransactions)
-
       setErrorMessage("")
     } catch (error) {
-      console.error("Error refreshing data:", error)
-      setErrorMessage("Não foi possível atualizar as transações.")
+      console.error("Error fetching data:", error)
+      setErrorMessage("Não foi possível carregar as transações.")
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => void loadData(), 0)
+    return () => clearTimeout(timer)
+  }, [loadData])
 
   const handleDeleteTransaction = async id => {
     try {
@@ -97,9 +84,10 @@ function TransactionsContent() {
       setTransactions(prev => prev.filter(t => t.id !== id))
       setShowDeleteConfirm(false)
       setSelectedTransaction(null)
+      toastSuccess("Transação excluída com sucesso")
     } catch (error) {
       console.error("Error deleting transaction:", error)
-      setErrorMessage(error.message || "Não foi possível excluir a transação.")
+      toastError(error.message || "Não foi possível excluir a transação.")
     }
   }
 
@@ -111,11 +99,12 @@ function TransactionsContent() {
   const handleCreateSubmit = async data => {
     try {
       await transactionService.createTransaction(data)
-      handleRefresh()
+      toastSuccess("Transação adicionada com sucesso")
+      await loadData()
       setActiveTab("list")
     } catch (error) {
       console.error("Error saving transaction:", error)
-      setErrorMessage(error.message || "Não foi possível salvar a transação.")
+      toastError(error.message || "Não foi possível salvar a transação.")
     }
   }
 
@@ -126,11 +115,12 @@ function TransactionsContent() {
         ...data
       })
       setEditingTransaction(null)
-      handleRefresh()
+      toastSuccess("Transação atualizada com sucesso")
+      await loadData()
       setActiveTab("list")
     } catch (error) {
       console.error("Error saving transaction:", error)
-      setErrorMessage(error.message || "Não foi possível salvar a transação.")
+      toastError(error.message || "Não foi possível salvar a transação.")
     }
   }
 

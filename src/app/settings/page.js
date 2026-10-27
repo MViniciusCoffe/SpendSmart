@@ -19,7 +19,6 @@ function SettingsPage() {
   const [dataNascimento, setDataNascimento] = useState("")
   const [telefone, setTelefone] = useState("")
 
-  const [errorMessage, setErrorMessage] = useState("")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const isSaveDisabled = !nome && !senha && !dataNascimento && !telefone
@@ -35,7 +34,6 @@ function SettingsPage() {
         phone: telefone
       })
 
-      setErrorMessage("")
       toastSuccess("Alterações salvas com sucesso!")
 
       // Limpar os campos para o usuário saber que foi salvo
@@ -44,7 +42,6 @@ function SettingsPage() {
       setDataNascimento("")
       setTelefone("")
     } catch (error) {
-      setErrorMessage(error.message)
       toastError(error.message)
     }
   }
@@ -143,12 +140,6 @@ function SettingsPage() {
                   maxLength={20}
                 />
               </div>
-
-              {errorMessage && (
-                <div className={styles.error_banner} role="alert">
-                  <span>{errorMessage}</span>
-                </div>
-              )}
 
               <div className={styles.button_group}>
                 <Button type="submit" variant="primary" disabled={isSaveDisabled}>

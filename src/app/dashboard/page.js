@@ -10,7 +10,6 @@ import { Card, Badge, Avatar, EmptyState, LoadingSpinner } from "@/components/ui
 import { ChartContainer, createGradient } from "@/components/ui"
 import { transactionService } from "@/services/transactionService"
 import { categoryService } from "@/services/categoryService"
-import { profileService } from "@/services/profileService"
 import withAuth from "@/components/withAuth.js"
 import { formatCurrency } from "@/lib/utils/format"
 
@@ -62,24 +61,8 @@ function DashboardContent() {
   const [spends, setSpends] = useState([])
   const [incomes, setIncomes] = useState([])
   const [categories, setCategories] = useState([])
-  const [nomeUsuario, setNomeUsuario] = useState("Usuário")
   const [errorMessage, setErrorMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const profile = await profileService.getProfile()
-        if (profile?.full_name) {
-          setNomeUsuario(profile.full_name)
-        }
-      } catch (error) {
-        console.error("Erro ao buscar perfil:", error)
-      }
-    }
-
-    fetchUserProfile()
-  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
