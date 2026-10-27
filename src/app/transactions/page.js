@@ -42,6 +42,7 @@ function TransactionsContent() {
   const [selectedTransaction, setSelectedTransaction] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [initialType, setInitialType] = useState("expense")
+  const [editingTransaction, setEditingTransaction] = useState(null)
 
   const expenseTransactions = transactions.filter(t => t.type === "expense")
   const incomeTransactions = transactions.filter(t => t.type === "income")
@@ -111,13 +112,27 @@ function TransactionsContent() {
     }
   }
 
+  const handleEditTransaction = transaction => {
+    setEditingTransaction(transaction)
+    setActiveTab("add-transaction")
+  }
+
   const handleFormSubmit = async data => {
     try {
-      await transactionService.createTransaction(data)
+      if (editingTransaction) {
+        await transactionService.updateTransaction({
+          id: editingTransaction.id,
+          ...data
+        })
+        setEditingTransaction(null)
+      } else {
+        await transactionService.createTransaction(data)
+      }
       handleRefresh()
+      setActiveTab("list")
     } catch (error) {
-      console.error("Error creating transaction:", error)
-      setErrorMessage(error.message || "Não foi possível criar a transação.")
+      console.error("Error saving transaction:", error)
+      setErrorMessage(error.message || "Não foi possível salvar a transação.")
     }
   }
 
@@ -136,27 +151,47 @@ function TransactionsContent() {
       key: "actions",
       header: "Ações",
       render: (_, row) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSelectedTransaction(row)
-            setShowDeleteConfirm(true)
-          }}
-          aria-label={`Excluir ${row.title}`}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEditTransaction(row)}
+            aria-label={`Editar ${row.title}`}
           >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
-        </Button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedTransaction(row)
+              setShowDeleteConfirm(true)
+            }}
+            aria-label={`Excluir ${row.title}`}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </Button>
+        </div>
       )
     }
   ]
@@ -176,27 +211,47 @@ function TransactionsContent() {
       key: "actions",
       header: "Ações",
       render: (_, row) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSelectedTransaction(row)
-            setShowDeleteConfirm(true)
-          }}
-          aria-label={`Excluir ${row.title}`}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEditTransaction(row)}
+            aria-label={`Editar ${row.title}`}
           >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          </svg>
-        </Button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedTransaction(row)
+              setShowDeleteConfirm(true)
+            }}
+            aria-label={`Excluir ${row.title}`}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </Button>
+        </div>
       )
     }
   ]
@@ -363,11 +418,27 @@ function TransactionsContent() {
 
         <TabPanel value="add-transaction">
           <TransactionForm
-            initialData={{ type: initialType }}
+            initialData={
+              editingTransaction
+                ? {
+                    id: editingTransaction.id,
+                    type: editingTransaction.type,
+                    category_id: String(editingTransaction.category_id),
+                    amount: String(editingTransaction.amount).replace(".", ","),
+                    title: editingTransaction.title,
+                    occurred_on: editingTransaction.occurred_on,
+                    description: editingTransaction.description || "",
+                    payment_method: editingTransaction.payment_method || ""
+                  }
+                : { type: initialType }
+            }
             categories={categories}
             onSubmit={handleFormSubmit}
-            onCancel={() => setActiveTab("list")}
-            submitLabel="Salvar Transação"
+            onCancel={() => {
+              setActiveTab("list")
+              setEditingTransaction(null)
+            }}
+            submitLabel={editingTransaction ? "Atualizar Transação" : "Salvar Transação"}
           />
         </TabPanel>
       </Tabs>
