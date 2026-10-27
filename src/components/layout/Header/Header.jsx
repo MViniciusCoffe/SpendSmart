@@ -67,12 +67,12 @@ export function Header() {
         {/* Desktop Auth / User Menu */}
         {isPublicRoute ? (
           <div className={styles.authGroupDesktop}>
-            <Link href="/login" style={{ textDecoration: "none" }}>
+            <Link href="/login" className={styles.plainLink}>
               <Button variant="ghost" size="sm">
                 Entrar
               </Button>
             </Link>
-            <Link href="/register" style={{ textDecoration: "none" }}>
+            <Link href="/register" className={styles.plainLink}>
               <Button variant="primary" size="sm">
                 Começar grátis
               </Button>
@@ -97,7 +97,8 @@ export function Header() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="w-5 h-5"
+                width="20"
+                height="20"
               >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
@@ -116,9 +117,9 @@ export function Header() {
           aria-label="Alternar menu"
         >
           <span className={styles.hamburger} aria-hidden="true">
-            <span className={mobileMenuOpen ? "open" : ""} />
-            <span className={mobileMenuOpen ? "open" : ""} />
-            <span className={mobileMenuOpen ? "open" : ""} />
+            <span className={mobileMenuOpen ? styles.open : ""} />
+            <span className={mobileMenuOpen ? styles.open : ""} />
+            <span className={mobileMenuOpen ? styles.open : ""} />
           </span>
         </button>
       </div>
@@ -171,7 +172,7 @@ export function Header() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`${styles.mobileNavLink} ${pathname === link.href ? "active" : ""}`}
+                    className={`${styles.mobileNavLink} ${pathname === link.href ? styles.active : ""}`}
                     onClick={() => setMobileMenuOpen(false)}
                     aria-current={pathname === link.href ? "page" : undefined}
                   >
@@ -184,7 +185,7 @@ export function Header() {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    style={{ textDecoration: "none" }}
+                    className={styles.plainLink}
                   >
                     <Button variant="ghost" size="md" fullWidth>
                       Entrar
@@ -193,7 +194,7 @@ export function Header() {
                   <Link
                     href="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    style={{ textDecoration: "none" }}
+                    className={styles.plainLink}
                   >
                     <Button variant="primary" size="md" fullWidth>
                       Começar grátis
@@ -225,7 +226,8 @@ export function Header() {
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="w-5 h-5"
+                        width="20"
+                        height="20"
                         aria-hidden="true"
                       >
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

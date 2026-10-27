@@ -16,7 +16,8 @@ const navigation = [
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <rect x="3" y="3" width="7" height="9" rx="1" />
         <rect x="14" y="3" width="7" height="5" rx="1" />
@@ -34,7 +35,8 @@ const navigation = [
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <path d="M12 2v20M17 5H7a2 2 0 0 1 0-4h10a2 2 0 0 1 0 4H7v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 1-2-2h-4" />
       </svg>
@@ -49,7 +51,8 @@ const navigation = [
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
         <polyline points="9 22 9 12 15 12 15 22" />
@@ -65,7 +68,8 @@ const navigation = [
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 5 5 0 0 1-6 0 1.65 1.65 0 0 0 .33-1.82 8 8 0 1 1 8 0z" />
@@ -100,7 +104,7 @@ export function Sidebar({ isOpen, onClose }) {
           className={styles.logo}
           onClick={() => window.innerWidth < 1024 && onClose()}
         >
-          <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32" aria-hidden="true">
             <rect width="32" height="32" rx="8" fill="var(--color-mercury)" />
             <path
               d="M8 16L12 12L16 16"
@@ -110,7 +114,7 @@ export function Sidebar({ isOpen, onClose }) {
               strokeLinejoin="round"
             />
           </svg>
-          {!collapsed && <span className="logoText">SpendSmart</span>}
+          {!collapsed && <span className={styles.logoText}>SpendSmart</span>}
         </Link>
         <button
           className={styles.toggleButton}
@@ -123,7 +127,8 @@ export function Sidebar({ isOpen, onClose }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="w-5 h-5"
+            width="20"
+            height="20"
           >
             <polyline points="15 18 15 6 15 6 15 6" />
             <polyline points="9 6 15 12 15 18 15 18" />
@@ -137,7 +142,7 @@ export function Sidebar({ isOpen, onClose }) {
             <li key={item.name}>
               <Link
                 href={item.href}
-                className={`${styles.navLink} ${window.location.pathname === item.href ? "active" : ""}`}
+                className={`${styles.navLink} ${window.location.pathname === item.href ? styles.active : ""}`}
                 onClick={() =>
                   window.innerWidth < 1024 && window.dispatchEvent(new Event("closeSidebar"))
                 }
@@ -147,7 +152,7 @@ export function Sidebar({ isOpen, onClose }) {
                   {item.icon}
                 </span>
                 <span className={styles.navText}>{item.name}</span>
-                <ChevronRightIcon className="w-4 h-4 text-tertiary" aria-hidden="true" />
+                <ChevronRightIcon width="16" height="16" aria-hidden="true" />
               </Link>
             </li>
           ))}
@@ -170,13 +175,14 @@ export function Sidebar({ isOpen, onClose }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="w-5 h-5"
+            width="20"
+            height="20"
           >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          <span className="logoutText">Logout</span>
+          <span className={styles.logoutText}>Sair</span>
         </button>
       </div>
     </aside>

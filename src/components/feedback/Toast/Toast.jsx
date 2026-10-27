@@ -1,42 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import styles from "./Toast.module.css"
 
-export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([])
-
-  const toast = ({ message, type = "info", duration = 4000, action }) => {
-    const id = Date.now() + Math.random()
-    const newToast = { id, message, type, duration, action }
-    setToasts(prev => [...prev, { ...newToast, id }])
-
-    if (duration !== 0) {
-      setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id))
-      }, duration)
-    }
-
-    return id
-  }
-
-  const dismiss = id => {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }
-
-  return (
-    <>
-      {children}
-      <div className="toast-container" role="region" aria-label="Notificações" aria-live="polite">
-        {toasts.map(toast => (
-          <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-function Toast({ toast, onDismiss }) {
+export function Toast({ toast, onDismiss }) {
   const icons = {
     success: (
       <svg
@@ -44,7 +10,8 @@ function Toast({ toast, onDismiss }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
@@ -55,7 +22,8 @@ function Toast({ toast, onDismiss }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <circle cx="12" cy="12" r="10" />
         <line x1="15" y1="9" x2="9" y2="15" />
@@ -68,7 +36,8 @@ function Toast({ toast, onDismiss }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <path
           strokeLinecap="round"
@@ -83,7 +52,8 @@ function Toast({ toast, onDismiss }) {
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
-        className="w-5 h-5"
+        width="20"
+        height="20"
       >
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="16" x2="12" y2="12" />
@@ -92,42 +62,31 @@ function Toast({ toast, onDismiss }) {
     )
   }
 
-  const colors = {
-    success: "bg-[var(--color-success)] text-white",
-    error: "bg-[var(--color-error)] text-white",
-    warning: "bg-[var(--color-warning)] text-[var(--color-bg-primary)]",
-    info: "bg-[var(--color-info)] text-white"
-  }
-
   return (
     <div
-      className={`toast ${colors[toast.type] || colors.info} flex items-center gap-3 p-4 rounded-[var(--radius-card)] shadow-[var(--shadow-lg)] min-w-[300px] max-w-md animate-slideInRight`}
+      className={`${styles.toast} ${styles[toast.type] || styles.info}`}
       role="alert"
       aria-live="polite"
     >
-      <span className="flex-shrink-0" aria-hidden="true">
-        {icons[toast.type] || icons.info}
-      </span>
-      <p className="flex-1 text-sm font-medium">{toast.message}</p>
+      <div className={styles.content}>
+        <span className={styles.icon} aria-hidden="true">
+          {icons[toast.type] || icons.info}
+        </span>
+        <p className={styles.message}>{toast.message}</p>
+      </div>
       {toast.action && (
-        <button
-          onClick={toast.action.onClick}
-          className="flex-shrink-0 px-3 py-1 text-sm font-medium bg-white/20 hover:bg-white/30 rounded transition-colors"
-        >
+        <button onClick={toast.action.onClick} className={styles.action}>
           {toast.action.label}
         </button>
       )}
-      <button
-        onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 p-1 text-current opacity-50 hover:opacity-100 transition-opacity"
-        aria-label="Dispensar"
-      >
+      <button onClick={() => onDismiss(toast.id)} className={styles.dismiss} aria-label="Dispensar">
         <svg
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="w-5 h-5"
+          width="20"
+          height="20"
         >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
@@ -137,20 +96,12 @@ function Toast({ toast, onDismiss }) {
   )
 }
 
-export function useToast() {
-  // This would be connected to context in a real implementation
-  return {
-    toast: () => {},
-    dismiss: () => {}
-  }
-}
-
 export function ToastContainer({ toasts, onDismiss }) {
   if (!toasts.length) return null
 
   return (
     <div
-      className="toast-container fixed bottom-4 right-4 z-[var(--z-toast)] flex flex-col gap-2 w-80 max-w-md"
+      className={styles.toastContainer}
       role="region"
       aria-label="Notificações"
       aria-live="polite"

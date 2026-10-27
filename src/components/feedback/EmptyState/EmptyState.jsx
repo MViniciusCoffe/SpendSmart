@@ -20,7 +20,8 @@ export function EmptyState({
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
-              className="w-16 h-16"
+              width="64"
+              height="64"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />

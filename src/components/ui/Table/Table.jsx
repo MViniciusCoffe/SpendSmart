@@ -68,7 +68,7 @@ export const Table = forwardRef(function Table(
                     {column.header}
                     {column.sortable && (
                       <span
-                        className={`${styles.sortIcon} ${sortConfig.key === column.key ? sortConfig.direction : ""}`}
+                        className={`${styles.sortIcon} ${sortConfig.key === column.key ? styles[sortConfig.direction] : ""}`}
                       >
                         {sortConfig.key === column.key
                           ? sortConfig.direction === "asc"
