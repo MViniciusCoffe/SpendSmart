@@ -313,9 +313,10 @@
   gap: var(--space-4);
 }
 
-/* Fields slide in one after another */
+/* Fields slide in one after another; "backwards" hands opacity back to normal
+   styles once the entrance ends, so a disabled button can still look disabled */
 .form > * {
-  animation: reveal 0.5s ease-out both;
+  animation: reveal 0.5s ease-out backwards;
 }
 
 .form > :nth-child(1) {
