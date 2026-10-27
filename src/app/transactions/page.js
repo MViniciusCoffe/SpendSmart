@@ -41,6 +41,7 @@ function TransactionsContent() {
   const [errorMessage, setErrorMessage] = useState("")
   const [selectedTransaction, setSelectedTransaction] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [initialType, setInitialType] = useState("expense")
 
   const expenseTransactions = transactions.filter(t => t.type === "expense")
   const incomeTransactions = transactions.filter(t => t.type === "income")
@@ -286,7 +287,10 @@ function TransactionsContent() {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => setActiveTab("add-transaction")}
+                      onClick={() => {
+                        setInitialType("expense")
+                        setActiveTab("add-transaction")
+                      }}
                     >
                       Adicionar Despesa
                     </Button>
@@ -335,7 +339,10 @@ function TransactionsContent() {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => setActiveTab("add-transaction")}
+                      onClick={() => {
+                        setInitialType("income")
+                        setActiveTab("add-transaction")
+                      }}
                     >
                       Adicionar Receita
                     </Button>
@@ -356,7 +363,7 @@ function TransactionsContent() {
 
         <TabPanel value="add-transaction">
           <TransactionForm
-            initialData={{ type: "expense" }}
+            initialData={{ type: initialType }}
             categories={categories}
             onSubmit={handleFormSubmit}
             onCancel={() => setActiveTab("list")}
