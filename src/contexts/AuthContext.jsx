@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 import { authService } from "@/services/authServices"
+import { profileService } from "@/services/profileService"
 
 const AuthContext = createContext(null)
 
@@ -15,7 +16,14 @@ export function AuthProvider({ children }) {
       setLoading(true)
       const session = await authService.getSession()
       if (session?.user) {
-        setUser(session.user)
+        let userData = session.user
+        try {
+          const profile = await profileService.getProfile()
+          userData = { ...session.user, ...profile }
+        } catch (profileErr) {
+          console.warn("Failed to fetch profile:", profileErr.message)
+        }
+        setUser(userData)
       } else {
         setUser(null)
       }
@@ -28,7 +36,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Initial fetch - run once on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+   
   useEffect(() => {
     const fetch = async () => {
       await fetchUser()
@@ -40,7 +48,13 @@ export function AuthProvider({ children }) {
     setError(null)
     try {
       const user = await authService.loginUser({ email, password })
-      setUser(user)
+      try {
+        const profile = await profileService.getProfile()
+        setUser({ ...user, ...profile })
+      } catch (profileErr) {
+        console.warn("Failed to fetch profile after login:", profileErr.message)
+        setUser(user)
+      }
       return user
     } catch (err) {
       setError(err.message)
@@ -52,7 +66,13 @@ export function AuthProvider({ children }) {
     setError(null)
     try {
       const user = await authService.registerUser(userData)
-      setUser(user)
+      try {
+        const profile = await profileService.getProfile()
+        setUser({ ...user, ...profile })
+      } catch (profileErr) {
+        console.warn("Failed to fetch profile after register:", profileErr.message)
+        setUser(user)
+      }
       return user
     } catch (err) {
       setError(err.message)
