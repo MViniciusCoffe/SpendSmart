@@ -58,15 +58,15 @@ RLS. O produto é single-user por natureza — cada conta enxerga apenas os pró
 
 ## 3. Descrição geral
 
-A aplicação é um **monolito fullstack Next.js (Pages Router) com Supabase**, sem servidor HTTP
+A aplicação é um **monolito fullstack Next.js (App Router) com Supabase**, sem servidor HTTP
 próprio:
 
 | Camada       | Onde                    | Responsabilidade                                                |
 | :----------- | :---------------------- | :-------------------------------------------------------------- |
 | Interface    | `pages/`, `components/` | React, validação de formulário, chamada ao service              |
 | Negócio      | `services/`             | Regra de negócio, tradução PT/EN, mensagem de erro em português |
-| Cliente      | `infra/supabase.js`     | Instância única do `createClient`                               |
-| Privilegiado | `pages/api/`            | Únicas funções server-side: `createProfile`, `deleteAccount`    |
+| Cliente      | `src/lib/supabase.js`   | Instância única do `createClient`                               |
+| Privilegiado | `src/app/api/`          | Únicas funções server-side: `createProfile`, `deleteAccount`    |
 | Banco        | Supabase PostgreSQL     | Persistência com constraints, índices e RLS                     |
 | Migrations   | `supabase/migrations/`  | `node-pg-migrate` (não Supabase CLI)                            |
 
@@ -111,24 +111,24 @@ mesmos do documento da disciplina; a descrição foi atualizada para a arquitetu
 aponta para a User Story que o implementa (ver [user-stories.md](user-stories.md)). A prioridade
 segue a escala do modelo YP-Agentic (P0 essencial, P1 desejável).
 
-| ID   | Requisito           | Prioridade | Descrição                                                                                                              | Ator                | US     |
-| :--- | :------------------ | :--------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------ | :----- |
-| RF01 | Cadastrar usuário   | P0         | Cadastro com nome completo, e-mail, senha, data de nascimento e telefone. E-mail já existente é impedido.              | Usuário             | US-001 |
-| RF02 | Realizar login      | P0         | Autenticação por e-mail e senha pelo Supabase Auth, com mensagem que não revela se o e-mail existe.                    | Usuário             | US-002 |
-| RF03 | Consultar usuários  | P0         | Consulta dos dados do próprio usuário logado. Não existe listagem de outros usuários — seria falha de segurança.       | Usuário autenticado | US-003 |
-| RF04 | Alterar usuário     | P0         | Alteração de nome completo, senha, data de nascimento e telefone do próprio perfil.                                    | Usuário autenticado | US-003 |
-| RF05 | Excluir usuário     | P1         | Exclusão da conta com remoção em cascata de perfil, categorias e transações.                                           | Usuário autenticado | US-004 |
-| RF06 | Cadastrar categoria | P0         | Criação informando nome, tipo, descrição e cor. O tipo é `income` ou `expense` (receita ou despesa na tela).           | Usuário autenticado | US-006 |
-| RF07 | Listar categorias   | P0         | Consulta das categorias do usuário logado.                                                                             | Usuário autenticado | US-007 |
-| RF08 | Alterar categoria   | P1         | Alteração de nome, tipo, descrição e cor, impedindo duplicidade de nome + tipo + usuário (`23505`).                    | Usuário autenticado | US-008 |
-| RF09 | Excluir categoria   | P1         | Exclusão de categoria; categorias em uso são rejeitadas pelo banco (`23503`, `ON DELETE RESTRICT`).                    | Usuário autenticado | US-009 |
-| RF10 | Cadastrar receita   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                      | Usuário autenticado | US-010 |
-| RF11 | Listar receitas     | P0         | Consulta das receitas do usuário logado.                                                                               | Usuário autenticado | US-011 |
-| RF12 | Excluir receita     | P1         | Exclusão de uma receita existente.                                                                                     | Usuário autenticado | US-012 |
-| RF13 | Cadastrar despesa   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                      | Usuário autenticado | US-013 |
-| RF14 | Listar despesas     | P0         | Consulta das despesas do usuário logado.                                                                               | Usuário autenticado | US-014 |
-| RF15 | Excluir despesa     | P1         | Exclusão de uma despesa existente.                                                                                     | Usuário autenticado | US-015 |
-| RF16 | Proteger operações  | P0         | Rotas privadas exigem sessão (`withAuth`) e o banco só devolve linhas do próprio usuário (RLS + filtro por `user_id`). | Sistema             | US-005 |
+| ID   | Requisito           | Prioridade | Descrição                                                                                                                       | Ator                | US     |
+| :--- | :------------------ | :--------- | :------------------------------------------------------------------------------------------------------------------------------ | :------------------ | :----- |
+| RF01 | Cadastrar usuário   | P0         | Cadastro com nome completo, e-mail, senha, data de nascimento e telefone. E-mail já existente é impedido.                       | Usuário             | US-001 |
+| RF02 | Realizar login      | P0         | Autenticação por e-mail e senha pelo Supabase Auth, com mensagem que não revela se o e-mail existe.                             | Usuário             | US-002 |
+| RF03 | Consultar usuários  | P0         | Consulta dos dados do próprio usuário logado. Não existe listagem de outros usuários — seria falha de segurança.                | Usuário autenticado | US-003 |
+| RF04 | Alterar usuário     | P0         | Alteração de nome completo, senha, data de nascimento e telefone do próprio perfil.                                             | Usuário autenticado | US-003 |
+| RF05 | Excluir usuário     | P1         | Exclusão da conta com remoção em cascata de perfil, categorias e transações.                                                    | Usuário autenticado | US-004 |
+| RF06 | Cadastrar categoria | P0         | Criação informando nome, tipo, descrição e cor. O tipo é `income` ou `expense` (receita ou despesa na tela).                    | Usuário autenticado | US-006 |
+| RF07 | Listar categorias   | P0         | Consulta das categorias do usuário logado.                                                                                      | Usuário autenticado | US-007 |
+| RF08 | Alterar categoria   | P1         | Alteração de nome, tipo, descrição e cor, impedindo duplicidade de nome + tipo + usuário (`23505`).                             | Usuário autenticado | US-008 |
+| RF09 | Excluir categoria   | P1         | Exclusão lógica de categoria (soft delete); transações vinculadas preservam o histórico e exibem a categoria como "(deletada)". | Usuário autenticado | US-009 |
+| RF10 | Cadastrar receita   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                               | Usuário autenticado | US-010 |
+| RF11 | Listar receitas     | P0         | Consulta das receitas do usuário logado.                                                                                        | Usuário autenticado | US-011 |
+| RF12 | Excluir receita     | P1         | Exclusão de uma receita existente.                                                                                              | Usuário autenticado | US-012 |
+| RF13 | Cadastrar despesa   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                               | Usuário autenticado | US-013 |
+| RF14 | Listar despesas     | P0         | Consulta das despesas do usuário logado.                                                                                        | Usuário autenticado | US-014 |
+| RF15 | Excluir despesa     | P1         | Exclusão de uma despesa existente.                                                                                              | Usuário autenticado | US-015 |
+| RF16 | Proteger operações  | P0         | Rotas privadas exigem sessão (`withAuth`) e o banco só devolve linhas do próprio usuário (RLS + filtro por `user_id`).          | Sistema             | US-005 |
 
 ### 6.1 Limitações conhecidas na implementação atual
 
@@ -146,15 +146,15 @@ Registradas para que o teste saiba o que esperar (detalhes e issues em
 
 Os IDs e as verificações correspondentes estão detalhados em [test-plan.md](test-plan.md) §3.
 
-| ID    | Requisito                 | Descrição                                                                                                                          |
-| :---- | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
-| RNF01 | Tecnologia                | Node.js com Next.js (Pages Router), sem servidor HTTP próprio; únicas rotas server-side em `pages/api/`.                           |
-| RNF02 | Formato de comunicação    | Comunicação em JSON: cliente -> Supabase via PostgREST e as duas rotas serverless recebem/devolvem JSON.                           |
-| RNF03 | Persistência              | Dados em PostgreSQL com constraints, índices e migrações versionadas (`numeric(12,2)`, `CHECK (amount > 0)`).                      |
-| RNF04 | Autenticação e isolamento | Sessão gerenciada pelo Supabase Auth; nenhum dado de um usuário visível a outro (filtro por `user_id` + RLS).                      |
-| RNF05 | Acesso entre origens      | CORS configurado no painel do projeto Supabase, não no código.                                                                     |
-| RNF06 | Execução                  | Desenvolvimento na porta 3000; produção na Vercel, sem porta exposta.                                                              |
-| RNF07 | Manutenibilidade          | Separação entre interface (`pages/`), regra de negócio (`services/`), cliente (`infra/`) e operações privilegiadas (`pages/api/`). |
+| ID    | Requisito                 | Descrição                                                                                                                            |
+| :---- | :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------- |
+| RNF01 | Tecnologia                | Node.js com Next.js (App Router), sem servidor HTTP próprio; únicas rotas server-side em `src/app/api/`.                             |
+| RNF02 | Formato de comunicação    | Comunicação em JSON: cliente -> Supabase via PostgREST e as rotas serverless recebem/devolvem JSON.                                  |
+| RNF03 | Persistência              | Dados em PostgreSQL com constraints, índices e migrações versionadas (`numeric(12,2)`, `CHECK (amount > 0)`).                        |
+| RNF04 | Autenticação e isolamento | Sessão gerenciada pelo Supabase Auth; nenhum dado de um usuário visível a outro (filtro por `user_id` + RLS).                        |
+| RNF05 | Acesso entre origens      | CORS configurado no painel do projeto Supabase, não no código.                                                                       |
+| RNF06 | Execução                  | Desenvolvimento na porta 3000; produção na Vercel, sem porta exposta.                                                                |
+| RNF07 | Manutenibilidade          | Separação entre interface (`pages/`), regra de negócio (`services/`), cliente (`infra/`) e operações privilegiadas (`src/app/api/`). |
 
 ---
 
@@ -193,17 +193,17 @@ o requisito de segurança central (RNF04).
 
 A tabela é revisada ao final de cada iteração, conforme o modelo BSI.
 
-| Data       | Risco Levantado                                                                                 | Prioridade | Responsável | Status    | Providência/Solução                                                                                        |
-| :--------- | :---------------------------------------------------------------------------------------------- | :--------- | :---------- | :-------- | :--------------------------------------------------------------------------------------------------------- |
-| 03/09/2026 | Dados sensíveis e credenciais armazenados de forma inadequada no backend legado                 | Alta       | Equipe      | Vigente   | Backend Express removido; segredos vivem em `.env*`, fora do versionamento.                                |
-| 03/09/2026 | Chave JWT definida diretamente no código                                                        | Alta       | Equipe      | Resolvido | Risco encerrado com a remoção do backend JWT; autenticação agora é do Supabase Auth.                       |
-| 06/10/2026 | RLS nunca validado: o isolamento entre usuários não foi exercitado em ambiente algum            | Alta       | Marcus      | Vigente   | Testes de integração contra a stack local do Supabase (issue #20).                                         |
-| 06/10/2026 | `.env.development` aponta para o Supabase remoto: `npm run dev` aplica migrations no banco real | Alta       | Marcus      | Vigente   | Issue #20; usar `npm run next:dev` até a separação de ambientes.                                           |
-| 06/10/2026 | `pages/api/createProfile.js` usa `service_role` sem validar o token                             | Alta       | Equipe      | Vigente   | Issue #29.                                                                                                 |
-| 06/10/2026 | Débito de testes: nenhuma integração automatizada e front-end sem cobertura                     | Média      | Equipe      | Vigente   | [test-state-report.md](test-state-report.md); issues #16 e #33.                                            |
-| 06/10/2026 | `transactions.type` pode não corresponder a `categories.type`                                   | Média      | Equipe      | Vigente   | Constraint ou trigger em migração futura ([future-migrations.md](future-migrations.md)).                   |
-| 06/10/2026 | Duplicação entre `pages/gastosPage.js` e `pages/rendaPage.js` (~1.100 linhas)                   | Média      | Equipe      | Vigente   | Issues #6 e #22.                                                                                           |
-| 06/10/2026 | Divisão de tarefas inadequada                                                                   | Baixa      | Gerente     | Vigente   | Acompanhar as atividades e revisar o cronograma em cada iteração ([iteration-plan.md](iteration-plan.md)). |
+| Data       | Risco Levantado                                                                                 | Prioridade | Responsável | Status    | Providência/Solução                                                                                                                     |
+| :--------- | :---------------------------------------------------------------------------------------------- | :--------- | :---------- | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| 03/09/2026 | Dados sensíveis e credenciais armazenados de forma inadequada no backend legado                 | Alta       | Equipe      | Vigente   | Backend Express removido; segredos vivem em `.env*`, fora do versionamento.                                                             |
+| 03/09/2026 | Chave JWT definida diretamente no código                                                        | Alta       | Equipe      | Resolvido | Risco encerrado com a remoção do backend JWT; autenticação agora é do Supabase Auth.                                                    |
+| 06/10/2026 | RLS nunca validado: o isolamento entre usuários não foi exercitado em ambiente algum            | Alta       | Marcus      | Mitigado  | `tests/integration/supabase/rls.test.js` (17 testes) valida o isolamento contra a stack local; ainda fora do CI (issue #30).            |
+| 06/10/2026 | `.env.development` aponta para o Supabase remoto: `npm run dev` aplica migrations no banco real | Alta       | Marcus      | Resolvido | `npm run dev` agora sobe o Supabase CLI local; o fluxo que aplicava migrations no remoto foi removido.                                  |
+| 06/10/2026 | `src/app/api/createProfile/route.js` usa `service_role` sem validar o token                     | Alta       | Equipe      | Resolvido | Token validado antes do cliente admin (issue #29, PR #47).                                                                              |
+| 06/10/2026 | Débito de testes: nenhuma integração automatizada e front-end sem cobertura                     | Média      | Equipe      | Parcial   | Integração pg-mem e RLS existem; front-end segue sem cobertura (issue #33).                                                             |
+| 06/10/2026 | `transactions.type` pode não corresponder a `categories.type`                                   | Média      | Equipe      | Mitigado  | A aplicação propaga o tipo ao mudar a categoria (CA-008.03); constraint no banco segue em [future-migrations.md](future-migrations.md). |
+| 06/10/2026 | Duplicação entre `gastosPage.js` e `rendaPage.js` (~1.100 linhas)                               | Média      | Equipe      | Resolvido | Unificadas em `src/app/transactions/page.js` (issue #6).                                                                                |
+| 06/10/2026 | Divisão de tarefas inadequada                                                                   | Baixa      | Gerente     | Vigente   | Acompanhar as atividades e revisar o cronograma em cada iteração ([iteration-plan.md](iteration-plan.md)).                              |
 
 ---
 

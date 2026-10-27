@@ -1,0 +1,163 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-primary, #04090b);
+  color: var(--color-text-primary, #f0f6fc);
+  padding-top: 4rem;
+}
+
+.heroContent {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 1rem);
+}
+
+.heroTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .heroTitle {
+    font-size: 3rem;
+  }
+}
+
+.heroSub {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #94a3b8);
+  margin: 0;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12, 3rem);
+}
+
+@media (min-width: 1024px) {
+  .contactGrid {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--space-16, 4rem);
+  }
+}
+
+.directChannels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+.channelCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4, 1rem);
+  text-decoration: none;
+}
+
+.channelIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(0, 212, 170, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury, #00d4aa);
+  flex-shrink: 0;
+}
+
+.channelInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.faqHeader {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto var(--space-12, 3rem) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+
+.section_divider {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.card_padding {
+  padding: 2rem;
+}
+
+.card_header {
+  margin-bottom: 1.5rem;
+}
+
+.card_title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.25rem 0;
+}
+
+.card_subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.channels_title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.plain_link {
+  text-decoration: none;
+}
+
+.channel_title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.channel_text {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.section_top_divider {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.faq_title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.faq_subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.faq_list {
+  max-width: 800px;
+  margin: 0 auto;
+}

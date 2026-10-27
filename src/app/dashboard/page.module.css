@@ -1,0 +1,118 @@
+.chart_title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.chart_body {
+  height: 300px;
+}
+
+.loading_wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-16);
+}
+
+.header_badges {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.error_banner {
+  padding: var(--space-4);
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  margin-bottom: var(--space-4);
+}
+
+.summary_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.summary_card_body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.summary_icon_balance {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--color-mercury-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury);
+}
+
+.summary_label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.summary_value {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: var(--space-1) 0 0;
+}
+
+.summary_icon_income {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 212, 170, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-income);
+}
+
+.summary_value_income {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-income);
+  margin: var(--space-1) 0 0;
+}
+
+.summary_icon_expense {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 71, 87, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-expense);
+}
+
+.summary_value_expense {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-expense);
+  margin: var(--space-1) 0 0;
+}
+
+.charts_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.chart_heading {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.line_chart_body {
+  height: 350px;
+}

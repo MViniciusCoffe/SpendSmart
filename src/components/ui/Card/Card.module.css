@@ -1,0 +1,103 @@
+/**
+ * Card Component Styles
+ * Uses design tokens from design-tokens.css
+ */
+
+.card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition:
+    border-color var(--duration-normal) var(--easing-ease-out),
+    box-shadow var(--duration-normal) var(--easing-ease-out),
+    transform var(--duration-normal) var(--easing-ease-out);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Variants */
+.default {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+.bordered {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  border-width: 2px;
+}
+
+.elevated {
+  background: var(--color-bg-secondary);
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.elevated:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ghost:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+/* Padding variants */
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--space-4);
+}
+
+.padding-md {
+  padding: var(--space-6);
+}
+
+.padding-lg {
+  padding: var(--space-8);
+}
+
+/* Hover effect */
+.hover {
+  transition:
+    border-color var(--duration-normal) var(--easing-ease-out),
+    box-shadow var(--duration-normal) var(--easing-ease-out),
+    transform var(--duration-normal) var(--easing-ease-out);
+}
+
+.hover:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .padding-md {
+    padding: var(--space-4);
+  }
+
+  .padding-lg {
+    padding: var(--space-6);
+  }
+}
+
+/* Focus visible for accessibility */
+.card:focus-visible {
+  outline: 2px solid var(--color-mercury);
+  outline-offset: 2px;
+}

@@ -1,0 +1,80 @@
+/**
+ * Tabs Component Styles
+ * Uses design tokens from design-tokens.css
+ */
+
+.root {
+  width: 100%;
+}
+
+.list {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-4);
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--easing-ease-out),
+    border-color var(--duration-fast) var(--easing-ease-out);
+  white-space: nowrap;
+}
+
+.trigger:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.trigger:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-mercury);
+  box-shadow: 0 0 0 2px var(--color-mercury-muted);
+}
+
+.trigger.active {
+  color: var(--color-mercury);
+  border-bottom-color: var(--color-mercury);
+}
+
+.trigger.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.panel {
+  animation: fadeIn 0.2s var(--easing-ease-out);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .trigger {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+}

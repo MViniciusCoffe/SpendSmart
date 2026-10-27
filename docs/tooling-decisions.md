@@ -765,3 +765,31 @@ scripts/
 **Reavaliar quando.** Surgir necessidade de scripts puramente de infraestrutura (ex: backup, rotate keys) — criar `scripts/infra/` como subpasta, não `infra/scripts/`.
 
 ---
+
+---
+
+## 27. Front-end em `src/` com App Router, e o que mudou nas ferramentas
+
+**Decisão.** O código da aplicação vive em `src/`: páginas em `src/app/` (App Router), componentes
+em `src/components/`, serviços em `src/services/`, cliente Supabase em `src/lib/supabase.js` e
+tokens de design em `src/styles/design-tokens.css`. `sonar.sources` passou de `services` para
+`src/services`; o escopo da análise (entrada 19) não mudou, só o caminho.
+
+**Por que registrar.** A mudança de pasta quebrou duas coisas em silêncio:
+
+- `sonar.sources=services` apontava para uma pasta que deixou de existir. O workflow do Sonar só
+  roda em `main` e em PR, então a falha só apareceria no próximo PR.
+- `src/styles/tokens/` nunca era importada, e cerca de 35 variáveis CSS usadas pelos componentes
+  (`--radius-card`, `--transition-fast`, `--leading-relaxed`...) só existiam ali. Variável CSS
+  indefinida não gera erro: a propriedade é simplesmente ignorada. As definições foram para
+  `design-tokens.css` e a pasta saiu.
+
+**Como verificar.** `grep "^SF:" coverage/lcov.info` deve listar arquivos `src/services/...`, e um
+script que lista todo `var(--x)` usado deve encontrar a definição de cada um (exceto as variáveis
+setadas em runtime via `style`).
+
+**Alternativa descartada.** Manter `services/` na raiz com o front-end em `src/`: dois lugares para
+código de aplicação, e os aliases `@/services/...` do `jsconfig.json` já apontavam para `src/`.
+
+**Condição para rever.** Se o front-end entrar no escopo do Sonar (issue #33), acrescentar
+`src/app` e `src/components` em `sonar.sources` num commit próprio, como descrito na entrada 19.

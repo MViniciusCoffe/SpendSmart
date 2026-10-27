@@ -1,5 +1,10 @@
 # Registro de qualidade — 2026-10-13
 
+> **Registro histórico.** Este documento descreve o projeto na data em que foi escrito e é mantido
+> como evidência. Os caminhos citados (`pages/gastosPage.js`, `pages/register.js`, `services/`...)
+> eram os da época: o front-end hoje está em `src/app/` (App Router) e os serviços em
+> `src/services/`. O estado atual está no `README.md`.
+
 ## Objetivo
 
 Elevar a confiabilidade do quality gate do SonarQube sem refatorar as páginas React nem alterar

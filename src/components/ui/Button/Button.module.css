@@ -1,0 +1,201 @@
+/**
+ * Button Component Styles
+ * Uses design tokens from design-tokens.css
+ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-ease-out),
+    border-color var(--duration-fast) var(--easing-ease-out),
+    color var(--duration-fast) var(--easing-ease-out),
+    transform var(--duration-fast) var(--easing-ease-out),
+    box-shadow var(--duration-fast) var(--easing-ease-out);
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Variants */
+.primary {
+  background: var(--color-mercury);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-mercury);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-mercury-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-mercury-hover);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--color-mercury-active);
+  transform: translateY(0);
+}
+
+.secondary {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.danger {
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.danger:hover:not(:disabled) {
+  background: #e83d4a;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.outline {
+  background: transparent;
+  color: var(--color-mercury);
+  border: 1px solid var(--color-mercury);
+}
+
+.outline:hover:not(:disabled) {
+  background: var(--color-mercury-muted);
+  border-color: var(--color-mercury-hover);
+}
+
+/* Sizes */
+.sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  min-height: 32px;
+}
+
+.md {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  min-height: 40px;
+}
+
+.lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-base);
+  min-height: 48px;
+}
+
+/* States */
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.loading {
+  pointer-events: none;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: opacity var(--duration-fast) var(--easing-ease-out);
+}
+
+.content svg {
+  flex-shrink: 0;
+  max-width: none;
+}
+
+.loading .content {
+  opacity: 0;
+}
+
+.spinner {
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Focus Styles */
+.button:focus-visible {
+  outline: 2px solid var(--color-mercury);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .md {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    min-height: 40px;
+  }
+
+  .lg {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--text-base);
+    min-height: 44px;
+  }
+}
+
+/* Disabled state */
+.button:disabled,
+.button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filled buttons drop their color when disabled, not just fade */
+.primary:disabled:not(.loading),
+.danger:disabled:not(.loading) {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  box-shadow: none;
+  border: 1px solid var(--color-border);
+  opacity: 1;
+}
+
+/* Focus visible for accessibility */
+.button:focus-visible {
+  outline: 2px solid var(--color-mercury);
+  outline-offset: 2px;
+}

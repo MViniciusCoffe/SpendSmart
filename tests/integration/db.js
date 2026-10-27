@@ -22,8 +22,19 @@ import pg from "pg"
 // mesmas asserções de código de erro do PostgreSQL (23505, 23503).
 
 const DDL = `
-  CREATE TABLE profiles (
+  CREATE SCHEMA IF NOT EXISTS auth;
+  
+  CREATE TABLE auth.users (
     id uuid PRIMARY KEY,
+    email text,
+    encrypted_password text,
+    email_confirmed_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp
+  );
+
+  CREATE TABLE profiles (
+    id uuid PRIMARY KEY REFERENCES auth.users(id),
     full_name text NOT NULL,
     birth_date date,
     phone text,
@@ -33,7 +44,7 @@ const DDL = `
 
   CREATE TABLE categories (
     id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL,
+    user_id uuid NOT NULL REFERENCES auth.users(id),
     name text NOT NULL,
     type text NOT NULL,
     description text,
@@ -46,8 +57,8 @@ const DDL = `
 
   CREATE TABLE transactions (
     id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL,
-    category_id bigint NOT NULL,
+    user_id uuid NOT NULL REFERENCES auth.users(id),
+    category_id bigint NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
     type text NOT NULL,
     amount numeric(12,2) NOT NULL,
     title text NOT NULL,

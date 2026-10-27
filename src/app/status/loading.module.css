@@ -1,0 +1,465 @@
+/* Match the loading route to the rendered status page composition. */
+.container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - var(--header-height, 0px));
+  margin: 0;
+  padding-top: var(--header-height, 0px);
+  padding-bottom: var(--space-12);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 78% 8%, rgba(0, 212, 170, 0.1), transparent 28%),
+    var(--color-bg-primary);
+  background-size:
+    48px 48px,
+    48px 48px,
+    auto,
+    auto;
+}
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto var(--space-10);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mastheadCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: min(100%, 680px);
+}
+
+.skeletonEyebrow {
+  composes: shimmerBase;
+  width: 180px;
+  height: 10px;
+}
+
+.skeletonTitle {
+  width: min(52vw, 440px);
+  min-width: 240px;
+  height: clamp(48px, 7vw, 84px);
+}
+
+.skeletonSubtitle {
+  width: min(100%, 390px);
+  height: 18px;
+}
+
+.skeletonDashboardLink {
+  composes: shimmerBase;
+  width: 145px;
+  height: 16px;
+  margin-bottom: var(--space-3);
+}
+
+.statusBanner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(var(--space-8), 8vw, var(--space-16));
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto var(--space-12);
+  padding: clamp(var(--space-6), 5vw, var(--space-10));
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card-lg);
+}
+
+.statusMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.statusIcon {
+  composes: shimmerBase;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+.statusCopy,
+.statusMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.statusCopy {
+  min-width: 0;
+}
+
+.skeletonKicker {
+  composes: shimmerBase;
+  width: 120px;
+  height: 10px;
+}
+
+.skeletonStatusTitle {
+  composes: shimmerBase;
+  width: min(50vw, 440px);
+  height: 42px;
+}
+
+.skeletonStatusDescription {
+  composes: shimmerBase;
+  width: min(42vw, 320px);
+  height: 16px;
+}
+
+.statusMeta {
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 200px;
+  padding-left: var(--space-6);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.skeletonStatusBadge {
+  composes: shimmerBase;
+  width: 92px;
+  height: 28px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonTimestamp {
+  composes: shimmerBase;
+  width: 150px;
+  height: 12px;
+}
+
+.statusLine {
+  position: absolute;
+  right: 8%;
+  bottom: var(--space-8);
+  left: 8%;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.metricsSection {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto var(--space-10);
+}
+
+.sectionHeader,
+.lowerSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 44px;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sectionTitle {
+  composes: shimmerBase;
+  width: 160px;
+  height: 22px;
+}
+
+.sectionActions,
+.serviceMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.skeletonAction,
+.skeletonActionWide {
+  composes: shimmerBase;
+  height: 28px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonAction {
+  width: 145px;
+}
+
+.skeletonActionWide {
+  width: 105px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.metricSkeleton {
+  min-height: 150px;
+  padding: var(--space-5);
+  background: linear-gradient(180deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.metricTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.skeletonMetricIcon,
+.skeletonServiceIcon {
+  composes: shimmerBase;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+}
+
+.skeletonMetricIcon {
+  width: 34px;
+  height: 34px;
+}
+
+.skeletonMetricTitle {
+  width: 90px;
+  height: 14px;
+  flex: 1;
+}
+
+.skeletonMetricBadge,
+.skeletonServiceBadge,
+.skeletonLatency,
+.skeletonIncidentBadge {
+  composes: shimmerBase;
+  border-radius: var(--radius-full);
+}
+
+.skeletonMetricBadge {
+  width: 54px;
+  height: 22px;
+}
+
+.skeletonMetricValue {
+  width: 100px;
+  height: 32px;
+  margin-bottom: var(--space-3);
+}
+
+.skeletonMetricTrend {
+  width: 82px;
+  height: 22px;
+  border-radius: var(--radius-full);
+}
+
+.lowerGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  gap: var(--space-10);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.lowerSectionHeader {
+  margin-bottom: var(--space-4);
+}
+
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.serviceSkeleton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 70px;
+  padding: var(--space-4) var(--space-5);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.serviceInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.skeletonServiceIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.serviceText {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeletonServiceTitle {
+  width: min(55%, 180px);
+  height: 15px;
+}
+
+.skeletonServiceDescription {
+  width: min(75%, 240px);
+  height: 12px;
+}
+
+.skeletonServiceBadge {
+  width: 84px;
+  height: 26px;
+}
+
+.skeletonLatency {
+  width: 68px;
+  height: 26px;
+}
+
+.incidentSkeleton {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.skeletonEmptyIcon {
+  composes: shimmerBase;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonIncidentTitle,
+.skeletonIncidentDescription,
+.skeletonIncidentBadge {
+  width: min(70%, 220px);
+}
+
+.skeletonIncidentTitle {
+  height: 18px;
+}
+
+.skeletonIncidentDescription {
+  height: 14px;
+}
+
+.skeletonIncidentBadge {
+  height: 28px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .masthead,
+  .statusBanner {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .lowerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statusMeta {
+    align-items: flex-start;
+    min-width: 0;
+    padding-top: var(--space-4);
+    padding-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-right: var(--space-8);
+    padding-left: var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-right: var(--space-8);
+    padding-left: var(--space-8);
+  }
+}
+
+@media (max-width: 640px) {
+  .masthead {
+    padding-top: var(--space-4);
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sectionActions {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statusMain {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .serviceSkeleton {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .serviceMeta {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

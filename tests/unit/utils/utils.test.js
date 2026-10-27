@@ -1,4 +1,4 @@
-jest.mock("../../../infra/supabase", () => ({
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
       getSession: jest.fn()
@@ -6,13 +6,9 @@ jest.mock("../../../infra/supabase", () => ({
   }
 }))
 
-import { supabase } from "../../../infra/supabase"
-import validators from "../../../services/utils/validators"
-import {
-  obterSessao,
-  traduzirErroSupabase,
-  clearSessionCache
-} from "../../../services/utils/baseService"
+import { supabase } from "@/lib/supabase"
+import validators from "@/services/utils/validators"
+import { obterSessao, traduzirErroSupabase, clearSessionCache } from "@/services/utils/baseService"
 
 describe("utils", () => {
   beforeEach(() => {

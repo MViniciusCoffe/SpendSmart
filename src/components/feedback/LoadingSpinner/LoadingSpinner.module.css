@@ -1,0 +1,87 @@
+/**
+ * LoadingSpinner Component Styles
+ */
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury);
+}
+
+.svg {
+  animation: spin 1s linear infinite;
+}
+
+.circle {
+  stroke-dasharray: 62.83;
+  stroke-dashoffset: 18.85;
+  transform-origin: center;
+  animation: rotate 1.4s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    stroke-dashoffset: 18.85;
+    transform: rotate(0deg);
+  }
+  50% {
+    stroke-dashoffset: 0;
+    transform: rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: 18.85;
+    transform: rotate(360deg);
+  }
+}
+
+/* Sizes */
+.sm {
+  width: 16px;
+  height: 16px;
+}
+
+.md {
+  width: 24px;
+  height: 24px;
+}
+
+.lg {
+  width: 32px;
+  height: 32px;
+}
+
+.xl {
+  width: 48px;
+  height: 48px;
+}
+
+/* Label */
+.label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .svg,
+  .circle {
+    animation: none;
+  }
+}

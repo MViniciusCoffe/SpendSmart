@@ -39,7 +39,7 @@ As colunas de negócio estão documentadas em [database-schema.md](database-sche
 Rastreabilidade: issue
 [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8) (padronização de nomenclatura e colunas).
 
-**Decisão a tomar antes de implementar:** isto quebra a API. `services/profileService.js` lê e
+**Decisão a tomar antes de implementar:** isto quebra a API. `src/services/profileService.js` lê e
 escreve os nomes em português; após a migration, toda leitura e escrita passa a usar os nomes em
 inglês. Não há tradução no service layer para amortecer isso.
 
@@ -78,11 +78,11 @@ COMMIT;
 
 ### Impacto no código
 
-| Arquivo                      | Mudança necessária                                                                         |
-| ---------------------------- | ------------------------------------------------------------------------------------------ |
-| `services/profileService.js` | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`                   |
-| `pages/api/createProfile.js` | o corpo recebido de `register.js` usa os nomes em português; precisa de tradução explícita |
-| `pages/accountConfig.js`     | se o form mantém os nomes em português, a tradução fica no service                         |
+| Arquivo                              | Mudança necessária                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `src/services/profileService.js`     | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`                   |
+| `src/app/api/createProfile/route.js` | o corpo recebido de `register.js` usa os nomes em português; precisa de tradução explícita |
+| `src/app/settings/page.js`           | se o form mantém os nomes em português, a tradução fica no service                         |
 
 ### O que verificar depois
 
@@ -190,7 +190,7 @@ DROP FUNCTION IF EXISTS public.check_transaction_category_type();
 
 ### Impacto no código
 
-`services/transactionService.js:31` passa a poder receber erro `23514` além de `23503` e `23505`.
+`transactionService.createTransaction` passa a poder receber erro `23514` além de `23503` e `23505`.
 O mapeamento de mensagens em `transactionService.js:48` deve tratar esse código, com texto em
 português voltado ao usuário, no mesmo padrão de `categoryService.js:48,88`.
 

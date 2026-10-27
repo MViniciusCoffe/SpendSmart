@@ -1,0 +1,18 @@
+/**
+ * Label Component Styles
+ * Uses design tokens from design-tokens.css
+ */
+
+.label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.required {
+  color: var(--color-error);
+  margin-left: var(--space-1);
+}

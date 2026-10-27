@@ -1,14 +1,14 @@
-jest.mock("../../infra/supabase", () => ({
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: jest.fn(),
     auth: { getSession: jest.fn() }
   }
 }))
 
-import { supabase } from "../../infra/supabase"
-import { transactionService } from "../../services/transactionService"
-import { criarBuilder, comSessao } from "../helpers/supabase"
-import { linha } from "../helpers/fixtures"
+import { supabase } from "@/lib/supabase"
+import { transactionService } from "@/services/transactionService"
+import { criarBuilder, comSessao } from "@/tests/helpers/supabase"
+import { linha } from "@/tests/helpers/fixtures"
 
 describe("Regressão #10 — validação de título na fronteira", () => {
   it("createTransaction rejeita título vazio", async () => {

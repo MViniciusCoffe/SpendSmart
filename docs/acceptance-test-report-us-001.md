@@ -1,5 +1,10 @@
 # Relatório de Testes de Aceitação — US-001 (Criar conta)
 
+> **Registro histórico.** Este documento descreve o projeto na data em que foi escrito e é mantido
+> como evidência. Os caminhos citados (`pages/gastosPage.js`, `pages/register.js`, `services/`...)
+> eram os da época: o front-end hoje está em `src/app/` (App Router) e os serviços em
+> `src/services/`. O estado atual está no `README.md`.
+
 **Projeto:** SpendSmart
 **Iteração:** 1
 **User Story:** US-001 — Criar conta

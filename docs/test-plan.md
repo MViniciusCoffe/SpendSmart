@@ -1,6 +1,6 @@
 # Plano de testes
 
-Plano de testes do SpendSmart, cobre a aplicação em uso: um monolito Next.js (Pages Router) com
+Plano de testes do SpendSmart, cobre a aplicação em uso: um monolito Next.js (App Router) com
 Supabase Auth e Supabase PostgreSQL com Row Level Security, sem servidor HTTP próprio.
 
 Os identificadores RF01 a RF16 e RNF01 a RNF07 vêm do documento de visão da disciplina de Testes de
@@ -29,7 +29,8 @@ requisito, User Story e caso de teste continue estável. As User Stories estão 
 - Os 16 Requisitos Funcionais (RF01 a RF16).
 - Os 7 Requisitos Não Funcionais (RNF01 a RNF07) — ver §3.
 - A camada de serviço (`services/`), que concentra as regras de negócio e a tradução de domínio.
-- As duas rotas serverless de `pages/api/`, que usam privilégio administrativo.
+- As duas rotas serverless privilegiadas de `src/app/api/` (`createProfile`, `deleteAccount`), que
+  usam a `service_role`. As rotas `health` e `status` são públicas e só leem estado.
 - As políticas RLS de `profiles`, `categories` e `transactions`.
 - As migrações de `supabase/migrations/`.
 
@@ -57,7 +58,8 @@ requisito, User Story e caso de teste continue estável. As User Stories estão 
 
 1. **Validação de entrada** — campos obrigatórios, formato de valor numérico, tipo válido.
 2. **Mapeamento de erro** — cada código do Postgres deve virar a mensagem correta em português
-   (ver `services/categoryService.js:48,88` como referência).
+   (ver os mapas de mensagens de `createCategory` e `updateCategory` em
+   `src/services/categoryService.js` como referência).
 3. **Tradução de domínio** — o DTO devolvido ao frontend deve mapear `income` para `receita` e os
    nomes de coluna do banco para os nomes do frontend.
 
@@ -67,7 +69,7 @@ garantir que o service reaja corretamente a cada par possível, inclusive `error
 O mock precisa de **factory**, e o falso precisa ser montado **dentro** dela. Duas razões, as duas
 verificadas:
 
-1. `infra/supabase.js:6` chama `createClient` no momento do import, e `createClient(undefined, undefined)`
+1. `src/lib/supabase.js:6` chama `createClient` no momento do import, e `createClient(undefined, undefined)`
    lança `supabaseUrl is required`. Sem factory, o Jest precisa inspecionar o módulo real para gerá-lo
    automaticamente, e inspecionar significa executar. O teste morre antes da primeira asserção, com
    `Tests: 0 total`.
@@ -77,21 +79,21 @@ verificadas:
 
 ```js
 // Errado 1: sem factory, o módulo real é executado e lança
-jest.mock("../../infra/supabase")
+jest.mock("@/lib/supabase")
 
 // Errado 2: a factory é hoisted acima desta const
 const mockSupabase = { from: jest.fn() }
-jest.mock("../../infra/supabase", () => ({ supabase: mockSupabase }))
+jest.mock("@/lib/supabase", () => ({ supabase: mockSupabase }))
 
 // Certo: o falso nasce dentro da factory e é importado normalmente
-jest.mock("../../infra/supabase", () => ({
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     from: jest.fn(),
     auth: { getSession: jest.fn() }
   }
 }))
 
-import { supabase } from "../../infra/supabase"
+import { supabase } from "@/lib/supabase"
 
 // e reconfigurado por teste
 supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1" } } } })
@@ -104,7 +106,7 @@ O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam d
 em `transactionService`.
 
 **Estado atual:** nenhum teste de unidade sobre o código vivo existe. A suíte em `tests/` cobre
-apenas `services/categoriaService.js`, que é código morto e não é importado por nenhuma página.
+apenas `src/services/categoriaService.js`, que é código morto e não é importado por nenhuma página.
 Ver issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26).
 
 ### 2.2 Testes de integração
@@ -154,15 +156,15 @@ alterar perfil -> sair -> entrar de novo -> excluir conta e confirmar que tudo s
 Os RNF definem as qualidades que a aplicação precisa manter. A coluna "Como verificar" aponta o
 teste ou a inspeção que cobre cada um.
 
-| ID    | Requisito não funcional                                                                                                                   | Como verificar                            |
-| :---- | :---------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------- |
-| RNF01 | Roda sobre Node.js, sem servidor HTTP próprio. As únicas rotas server-side são as duas funções em `pages/api/`.                           | Inspecionar `package.json` e `pages/api/` |
-| RNF02 | Toda comunicação é JSON: o cliente fala com o Supabase via PostgREST, e as duas rotas serverless recebem e devolvem JSON.                 | Teste de unidade das rotas                |
-| RNF03 | Persistência em PostgreSQL, com constraints e índices aplicados por migration.                                                            | IT-10, IT-04, IT-05, IT-06                |
-| RNF04 | Sessão gerenciada pelo Supabase Auth e nenhum dado de um usuário visível a outro.                                                         | IT-01, IT-02, IT-08, IT-09, CA-002.02     |
-| RNF05 | O acesso do navegador ao Supabase depende da configuração de CORS feita no painel do projeto, não no código.                              | Configuração do projeto Supabase          |
-| RNF06 | Servidor na porta 3000 em desenvolvimento; a Vercel não expõe porta.                                                                      | Ver [environments.md](environments.md)    |
-| RNF07 | Separação entre interface, regra de negócio, cliente e operações privilegiadas: `pages/`, `services/`, `infra/supabase.js`, `pages/api/`. | Inspeção estática + revisão               |
+| ID    | Requisito não funcional                                                                                                                       | Como verificar                              |
+| :---- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------ |
+| RNF01 | Roda sobre Node.js, sem servidor HTTP próprio. As únicas rotas server-side são as funções serverless em `src/app/api/`.                       | Inspecionar `package.json` e `src/app/api/` |
+| RNF02 | Toda comunicação é JSON: o cliente fala com o Supabase via PostgREST, e as rotas serverless recebem e devolvem JSON.                          | Teste de unidade das rotas                  |
+| RNF03 | Persistência em PostgreSQL, com constraints e índices aplicados por migration.                                                                | IT-10, IT-04, IT-05, IT-06                  |
+| RNF04 | Sessão gerenciada pelo Supabase Auth e nenhum dado de um usuário visível a outro.                                                             | IT-01, IT-02, IT-08, IT-09, CA-002.02       |
+| RNF05 | O acesso do navegador ao Supabase depende da configuração de CORS feita no painel do projeto, não no código.                                  | Configuração do projeto Supabase            |
+| RNF06 | Servidor na porta 3000 em desenvolvimento; a Vercel não expõe porta.                                                                          | Ver [environments.md](environments.md)      |
+| RNF07 | Separação entre interface, regra de negócio, cliente e operações privilegiadas: `pages/`, `services/`, `src/lib/supabase.js`, `src/app/api/`. | Inspeção estática + revisão                 |
 
 **RNF04 é o requisito de segurança central.** Ele se verifica por observação do resultado, e não
 pela presença de um mecanismo: o que importa é que uma consulta com o usuário A não devolva linha
@@ -195,11 +197,11 @@ por critério de aceitação está em [user-stories.md](user-stories.md).
 | US-015 Excluir despesa   | x     |              | x     |                                                       |
 | US-016 Dashboard         |       | IT-07        | x     | Agregação hoje é no cliente                           |
 
-**Total: 16 User Stories, 10 casos de integração, 4 arquivos de service e 14 métodos sob teste.**
+**Total: 16 User Stories, 10 casos de integração e 4 arquivos de service sob teste.**
 
-Os 14 métodos de `services/` têm 100% de cobertura. O `logoutUser` deixou de ser código morto em 2026-09: `pages/accountConfig.js` e `components/Navbar/navbarApp.js` passaram a chamar o service em vez de `supabase.auth.signOut()` direto. Ver #26.
+Os métodos de `src/services/` têm 100% de cobertura de linhas, ramos e funções. O `logoutUser` deixou de ser código morto em 2026-09 (#26); hoje é chamado pelo `logout` do `AuthContext`, usado pelo Header e pela página de configurações, em vez de `supabase.auth.signOut()` direto.
 
-**Cobertura atual: 116 testes (73 unit + 28 pg-mem + 12 RLS + 8 regression).**
+**Cobertura atual: 260 testes (188 unit + 28 pg-mem + 17 RLS + 27 regressão).**
 
 ---
 

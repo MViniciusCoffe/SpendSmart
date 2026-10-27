@@ -79,7 +79,7 @@ mudam de nome e três não se aplicam:
 | Chave                         | Exemplo Python                                   | Versão deste projeto                                     |
 | :---------------------------- | :----------------------------------------------- | :------------------------------------------------------- |
 | `sonar.language`              | `py`                                             | `js`                                                     |
-| `sonar.sources`               | `.` (repositório inteiro)                        | `services` — ver §4                                      |
+| `sonar.sources`               | `.` (repositório inteiro)                        | `src/services` — ver §4                                  |
 | `sonar.test.inclusions`       | `**/test_**.py`                                  | `**/*.test.js`                                           |
 | Relatório de cobertura        | `sonar.python.coverage.reportPaths=coverage.xml` | `sonar.javascript.lcov.reportPaths=coverage/lcov.info`   |
 | `sonar.sources.inclusions`    | `**/**.py`                                       | removida — filtro desnecessário com `sources` específico |
@@ -94,7 +94,7 @@ sonar.projectKey=spendsmart
 sonar.projectName=SpendSmart
 sonar.projectVersion=0.1.0
 
-sonar.sources=services
+sonar.sources=src/services
 sonar.tests=tests
 sonar.test.inclusions=**/*.test.js
 
@@ -112,7 +112,7 @@ O exemplo do professor tem nove padrões: `**/tests/**`, `docs/**`, `sigarte/**`
 `**/templates/**`, `**/migrations/**`, `**/__pycache__/**`, `**/admin.py`, `**/__init__.*`,
 `manage.py`. São específicos de um projeto Django.
 
-Com `sonar.sources=services`, a pasta `services/` tem quatro arquivos `.js` e nada mais, então as
+Com `sonar.sources=src/services`, a pasta analisada tem só os serviços e seus utilitários, então as
 nove exclusões seriam inertes. Padrões que não fazem nada são piores do que a ausência deles: sugerem
 uma configuração mais cuidadosa do que a real.
 
@@ -126,17 +126,24 @@ Dois pontos de comportamento que valem registrar:
 
 ---
 
-## 4. `sonar.sources=services`, e não o repositório inteiro
+## 4. `sonar.sources=src/services`, e não o repositório inteiro
+
+> Os serviços ficavam em `services/` na raiz e foram movidos para `src/services/` na migração para
+> o App Router. O escopo da análise não mudou, só o caminho.
 
 Esta é a decisão com consequência no resultado, então fica registrada em detalhe.
 
 ### A aritmética
 
-O `jest.config.js` mede apenas `services/`:
+O `jest.config.js` coleta cobertura de todo `src/`:
 
 ```js
-collectCoverageFrom: ["services/**/*.js"]
+collectCoverageFrom: ["services/**/*.js", "src/**/*.js"]
 ```
+
+O Sonar só considera os arquivos dentro de `sonar.sources`, então do `lcov` entram apenas os de
+`src/services/`, que têm 100% de linhas, ramos e funções. Os números abaixo são do momento da
+decisão, quando os quatro serviços somavam 348 linhas.
 
 O `lcov` gerado tem quatro arquivos e 348 linhas. Se `sonar.sources` fosse o repositório inteiro,
 o denominador cresceria sem o numerador acompanhar:
@@ -156,19 +163,20 @@ nem os testes.
 
 ### O efeito colateral que precisa ser dito em voz alta
 
-O painel exibe **0% de duplicação**. Isso é verdadeiro dentro do escopo, e a duplicação real do
-projeto existe: cerca de 1.100 linhas repetidas entre `pages/gastosPage.js` e `pages/rendaPage.js`,
-registradas em #6 e #22. Elas não aparecem porque `pages/` está fora de `sonar.sources`.
+O painel exibe **0% de duplicação**. Isso é verdadeiro dentro do escopo. A maior duplicação do
+front-end, cerca de 1.100 linhas repetidas entre as antigas `gastosPage.js` e `rendaPage.js` (#6), já
+foi eliminada: as duas viraram `src/app/transactions/page.js`. O front-end (`src/app/`,
+`src/components/`) continua fora de `sonar.sources`, então duplicação ali não é medida.
 
-Resposta honesta se a dúvida vier: _"A análise está escopada em `services/`, que é o único diretório
+Resposta honesta se a dúvida vier: _"A análise está escopada em `src/services/`, que é o único diretório
 com cobertura medida. A duplicação entre as páginas existe e está registrada em #6 e #22, fora do
 escopo desta frente."_
 
 ### Ampliar o escopo
 
-Ampliar é um commit isolado: acrescentar `pages` e `components` em `sonar.sources` e em
-`collectCoverageFrom`. O efeito imediato é a cobertura do projeto cair para a faixa real, e a
-duplicação de `pages/` passar a ser medida como "não coberta" — o que mistura "código não testado"
+Ampliar é um commit isolado: acrescentar `src/app` e `src/components` em `sonar.sources`. O efeito
+imediato é a cobertura do projeto cair para a faixa real, e a duplicação do front-end passar a ser
+medida como "não coberta" — o que mistura "código não testado"
 com "código que ninguém pediu para testar ainda".
 
 A entrada 19 do [tooling-decisions.md](tooling-decisions.md) registra essa aritmética, e a issue #33

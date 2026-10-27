@@ -14,12 +14,16 @@ let db
 const USUARIO_NOVO = "33333333-3333-3333-3333-333333333333"
 
 const inserirPerfil = ({ id = USUARIO_NOVO, full_name = "Usuário de Teste" } = {}) =>
-  db.client.query(
-    `INSERT INTO profiles (id, full_name, birth_date, phone)
-     VALUES ($1, $2, '2000-01-15', '84999990000')
-     RETURNING id`,
-    [id, full_name]
-  )
+  db.client
+    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [id])
+    .then(() =>
+      db.client.query(
+        `INSERT INTO profiles (id, full_name, birth_date, phone)
+       VALUES ($1, $2, '2000-01-15', '84999990000')
+       RETURNING id`,
+        [id, full_name]
+      )
+    )
 
 // Mesmo padrão do categoryConstraints: o pg-mem não preenche `code` em todas
 // as violações, então a asserção primária é a mensagem padrão do PostgreSQL,
@@ -39,6 +43,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.client.query("DELETE FROM profiles")
+  await db.client.query("DELETE FROM auth.users")
 })
 
 afterAll(async () => {

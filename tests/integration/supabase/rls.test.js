@@ -22,8 +22,9 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
   )
 }
 
-const TEST_USER_1 = { email: "rls-user1@test.local", password: "123456" }
-const TEST_USER_2 = { email: "rls-user2@test.local", password: "123456" }
+const TEST_RUN_ID = Date.now().toString(36)
+const TEST_USER_1 = { email: `rls-user1-${TEST_RUN_ID}@test.local`, password: "123456" }
+const TEST_USER_2 = { email: `rls-user2-${TEST_RUN_ID}@test.local`, password: "123456" }
 
 let supabase1, supabase2
 let user1Id, user2Id

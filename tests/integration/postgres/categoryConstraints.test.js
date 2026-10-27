@@ -17,12 +17,16 @@ const USUARIO_A = "11111111-1111-1111-1111-111111111111"
 const USUARIO_B = "22222222-2222-2222-2222-222222222222"
 
 const inserirCategoria = ({ userId = USUARIO_A, nome = "Mercado", tipo = "expense" } = {}) =>
-  db.client.query(
-    `INSERT INTO categories (user_id, name, type, description, color)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id`,
-    [userId, nome, tipo, "Alimentação da casa", "#FF0000"]
-  )
+  db.client
+    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
+    .then(() =>
+      db.client.query(
+        `INSERT INTO categories (user_id, name, type, description, color)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+        [userId, nome, tipo, "Alimentação da casa", "#FF0000"]
+      )
+    )
 
 const inserirTransacao = categoriaId =>
   db.client.query(
@@ -53,6 +57,7 @@ beforeEach(async () => {
   // Ordem importa: transactions primeiro por causa da FK RESTRICT
   await db.client.query("DELETE FROM transactions")
   await db.client.query("DELETE FROM categories")
+  await db.client.query("DELETE FROM auth.users")
 })
 
 afterAll(async () => {

@@ -1,0 +1,79 @@
+/**
+ * Input Component Styles
+ * Uses design tokens from design-tokens.css
+ */
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--duration-fast) var(--easing-ease-out),
+    box-shadow var(--duration-fast) var(--easing-ease-out),
+    background-color var(--duration-fast) var(--easing-ease-out);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:hover:not(:disabled):not(:read-only) {
+  border-color: var(--color-border-hover);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-mercury);
+  box-shadow: 0 0 0 3px var(--color-mercury-muted);
+}
+
+.input:disabled,
+.input:read-only {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-bg-tertiary);
+}
+
+.input[type="color"] {
+  padding: var(--space-1);
+  height: 40px;
+  width: 48px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: none;
+}
+
+.input[type="color"]:hover:not(:disabled) {
+  border-color: var(--color-mercury);
+}
+
+.input[type="color"]:focus {
+  outline: none;
+  border-color: var(--color-mercury);
+  box-shadow: 0 0 0 3px var(--color-mercury-muted);
+}
+
+/* Error state */
+.input.error,
+.input:user-invalid {
+  border-color: var(--color-error);
+}
+
+.input.error:focus,
+.input:user-invalid:focus {
+  box-shadow: 0 0 0 3px var(--color-error-muted);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .input {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+  }
+}

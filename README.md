@@ -9,12 +9,13 @@ O projeto atende a disciplina de **Testes de Software** do Bacharelado em Sistem
 
 ## Sobre este repositório
 
-O SpendSmart é um **monolito fullstack Next.js com Supabase**, sem servidor HTTP próprio. Não há
-rotas de API além das duas funções serverless em `pages/api/`, e não há código de assinatura ou
-validação de token: a sessão é inteira do Supabase Auth.
+O SpendSmart é um **monolito fullstack Next.js (App Router) com Supabase**, sem servidor HTTP
+próprio. As rotas de API são funções serverless em `src/app/api/` (`createProfile`, `deleteAccount`,
+`health`, `status`), e não há código de assinatura ou validação de token: a sessão é inteira do
+Supabase Auth.
 
-Um backend Node.js/Express existiu até o commit `2599ad9` e foi removido. Tudo aqui descreve o
-código atual.
+Um backend Node.js/Express existiu até o commit `2599ad9` e foi removido; o front-end migrou de
+`pages/` (Pages Router) para `src/app/` (App Router). Tudo aqui descreve o código atual.
 
 ---
 
@@ -193,7 +194,7 @@ O nome da chave pública é `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — o Supabas
 
 `SUPABASE_SERVICE_ROLE_KEY` **não pode** ter prefixo `NEXT_PUBLIC_`. Com esse prefixo ela vira
 parte do bundle enviado ao navegador e qualquer visitante ganha acesso à conta inteira. Ela só é
-lida dentro de `pages/api/`.
+lida dentro de `src/app/api/`.
 
 ---
 
@@ -201,24 +202,36 @@ lida dentro de `pages/api/`.
 
 ```text
 SpendSmart/
-  pages/          interface React (Pages Router)
-    api/          duas rotas serverless: createProfile, deleteAccount
-  components/     Navbar, estilos globais, guarda de sessão
-  services/       camada de negócio: validação, tradução de domínio, mapeamento de erros
-  infra/          cliente Supabase, Docker Compose, scripts de desenvolvimento
+  src/
+    app/            páginas (App Router): dashboard, transactions, categories, settings,
+                    login, register, about, contact, status
+      api/          rotas serverless: createProfile, deleteAccount, health, status
+    components/
+      ui/           design system: Button, Input, Card, Table, Tabs, Dropdown, ChartContainer...
+      forms/        TransactionForm, CategoryForm
+      feedback/     Toast, ConfirmDialog, EmptyState, LoadingSpinner, RouteError
+      layout/       Header, Footer, PageContainer/PageHeader, AuthShell (login e cadastro)
+      withAuth.js   guarda das páginas privadas
+    contexts/       AuthContext (sessão e usuário) e ToastContext
+    services/       camada de negócio: validação, tradução de domínio, mapeamento de erros
+    lib/            cliente Supabase (supabase.js), formatadores (utils/format.js), config
+    styles/         globals.css e design-tokens.css (variáveis de cor, espaço, raio, sombra...)
   supabase/migrations/   schema do banco (node-pg-migrate)
+  infra/          Docker Compose do Postgres puro
   tests/          suíte Jest — ver o estado real abaixo
   docs/           documentação
 ```
 
 A separação de responsabilidades adotada:
 
-| Camada       | Arquivo             | Responsabilidade                                                |
-| :----------- | :------------------ | :-------------------------------------------------------------- |
-| Interface    | `pages/`            | React, validação de formulário, chamada ao service              |
-| Negócio      | `services/`         | Regra de negócio, tradução PT/EN, mensagem de erro em português |
-| Cliente      | `infra/supabase.js` | Instância única do `createClient`                               |
-| Privilegiado | `pages/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                  |
+| Camada       | Arquivo               | Responsabilidade                                                     |
+| :----------- | :-------------------- | :------------------------------------------------------------------- |
+| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                   |
+| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`    |
+| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`) |
+| Negócio      | `src/services/`       | Regra de negócio, tradução PT/EN, mensagem de erro em português      |
+| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                    |
+| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                       |
 
 ---
 
@@ -227,55 +240,63 @@ A separação de responsabilidades adotada:
 1. **Supabase Auth é a única autenticação.** Não introduzir JWT próprio, cookie de sessão manual
    nem comparação de senha em SQL.
 2. **`user_id` vem sempre da sessão, nunca do corpo da requisição.** referência:
-   `services/categoryService.js:31,41` e `services/transactionService.js:33,46`.
+   os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e
+   `src/services/transactionService.js`.
 3. **RLS é a última barreira, não a única.** Filtrar por `user_id` em toda leitura e escrita, além
    da política.
 4. **Dinheiro é `numeric(12,2)` com `check (amount > 0)`.** Nunca float.
 5. **`type` aceita apenas `income` ou `expense` no banco.** A tradução para receita/despesa
    acontece só na fronteira do service.
 6. **Nunca concatenar input em SQL.**
-7. **Categoria em uso não pode ser apagada** (`on delete restrict`).
+7. **Exclusão é lógica (`deleted_at`).** Uma categoria com transações pode ser excluída (US-009):
+   as transações continuam no histórico e no dashboard, exibindo a categoria como "Nome (deletada)",
+   e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação
+   e propaga o tipo às transações (CA-008.03).
+8. **Sem `alert`/`confirm`.** Feedback por toast e confirmações pelo `ConfirmDialog`.
 
 ---
 
 ## Estado real do projeto
 
-Isto importa mais do que qualquer checklist antigo: o repositório está em **revitalização** e vários
-itens que pareciam prontos não estão.
-
-| Item                                        | Estado                                                                                             |
-| :------------------------------------------ | :------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                        |
-| Categorias: criar, listar, alterar, excluir | Funcionando                                                                                        |
-| Receitas e despesas: criar, listar, excluir | Funcionando                                                                                        |
-| Dashboard com gráficos                      | Funcionando                                                                                        |
-| Excluir conta                               | Funcionando                                                                                        |
-| Testes de unidade                           | **65 testes, 100% nos 4 `services/`**                                                              |
-| Testes de integração (pg-mem)               | **5 suítes** (constraints, FK, unicidade)                                                          |
-| Testes de integração (Supabase/RLS)         | **1 suíte** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários          |
-| Testes de regressão                         | **1 suíte** (issues #10, #21)                                                                      |
-| **Total de testes**                         | **116 testes** (65 unit + 28 pg-mem + 12 RLS + 8 regression)                                       |
-| `npm test`                                  | **Passa** — 65/65, sem erro                                                                        |
-| `npm run test:all`                          | **Passa** — 116/116, sem erro                                                                      |
-| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml`                                              |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`) |
-| Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                             |
+| Item                                        | Estado                                                                                               |
+| :------------------------------------------ | :--------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                          |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                     |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                   |
+| Dashboard com gráficos                      | Funcionando                                                                                          |
+| Excluir conta                               | Funcionando                                                                                          |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                  |
+| Testes de unidade                           | **188 testes, 100% de linhas, ramos e funções em `src/services/`**                                   |
+| Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                 |
+| Testes de integração (Supabase/RLS)         | **1 suíte, 17 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários |
+| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                |
+| `npm test`                                  | **Passa** — 188/188                                                                                  |
+| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                 |
+| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml`                                                |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)   |
+| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)              |
+| Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                               |
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                                     |
-| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------- |
-| [#22](https://github.com/MViniciusCoffe/SpendSmart/issues/22) | Navbar renderizada duas vezes nas rotas privadas                                             |
-| [#23](https://github.com/MViniciusCoffe/SpendSmart/issues/23) | Rotas públicas quebradas: `/cadastro` vs `/register`, `/about` vazia, `/contact` inexistente |
-| [#32](https://github.com/MViniciusCoffe/SpendSmart/issues/32) | Máscara do campo valor descarta a vírgula e grava valor 100x maior                           |
-| [#43](https://github.com/MViniciusCoffe/SpendSmart/issues/43) | Registro não bloqueia senha com menos de 6 caracteres no cliente                             |
+| #                                                             | Problema                                                                             |
+| :------------------------------------------------------------ | :----------------------------------------------------------------------------------- |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Rotas privadas sem proteção no servidor e sem headers de segurança                   |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Desenvolvimento, Preview e Produção usam o mesmo projeto Supabase                    |
+| —                                                             | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços |
+
+Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
+componentizadas), #13 (toasts no lugar de `alert`), #22
+(navbar duplicada), #23 (rotas públicas), #32 (valor com vírgula e separador de milhar) e #43
+(senha mínima no cadastro).
 
 ### Sobre o RLS
 
-As políticas só são criadas quando `auth.users` existe (`001_create_financial_schema.js:101`). No
+As políticas só são criadas quando `auth.users` existe
+(`supabase/migrations/1790304277000_create_financial_schema.sql:58`). No
 PostgreSQL local (Docker Compose) essa tabela não existe, portanto **o RLS não é aplicado ali**.
 Com **Supabase CLI** (`supabase start`), o RLS é real e o isolamento entre dois usuários **é testado**
-em `tests/integration/supabase/rls.test.js` (12 testes cobrindo leitura/escrita cross-user).
+em `tests/integration/supabase/rls.test.js` (17 testes cobrindo leitura/escrita cross-user).
 O teste requer `.env.local` preenchido e `supabase start` rodando — não roda no CI GitHub Actions.
 
 ---
@@ -296,7 +317,7 @@ arquivos abaixo, em Markdown.
 | [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
 | [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
 | [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Estado atual dos testes](docs/test-state-report.md)               | Diagnóstico formal: 65 testes unitários, 5 de integração, cobertura, débito técnico  |
+| [Estado atual dos testes](docs/test-state-report.md)               | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
 
@@ -337,7 +358,7 @@ arquivos abaixo, em Markdown.
 | `npm run migrations:up`    | `node-pg-migrate up`               | Aplica migrations (usa `.env.development`) |
 | `npm run test`             | `jest tests/unit`                  | Testes unitários                           |
 | `npm run test:integration` | `jest integration`                 | Integração pg-mem                          |
-| `npm run test:all`         | `jest all`                         | Todos os testes                            |
+| `npm run test:all`         | unit + pg-mem + regressão + RLS    | Todos os testes                            |
 
 ---
 
@@ -353,6 +374,7 @@ Issues abertas, em ordem de dependência:
 | [#30](https://github.com/MViniciusCoffe/SpendSmart/issues/30) | Isolamento por RLS (teste em CI) | #20      |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #31.
+Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.
 
 ---
 

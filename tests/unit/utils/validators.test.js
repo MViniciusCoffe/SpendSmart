@@ -1,4 +1,4 @@
-import validators from "../../../services/utils/validators"
+import validators from "@/services/utils/validators"
 
 describe("validators", () => {
   describe("titulo", () => {
