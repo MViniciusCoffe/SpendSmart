@@ -321,8 +321,8 @@ Funcionalidade: US-008 — Alterar categoria
 | CA-009.02 | Dado uma categoria deletada sem transações, quando restauro, então a categoria volta a aparecer na listagem                           |
 
 > CA-009.02, CA-009.03, CA-009.04 e CA-009.05 atendidos: a aba Excluir mostra a quantidade real de
-> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". O cenário de
-> restaurar categoria deletada ainda não tem tela.
+> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". A aba Excluir
+> também lista as categorias excluídas com a ação "Restaurar" (`categoryService.restoreCategory`).
 
 **Cenários formais (Gherkin):**
 
@@ -374,8 +374,8 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 ```
 
 > CA-009.02, CA-009.03, CA-009.04 e CA-009.05 atendidos: a aba Excluir mostra a quantidade real de
-> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". O cenário de
-> restaurar categoria deletada ainda não tem tela.
+> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". A aba Excluir
+> também lista as categorias excluídas com a ação "Restaurar" (`categoryService.restoreCategory`).
 
 ---
 
