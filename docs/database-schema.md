@@ -186,7 +186,7 @@ erDiagram
 - Uma conta pode possuir várias transações.
 - Uma categoria pode classificar várias transações.
 - A exclusão da conta usa `on delete cascade` para seus dados privados (Supabase).
-- A exclusão de uma categoria em uso usa `on delete restrict`; transações não são apagadas silenciosamente.
+- A exclusão de categoria pela aplicação é lógica (`deleted_at`), mesmo com transações vinculadas; `on delete restrict` impede apenas o `DELETE` físico, então transações nunca são apagadas silenciosamente.
 - **Soft delete:** exclusão de perfil, categoria ou transação define `deleted_at = now()`; registros permanecem no histórico, somas e dashboards. Listagens e dropdowns filtram `deleted_at IS NULL`. Purge real ocorre via job noturno (`deleted_at > 30 dias`).
 - A aplicação deve validar que categoria e transação pertencem ao mesmo usuário e possuem o mesmo tipo.
 

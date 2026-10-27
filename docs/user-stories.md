@@ -266,9 +266,9 @@ Funcionalidade: US-007 — Listar categorias
 | CA-008.02 | Dado nome, tipo e cor iguais aos de outra categoria minha, quando salvo, então o banco rejeita por unicidade           |
 | CA-008.03 | Dado uma categoria com transações vinculadas, quando tento mudar o tipo, então a aplicação impede ou explica o impacto |
 
-> CA-008.03 não é atendido: hoje é possível trocar o tipo de uma categoria que já tem
-> lançamentos, o que deixa o gráfico do dashboard inconsistente. Registrado em
-> [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+> CA-008.03 atendido: ao mudar o tipo de uma categoria com transações, um diálogo explica o
+> impacto e, se confirmado, as transações passam ao novo tipo (`categoryService.updateCategory`
+> com `updateTransactionsType`).
 
 **Cenários formais (Gherkin):**
 
@@ -300,8 +300,6 @@ Funcionalidade: US-008 — Alterar categoria
     Então a aplicação impede a mudança
     E explica que existem lançamentos vinculados e o impacto no dashboard
 
-  # PENDENTE: hoje a mudança de tipo é permitida e corrompe os gráficos do
-  # dashboard. O cenário acima descreve o comportamento esperado.
 ```
 
 ---
@@ -322,8 +320,9 @@ Funcionalidade: US-008 — Alterar categoria
 | CA-009.05 | Dado uma transação com categoria deletada, quando visualizo o detalhe, então a categoria aparece com indicador "deletada"             |
 | CA-009.02 | Dado uma categoria deletada sem transações, quando restauro, então a categoria volta a aparecer na listagem                           |
 
-> CA-009.03 não é atendido: a tela exibe "Quantidade de usos: 0" fixo. Registrado em
-> [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+> CA-009.02, CA-009.03, CA-009.04 e CA-009.05 atendidos: a aba Excluir mostra a quantidade real de
+> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". O cenário de
+> restaurar categoria deletada ainda não tem tela.
 
 **Cenários formais (Gherkin):**
 
@@ -374,8 +373,9 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
     Então o detalhe exibe "Quantidade de usos: 3"
 ```
 
-> CA-009.03 não é atendido: a tela exibe "Quantidade de usos: 0" fixo. Registrado em
-> [Plano de testes](test-plan.md#6-riscos-e-contingencias).
+> CA-009.02, CA-009.03, CA-009.04 e CA-009.05 atendidos: a aba Excluir mostra a quantidade real de
+> usos e explica o impacto antes de excluir; transações exibem "Nome (deletada)". O cenário de
+> restaurar categoria deletada ainda não tem tela.
 
 ---
 

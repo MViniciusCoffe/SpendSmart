@@ -111,24 +111,24 @@ mesmos do documento da disciplina; a descrição foi atualizada para a arquitetu
 aponta para a User Story que o implementa (ver [user-stories.md](user-stories.md)). A prioridade
 segue a escala do modelo YP-Agentic (P0 essencial, P1 desejável).
 
-| ID   | Requisito           | Prioridade | Descrição                                                                                                              | Ator                | US     |
-| :--- | :------------------ | :--------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------ | :----- |
-| RF01 | Cadastrar usuário   | P0         | Cadastro com nome completo, e-mail, senha, data de nascimento e telefone. E-mail já existente é impedido.              | Usuário             | US-001 |
-| RF02 | Realizar login      | P0         | Autenticação por e-mail e senha pelo Supabase Auth, com mensagem que não revela se o e-mail existe.                    | Usuário             | US-002 |
-| RF03 | Consultar usuários  | P0         | Consulta dos dados do próprio usuário logado. Não existe listagem de outros usuários — seria falha de segurança.       | Usuário autenticado | US-003 |
-| RF04 | Alterar usuário     | P0         | Alteração de nome completo, senha, data de nascimento e telefone do próprio perfil.                                    | Usuário autenticado | US-003 |
-| RF05 | Excluir usuário     | P1         | Exclusão da conta com remoção em cascata de perfil, categorias e transações.                                           | Usuário autenticado | US-004 |
-| RF06 | Cadastrar categoria | P0         | Criação informando nome, tipo, descrição e cor. O tipo é `income` ou `expense` (receita ou despesa na tela).           | Usuário autenticado | US-006 |
-| RF07 | Listar categorias   | P0         | Consulta das categorias do usuário logado.                                                                             | Usuário autenticado | US-007 |
-| RF08 | Alterar categoria   | P1         | Alteração de nome, tipo, descrição e cor, impedindo duplicidade de nome + tipo + usuário (`23505`).                    | Usuário autenticado | US-008 |
-| RF09 | Excluir categoria   | P1         | Exclusão de categoria; categorias em uso são rejeitadas pelo banco (`23503`, `ON DELETE RESTRICT`).                    | Usuário autenticado | US-009 |
-| RF10 | Cadastrar receita   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                      | Usuário autenticado | US-010 |
-| RF11 | Listar receitas     | P0         | Consulta das receitas do usuário logado.                                                                               | Usuário autenticado | US-011 |
-| RF12 | Excluir receita     | P1         | Exclusão de uma receita existente.                                                                                     | Usuário autenticado | US-012 |
-| RF13 | Cadastrar despesa   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                      | Usuário autenticado | US-013 |
-| RF14 | Listar despesas     | P0         | Consulta das despesas do usuário logado.                                                                               | Usuário autenticado | US-014 |
-| RF15 | Excluir despesa     | P1         | Exclusão de uma despesa existente.                                                                                     | Usuário autenticado | US-015 |
-| RF16 | Proteger operações  | P0         | Rotas privadas exigem sessão (`withAuth`) e o banco só devolve linhas do próprio usuário (RLS + filtro por `user_id`). | Sistema             | US-005 |
+| ID   | Requisito           | Prioridade | Descrição                                                                                                                       | Ator                | US     |
+| :--- | :------------------ | :--------- | :------------------------------------------------------------------------------------------------------------------------------ | :------------------ | :----- |
+| RF01 | Cadastrar usuário   | P0         | Cadastro com nome completo, e-mail, senha, data de nascimento e telefone. E-mail já existente é impedido.                       | Usuário             | US-001 |
+| RF02 | Realizar login      | P0         | Autenticação por e-mail e senha pelo Supabase Auth, com mensagem que não revela se o e-mail existe.                             | Usuário             | US-002 |
+| RF03 | Consultar usuários  | P0         | Consulta dos dados do próprio usuário logado. Não existe listagem de outros usuários — seria falha de segurança.                | Usuário autenticado | US-003 |
+| RF04 | Alterar usuário     | P0         | Alteração de nome completo, senha, data de nascimento e telefone do próprio perfil.                                             | Usuário autenticado | US-003 |
+| RF05 | Excluir usuário     | P1         | Exclusão da conta com remoção em cascata de perfil, categorias e transações.                                                    | Usuário autenticado | US-004 |
+| RF06 | Cadastrar categoria | P0         | Criação informando nome, tipo, descrição e cor. O tipo é `income` ou `expense` (receita ou despesa na tela).                    | Usuário autenticado | US-006 |
+| RF07 | Listar categorias   | P0         | Consulta das categorias do usuário logado.                                                                                      | Usuário autenticado | US-007 |
+| RF08 | Alterar categoria   | P1         | Alteração de nome, tipo, descrição e cor, impedindo duplicidade de nome + tipo + usuário (`23505`).                             | Usuário autenticado | US-008 |
+| RF09 | Excluir categoria   | P1         | Exclusão lógica de categoria (soft delete); transações vinculadas preservam o histórico e exibem a categoria como "(deletada)". | Usuário autenticado | US-009 |
+| RF10 | Cadastrar receita   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                               | Usuário autenticado | US-010 |
+| RF11 | Listar receitas     | P0         | Consulta das receitas do usuário logado.                                                                                        | Usuário autenticado | US-011 |
+| RF12 | Excluir receita     | P1         | Exclusão de uma receita existente.                                                                                              | Usuário autenticado | US-012 |
+| RF13 | Cadastrar despesa   | P0         | Registro com categoria, valor, título, data e forma de pagamento.                                                               | Usuário autenticado | US-013 |
+| RF14 | Listar despesas     | P0         | Consulta das despesas do usuário logado.                                                                                        | Usuário autenticado | US-014 |
+| RF15 | Excluir despesa     | P1         | Exclusão de uma despesa existente.                                                                                              | Usuário autenticado | US-015 |
+| RF16 | Proteger operações  | P0         | Rotas privadas exigem sessão (`withAuth`) e o banco só devolve linhas do próprio usuário (RLS + filtro por `user_id`).          | Sistema             | US-005 |
 
 ### 6.1 Limitações conhecidas na implementação atual
 
