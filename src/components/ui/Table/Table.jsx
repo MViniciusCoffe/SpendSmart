@@ -13,6 +13,9 @@ export const Table = forwardRef(function Table(
     className = "",
     emptyMessage = "Nenhum dado disponível",
     renderRow,
+    // Optional row selection: pass both to make rows clickable/selectable
+    selectedKey = null,
+    onSelectRow,
     ...props
   },
   ref
@@ -54,7 +57,7 @@ export const Table = forwardRef(function Table(
   return (
     <div ref={ref} className={`${styles.wrapper} ${className}`} {...props}>
       <div className={`${styles.tableContainer} ${stickyHeader ? styles.stickyHeader : ""}`}>
-        <table className={styles.table}>
+        <table className={styles.table} role={onSelectRow ? "grid" : undefined}>
           <thead className={styles.thead}>
             <tr>
               {columns.map(column => (
@@ -83,18 +86,35 @@ export const Table = forwardRef(function Table(
             </tr>
           </thead>
           <tbody className={styles.tbody}>
-            {sortedData.map((row, rowIndex) => (
-              <tr
-                key={row[keyField]}
-                className={`${styles.tr} ${rowIndex % 2 === 0 ? styles.even : styles.odd}`}
-              >
-                {columns.map(column => (
-                  <td key={column.key} className={styles.td}>
-                    {column.render ? column.render(row[column.key], row) : row[column.key]}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {sortedData.map((row, rowIndex) => {
+              const isSelected = onSelectRow && row[keyField] === selectedKey
+              const selectionProps = onSelectRow
+                ? {
+                    tabIndex: 0,
+                    "aria-selected": isSelected,
+                    onClick: () => onSelectRow(isSelected ? null : row),
+                    onKeyDown: event => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        onSelectRow(isSelected ? null : row)
+                      }
+                    }
+                  }
+                : {}
+              return (
+                <tr
+                  key={row[keyField]}
+                  className={`${styles.tr} ${rowIndex % 2 === 0 ? styles.even : styles.odd} ${onSelectRow ? styles.selectable : ""} ${isSelected ? styles.selected : ""}`}
+                  {...selectionProps}
+                >
+                  {columns.map(column => (
+                    <td key={column.key} className={styles.td}>
+                      {column.render ? column.render(row[column.key], row) : row[column.key]}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
