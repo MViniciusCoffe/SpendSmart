@@ -9,6 +9,8 @@ import { siteConfig } from "@/lib/config/siteConfig"
 import styles from "./Header.module.css"
 
 const PUBLIC_ROUTES = ["/", "/about", "/contact", "/login", "/register", "/status"]
+// Auth pages are full-screen and bring their own branding
+const HEADERLESS_ROUTES = ["/login", "/register"]
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -33,6 +35,8 @@ export function Header() {
     await logout()
     router.push("/login")
   }
+
+  if (HEADERLESS_ROUTES.includes(pathname)) return null
 
   return (
     <header className={styles.header} role="banner">
