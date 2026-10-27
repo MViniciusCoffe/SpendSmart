@@ -14,6 +14,45 @@ import { profileService } from "@/services/profileService"
 import withAuth from "@/components/withAuth.js"
 import { formatCurrency } from "@/lib/utils/format"
 
+function DoughnutCard({ title, data, emptyTitle, emptyDescription, emptyIcon }) {
+  const values = data?.datasets?.[0]?.data || []
+  const total = values.reduce((sum, value) => sum + value, 0)
+
+  return (
+    <Card variant="default">
+      <h3 className={styles.chart_title}>{title}</h3>
+      <div className={styles.chart_body}>
+        {data ? (
+          <ChartContainer
+            type="doughnut"
+            data={data}
+            options={{
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: context => {
+                      const percentage = ((context.raw / total) * 100).toFixed(1)
+                      return `${context.label}: ${formatCurrency(context.raw)} (${percentage}%)`
+                    }
+                  }
+                }
+              }
+            }}
+            showLegend
+            legendData={values.map((value, index) => ({
+              label: data.labels[index],
+              value,
+              color: data.datasets[0].backgroundColor[index]
+            }))}
+          />
+        ) : (
+          <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
+        )}
+      </div>
+    </Card>
+  )
+}
+
 function DashboardContent() {
   const [dados, setDados] = useState({
     saldo: 0,
@@ -449,116 +488,48 @@ function DashboardContent() {
           marginBottom: "var(--space-6)"
         }}
       >
-        <Card variant="default">
-          <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Despesas por Categoria
-          </h3>
-          <div style={{ height: "300px" }}>
-            {expensesCategoryData ? (
-              <ChartContainer
-                type="doughnut"
-                data={expensesCategoryData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      callbacks: {
-                        label: context => {
-                          const value = context.raw
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                          const percentage = ((value / total) * 100).toFixed(1)
-                          return `${context.label}: ${formatCurrency(value)} (${percentage}%)`
-                        }
-                      }
-                    }
-                  }
-                }}
-                showLegend
-                legendData={
-                  expensesCategoryData?.datasets?.[0]?.data?.map((value, index) => ({
-                    label: expensesCategoryData.labels[index],
-                    value,
-                    color: expensesCategoryData.datasets[0].backgroundColor[index]
-                  })) || []
-                }
-              />
-            ) : (
-              <EmptyState
-                icon={
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6z" />
-                  </svg>
-                }
-                title="Sem dados de despesas"
-                description="Adicione despesas para ver a divisão por categoria"
-              />
-            )}
-          </div>
-        </Card>
+        <DoughnutCard
+          title="Despesas por Categoria"
+          data={expensesCategoryData}
+          emptyTitle="Sem dados de despesas"
+          emptyDescription="Adicione despesas para ver a divisão por categoria"
+          emptyIcon={
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6z" />
+            </svg>
+          }
+        />
 
-        <Card variant="default">
-          <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Despesas por Transação
-          </h3>
-          <div style={{ height: "300px" }}>
-            {expensesData ? (
-              <ChartContainer
-                type="doughnut"
-                data={expensesData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      callbacks: {
-                        label: context => {
-                          const value = context.raw
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                          const percentage = ((value / total) * 100).toFixed(1)
-                          return `${context.label}: ${formatCurrency(value)} (${percentage}%)`
-                        }
-                      }
-                    }
-                  }
-                }}
-                showLegend
-                legendData={
-                  expensesData?.datasets?.[0]?.data?.map((value, index) => ({
-                    label: expensesData.labels[index],
-                    value,
-                    color: expensesData.datasets[0].backgroundColor[index]
-                  })) || []
-                }
-              />
-            ) : (
-              <EmptyState
-                icon={
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                  </svg>
-                }
-                title="Sem transações de despesa"
-                description="Adicione transações de despesa para ver a divisão"
-              />
-            )}
-          </div>
-        </Card>
+        <DoughnutCard
+          title="Despesas por Transação"
+          data={expensesData}
+          emptyTitle="Sem transações de despesa"
+          emptyDescription="Adicione transações de despesa para ver a divisão"
+          emptyIcon={
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          }
+        />
       </div>
 
       <div
@@ -569,111 +540,43 @@ function DashboardContent() {
           marginBottom: "var(--space-6)"
         }}
       >
-        <Card variant="default">
-          <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Receitas por Categoria
-          </h3>
-          <div style={{ height: "300px" }}>
-            {incomesCategoryData ? (
-              <ChartContainer
-                type="doughnut"
-                data={incomesCategoryData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      callbacks: {
-                        label: context => {
-                          const value = context.raw
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                          const percentage = ((value / total) * 100).toFixed(1)
-                          return `${context.label}: ${formatCurrency(value)} (${percentage}%)`
-                        }
-                      }
-                    }
-                  }
-                }}
-                showLegend
-                legendData={
-                  incomesCategoryData?.datasets?.[0]?.data?.map((value, index) => ({
-                    label: incomesCategoryData.labels[index],
-                    value,
-                    color: incomesCategoryData.datasets[0].backgroundColor[index]
-                  })) || []
-                }
-              />
-            ) : (
-              <EmptyState
-                icon={
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M12 5v14M19 12H5" />
-                  </svg>
-                }
-                title="Sem dados de receitas"
-                description="Adicione receitas para ver a divisão por categoria"
-              />
-            )}
-          </div>
-        </Card>
+        <DoughnutCard
+          title="Receitas por Categoria"
+          data={incomesCategoryData}
+          emptyTitle="Sem dados de receitas"
+          emptyDescription="Adicione receitas para ver a divisão por categoria"
+          emptyIcon={
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M12 5v14M19 12H5" />
+            </svg>
+          }
+        />
 
-        <Card variant="default">
-          <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Receitas por Origem
-          </h3>
-          <div style={{ height: "300px" }}>
-            {incomesData ? (
-              <ChartContainer
-                type="doughnut"
-                data={incomesData}
-                options={{
-                  plugins: {
-                    tooltip: {
-                      callbacks: {
-                        label: context => {
-                          const value = context.raw
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                          const percentage = ((value / total) * 100).toFixed(1)
-                          return `${context.label}: ${formatCurrency(value)} (${percentage}%)`
-                        }
-                      }
-                    }
-                  }
-                }}
-                showLegend
-                legendData={
-                  incomesData?.datasets?.[0]?.data?.map((value, index) => ({
-                    label: incomesData.labels[index],
-                    value,
-                    color: incomesData.datasets[0].backgroundColor[index]
-                  })) || []
-                }
-              />
-            ) : (
-              <EmptyState
-                icon={
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M12 5v14M19 12H5" />
-                  </svg>
-                }
-                title="Sem transações de receita"
-                description="Adicione transações de receita para ver a divisão"
-              />
-            )}
-          </div>
-        </Card>
+        <DoughnutCard
+          title="Receitas por Origem"
+          data={incomesData}
+          emptyTitle="Sem transações de receita"
+          emptyDescription="Adicione transações de receita para ver a divisão"
+          emptyIcon={
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M12 5v14M19 12H5" />
+            </svg>
+          }
+        />
       </div>
 
       <Card variant="default">

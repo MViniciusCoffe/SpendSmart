@@ -140,3 +140,12 @@
   width: 100% !important;
   height: 20rem !important;
 }
+
+.chart_title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.chart_body {
+  height: 300px;
+}
