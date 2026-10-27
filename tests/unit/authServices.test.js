@@ -47,6 +47,16 @@ afterEach(() => {
 
 // Testes para o método registerUser do serviço de autenticação
 describe("registerUser", () => {
+  it("envia Authorization vazio quando a sessão não tem access_token", async () => {
+    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
+    supabase.auth.getSession.mockResolvedValue({ data: { session: {} }, error: null })
+
+    await authService.registerUser({ email: "joao@email.com", password: "senha123" })
+
+    const [, opcoes] = global.fetch.mock.calls[0]
+    expect(opcoes.headers.Authorization).toBe("")
+  })
+
   it("cria a conta e devolve o usuario", async () => {
     supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
 

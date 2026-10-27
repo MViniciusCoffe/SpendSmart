@@ -1,4 +1,14 @@
-export const METODOS = ["select", "insert", "update", "delete", "eq", "order", "single", "is"]
+export const METODOS = [
+  "select",
+  "insert",
+  "update",
+  "delete",
+  "eq",
+  "order",
+  "single",
+  "maybeSingle",
+  "is"
+]
 
 export const criarBuilder = resultado => {
   const builder = {}

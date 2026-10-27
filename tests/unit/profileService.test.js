@@ -11,6 +11,7 @@ jest.mock("@/lib/supabase", () => ({
 
 import { supabase } from "@/lib/supabase"
 import { profileService } from "@/services/profileService"
+import { criarBuilder } from "../helpers/supabase"
 
 // Sessão fictícia devolvida pelo Supabase Auth
 const sessao = { user: { id: "u1" }, access_token: "token123" }
@@ -151,6 +152,44 @@ describe("updateProfile", () => {
 
     await expect(profileService.updateProfile({ full_name: "Joao" })).rejects.toThrow(
       "Não foi possível atualizar os dados do perfil."
+    )
+  })
+})
+
+describe("getProfile", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(profileService.getProfile()).rejects.toThrow("Usuário não autenticado.")
+  })
+
+  it("recusa quando a consulta da sessão falha", async () => {
+    supabase.auth.getSession.mockResolvedValue(sessaoComErro)
+
+    await expect(profileService.getProfile()).rejects.toThrow("Usuário não autenticado.")
+  })
+
+  it("busca o perfil pelo id da sessão e devolve os dados", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: { full_name: "Joao Silva" }, error: null })
+    supabase.from.mockReturnValue(builder)
+
+    const resultado = await profileService.getProfile()
+
+    expect(supabase.from).toHaveBeenCalledWith("profiles")
+    expect(builder.select).toHaveBeenCalledWith("full_name")
+    expect(builder.eq).toHaveBeenCalledWith("id", "u1")
+    expect(resultado).toEqual({ full_name: "Joao Silva" })
+  })
+
+  it("traduz erro do banco", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
+    )
+
+    await expect(profileService.getProfile()).rejects.toThrow(
+      "Não foi possível carregar os dados do perfil."
     )
   })
 })
