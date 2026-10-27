@@ -33,17 +33,26 @@ export function ToastProvider({ children }) {
     setToasts(prev => prev.filter(t => t.id !== id))
   }, [])
 
-  const value = useMemo(
+  // Shortcuts must keep the same identity across renders: pages use them as effect
+  // dependencies, and a new function on every toast made failed loads retry in a loop
+  const shortcuts = useMemo(
     () => ({
-      toasts,
-      toast,
-      dismiss,
       success: (msg, opts) => toast(msg, { ...opts, type: "success" }),
       error: (msg, opts) => toast(msg, { ...opts, type: "error" }),
       warning: (msg, opts) => toast(msg, { ...opts, type: "warning" }),
       info: (msg, opts) => toast(msg, { ...opts, type: "info" })
     }),
-    [toasts, toast, dismiss]
+    [toast]
+  )
+
+  const value = useMemo(
+    () => ({
+      toasts,
+      toast,
+      dismiss,
+      ...shortcuts
+    }),
+    [toasts, toast, dismiss, shortcuts]
   )
 
   return (
