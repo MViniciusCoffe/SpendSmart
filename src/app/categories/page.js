@@ -187,9 +187,19 @@ function CategoriesPage() {
             </button>
           </div>
 
-          {/* --- ABA ADICIONAR --- */}
-          {activeTab === "add" && (
-            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
+          <div className={styles.cardsContainer}>
+            {/* --- ABA ADICIONAR --- */}
+            <Card
+              variant="default"
+              className={styles.formCard}
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                visibility: activeTab === "add" ? "visible" : "hidden",
+                position: activeTab === "add" ? "static" : "absolute",
+                pointerEvents: activeTab === "add" ? "auto" : "none"
+              }}
+            >
               <form onSubmit={handleAddSubmit}>
                 <h1 className={styles.content_h1}>Adicionar Categoria</h1>
 
@@ -262,11 +272,19 @@ function CategoriesPage() {
                 </div>
               </form>
             </Card>
-          )}
 
-          {/* --- ABA EDITAR --- */}
-          {activeTab === "edit" && (
-            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
+            {/* --- ABA EDITAR --- */}
+            <Card
+              variant="default"
+              className={styles.formCard}
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                visibility: activeTab === "edit" ? "visible" : "hidden",
+                position: activeTab === "edit" ? "static" : "absolute",
+                pointerEvents: activeTab === "edit" ? "auto" : "none"
+              }}
+            >
               <form onSubmit={handleEditSubmit}>
                 <h1 className={styles.content_h1}>Edit Category</h1>
 
@@ -367,11 +385,19 @@ function CategoriesPage() {
                 </div>
               </form>
             </Card>
-          )}
 
-          {/* --- ABA EXCLUIR --- */}
-          {activeTab === "delete" && (
-            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
+            {/* --- ABA EXCLUIR --- */}
+            <Card
+              variant="default"
+              className={styles.formCard}
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                visibility: activeTab === "delete" ? "visible" : "hidden",
+                position: activeTab === "delete" ? "static" : "absolute",
+                pointerEvents: activeTab === "delete" ? "auto" : "none"
+              }}
+            >
               <form onSubmit={handleDeleteSubmit}>
                 <h1 className={styles.content_h1}>Delete Category</h1>
 
@@ -439,7 +465,7 @@ function CategoriesPage() {
                 </div>
               </form>
             </Card>
-          )}
+          </div>
         </div>
       </PageContainer>
     </>

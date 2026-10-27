@@ -52,8 +52,14 @@
   border-bottom-color: var(--color-mercury);
 }
 
-.formCard {
+.cardsContainer {
+  position: relative;
   width: 100%;
+}
+
+.formCard {
+  width: 100% !important;
+  max-width: 100% !important;
   padding: var(--space-6);
   box-sizing: border-box;
 }
