@@ -142,5 +142,28 @@ export const categoryService = {
         }
       )
     })
+  },
+
+  async restoreCategory(id) {
+    return withSession(async session => {
+      return withErrorHandling(
+        async () => {
+          const { data, error } = await supabase
+            .from("categories")
+            .update({ deleted_at: null })
+            .eq("id", id)
+            .eq("user_id", session.user.id)
+            .select("id,name,type,description,color,deleted_at")
+            .single()
+          if (error) throw error
+          return categoryTypeMap(data)
+        },
+        "restoreCategory",
+        {
+          unicidade: "Já existe uma categoria ativa com este nome e tipo.",
+          generica: "Não foi possível restaurar a categoria."
+        }
+      )
+    })
   }
 }

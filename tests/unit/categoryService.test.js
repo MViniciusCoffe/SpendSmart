@@ -427,3 +427,49 @@ describe("updateCategory com updateTransactionsType", () => {
     ).rejects.toThrow("Não foi possível atualizar a categoria.")
   })
 })
+
+describe("restoreCategory", () => {
+  it("recusa sem sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(categoryService.restoreCategory(1)).rejects.toThrow("Usuário não autenticado.")
+  })
+
+  it("limpa deleted_at da categoria do usuário e devolve o DTO", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ data: linhaCategoria({ id: 3, user_id: "u1" }), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    const resultado = await categoryService.restoreCategory(3)
+
+    expect(supabase.from).toHaveBeenCalledWith("categories")
+    expect(builder.update).toHaveBeenCalledWith({ deleted_at: null })
+    expect(builder.eq).toHaveBeenCalledWith("id", 3)
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(resultado).not.toHaveProperty("user_id")
+    expect(resultado.id).toBe(3)
+  })
+
+  it("traduz 23505 em conflito com categoria ativa", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "23505", message: "duplicate" } })
+    )
+
+    await expect(categoryService.restoreCategory(3)).rejects.toThrow(
+      "Já existe uma categoria ativa com este nome e tipo."
+    )
+  })
+
+  it("traduz qualquer outro erro", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(
+      criarBuilder({ data: null, error: { code: "08006", message: "timeout" } })
+    )
+
+    await expect(categoryService.restoreCategory(3)).rejects.toThrow(
+      "Não foi possível restaurar a categoria."
+    )
+  })
+})

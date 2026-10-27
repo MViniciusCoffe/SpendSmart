@@ -24,7 +24,8 @@ const TYPE_LABELS = { income: "Receita", expense: "Despesa" }
 function CategoriesPage() {
   const { error: toastError, success: toastSuccess } = useToast()
 
-  const [categories, setCategories] = useState([])
+  // Includes soft-deleted categories so they can be restored (US-009)
+  const [allCategories, setAllCategories] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("add")
@@ -38,14 +39,16 @@ function CategoriesPage() {
   // Set when an edit changes the type of a category that already has transactions
   const [pendingTypeChange, setPendingTypeChange] = useState(null)
 
+  const categories = allCategories.filter(c => !c.deleted_at)
+  const deletedCategories = allCategories.filter(c => c.deleted_at)
   const editCategory = categories.find(c => c.id === editId) || null
   const deleteCategory = categories.find(c => c.id === deleteId) || null
   const categoryOptions = categories.map(c => ({ value: c.id, label: c.name }))
 
   const fetchCategories = useCallback(async () => {
     try {
-      const data = await categoryService.getCategories()
-      setCategories(data)
+      const data = await categoryService.getCategories({ includeDeleted: true })
+      setAllCategories(data)
     } catch (err) {
       console.error("[Fetch Categories Error]", err)
       toastError("Erro ao carregar categorias")
@@ -146,6 +149,13 @@ function CategoriesPage() {
     }
     await confirmDelete()
   }
+
+  const handleRestore = id =>
+    runAction(
+      () => categoryService.restoreCategory(id),
+      "Categoria restaurada com sucesso",
+      "Não foi possível restaurar a categoria"
+    )
 
   const emptyMessage = categories.length === 0 && (
     <p className={styles.empty_message}>
@@ -267,6 +277,36 @@ function CategoriesPage() {
                 </div>
               </form>
             </Card>
+
+            {deletedCategories.length > 0 && (
+              <Card variant="default" className={`${styles.formCard} ${styles.stacked_card}`}>
+                <h2 className={styles.section_title}>Categorias excluídas</h2>
+                <p className={styles.section_hint}>
+                  Restaurar uma categoria faz ela voltar à lista e ao formulário de novas
+                  transações.
+                </p>
+                <ul className={styles.deleted_list}>
+                  {deletedCategories.map(category => (
+                    <li key={category.id} className={styles.deleted_item}>
+                      <span
+                        className={styles.color_swatch}
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span className={styles.deleted_name}>{category.name}</span>
+                      <span className={styles.deleted_type}>{TYPE_LABELS[category.type]}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRestore(category.id)}
+                        disabled={isSaving}
+                      >
+                        Restaurar
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
           </TabPanel>
         </Tabs>
       </div>
