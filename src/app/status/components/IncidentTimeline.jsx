@@ -71,11 +71,7 @@ export function IncidentTimeline({ incidents }) {
                   aria-hidden="true"
                 />
                 {index < incidents.length - 1 && (
-                  <span
-                    className={styles.line}
-                    style={{ background: "var(--color-border)" }}
-                    aria-hidden="true"
-                  />
+                  <span className={`${styles.line} ${styles.timeline_line}`} aria-hidden="true" />
                 )}
               </div>
               <Card variant="bordered" className={styles.incidentCard}>

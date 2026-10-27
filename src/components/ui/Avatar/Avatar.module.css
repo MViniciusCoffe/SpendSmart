@@ -67,3 +67,8 @@
 .group .root:hover {
   z-index: 1;
 }
+
+.overflow {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}

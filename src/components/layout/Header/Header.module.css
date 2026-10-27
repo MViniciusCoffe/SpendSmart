@@ -14,12 +14,6 @@
   transition: var(--transition-normal);
 }
 
-.header.scrolled {
-  box-shadow: var(--shadow-header);
-  background: rgba(18, 18, 18, 0.95);
-  backdrop-filter: blur(8px);
-}
-
 .container {
   display: flex;
   align-items: center;
@@ -486,9 +480,6 @@
 }
 
 /* Focus visible for accessibility */
-.root:focus-visible,
-.button:focus-visible,
-.link:focus-visible,
 .navLink:focus-visible {
   outline: 2px solid var(--color-mercury);
   outline-offset: 2px;
@@ -502,4 +493,8 @@
     animation: none;
     transition: none;
   }
+}
+
+.plainLink {
+  text-decoration: none;
 }

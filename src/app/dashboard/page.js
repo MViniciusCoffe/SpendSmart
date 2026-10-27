@@ -261,7 +261,7 @@ function DashboardContent() {
   if (isLoading) {
     return (
       <PageContainer>
-        <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
+        <div className={styles.loading_wrapper}>
           <LoadingSpinner size="lg" ariaLabel="Carregando dashboard" />
         </div>
       </PageContainer>
@@ -280,7 +280,7 @@ function DashboardContent() {
         title="Dashboard"
         description="Visão geral da sua saúde financeira"
         action={
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <div className={styles.header_badges}>
             <Badge variant="income">Receitas: {formatCurrency(summary.totalIncome)}</Badge>
             <Badge variant="expense">Despesas: {formatCurrency(summary.totalExpenses)}</Badge>
           </div>
@@ -288,43 +288,15 @@ function DashboardContent() {
       />
 
       {errorMessage && (
-        <div
-          style={{
-            padding: "var(--space-4)",
-            background: "rgba(255, 71, 87, 0.1)",
-            border: "1px solid var(--color-error)",
-            borderRadius: "var(--radius-md)",
-            color: "var(--color-error)",
-            marginBottom: "var(--space-4)"
-          }}
-          role="alert"
-        >
+        <div className={styles.error_banner} role="alert">
           {errorMessage}
         </div>
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "var(--space-4)",
-          marginBottom: "var(--space-6)"
-        }}
-      >
+      <div className={styles.summary_grid}>
         <Card variant="elevated">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-            <div
-              style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "var(--radius-lg)",
-                background: "var(--color-mercury-muted)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-mercury)"
-              }}
-            >
+          <div className={styles.summary_card_body}>
+            <div className={styles.summary_icon_balance}>
               <svg
                 width="24"
                 height="24"
@@ -338,24 +310,8 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3
-                style={{
-                  fontSize: "var(--text-sm)",
-                  fontWeight: "var(--font-weight-medium)",
-                  color: "var(--color-text-secondary)",
-                  margin: 0
-                }}
-              >
-                Saldo Atual
-              </h3>
-              <p
-                style={{
-                  fontSize: "var(--text-2xl)",
-                  fontWeight: "var(--font-weight-bold)",
-                  color: "var(--color-text-primary)",
-                  margin: "var(--space-1) 0 0"
-                }}
-              >
+              <h3 className={styles.summary_label}>Saldo Atual</h3>
+              <p className={styles.summary_value}>
                 {summary.balance !== 0 ? formatCurrency(summary.balance) : "Sem dados"}
               </p>
             </div>
@@ -363,19 +319,8 @@ function DashboardContent() {
         </Card>
 
         <Card variant="elevated">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-            <div
-              style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "var(--radius-lg)",
-                background: "rgba(0, 212, 170, 0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-income)"
-              }}
-            >
+          <div className={styles.summary_card_body}>
+            <div className={styles.summary_icon_income}>
               <svg
                 width="24"
                 height="24"
@@ -388,24 +333,8 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3
-                style={{
-                  fontSize: "var(--text-sm)",
-                  fontWeight: "var(--font-weight-medium)",
-                  color: "var(--color-text-secondary)",
-                  margin: 0
-                }}
-              >
-                Total de Receitas
-              </h3>
-              <p
-                style={{
-                  fontSize: "var(--text-2xl)",
-                  fontWeight: "var(--font-weight-bold)",
-                  color: "var(--color-income)",
-                  margin: "var(--space-1) 0 0"
-                }}
-              >
+              <h3 className={styles.summary_label}>Total de Receitas</h3>
+              <p className={styles.summary_value_income}>
                 {summary.totalIncome !== 0 ? formatCurrency(summary.totalIncome) : "Sem dados"}
               </p>
             </div>
@@ -413,19 +342,8 @@ function DashboardContent() {
         </Card>
 
         <Card variant="elevated">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-            <div
-              style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "var(--radius-lg)",
-                background: "rgba(255, 71, 87, 0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-expense)"
-              }}
-            >
+          <div className={styles.summary_card_body}>
+            <div className={styles.summary_icon_expense}>
               <svg
                 width="24"
                 height="24"
@@ -438,24 +356,8 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3
-                style={{
-                  fontSize: "var(--text-sm)",
-                  fontWeight: "var(--font-weight-medium)",
-                  color: "var(--color-text-secondary)",
-                  margin: 0
-                }}
-              >
-                Total de Despesas
-              </h3>
-              <p
-                style={{
-                  fontSize: "var(--text-2xl)",
-                  fontWeight: "var(--font-weight-bold)",
-                  color: "var(--color-expense)",
-                  margin: "var(--space-1) 0 0"
-                }}
-              >
+              <h3 className={styles.summary_label}>Total de Despesas</h3>
+              <p className={styles.summary_value_expense}>
                 {summary.totalExpenses !== 0 ? formatCurrency(summary.totalExpenses) : "Sem dados"}
               </p>
             </div>
@@ -463,14 +365,7 @@ function DashboardContent() {
         </Card>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-          gap: "var(--space-4)",
-          marginBottom: "var(--space-6)"
-        }}
-      >
+      <div className={styles.charts_grid}>
         <DoughnutCard
           title="Despesas por Categoria"
           data={expensesCategoryData}
@@ -515,14 +410,7 @@ function DashboardContent() {
         />
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-          gap: "var(--space-4)",
-          marginBottom: "var(--space-6)"
-        }}
-      >
+      <div className={styles.charts_grid}>
         <DoughnutCard
           title="Receitas por Categoria"
           data={incomesCategoryData}
@@ -563,10 +451,8 @@ function DashboardContent() {
       </div>
 
       <Card variant="default">
-        <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-          Top 10 Transações (Receitas e Despesas)
-        </h3>
-        <div style={{ height: "350px" }}>
+        <h3 className={styles.chart_heading}>Top 10 Transações (Receitas e Despesas)</h3>
+        <div className={styles.line_chart_body}>
           {lineData ? (
             <ChartContainer type="line" data={lineData} />
           ) : (

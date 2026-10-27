@@ -1,146 +1,3 @@
-.exit_button {
-  color: red;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  filter: drop-shadow(0 0 0.15rem black);
-  transition: all 0.5s ease-in-out;
-  border: 1px solid red;
-}
-
-.exit_button:hover {
-  color: white;
-  background-color: red;
-}
-
-.app_content {
-  height: 100vh;
-  padding: 6rem 2rem;
-}
-
-.user_content {
-  border-radius: 0.25rem;
-  margin: 0 2rem;
-  display: flex;
-  align-items: center;
-  background-color: #e1e2d5;
-  filter: drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.397));
-  justify-content: space-between;
-}
-
-.user {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.user_image {
-  margin-top: 0.5rem;
-  border: 1px solid black;
-  border-radius: 100%;
-  width: 5rem;
-  height: 5rem;
-}
-
-.user_image img {
-  height: 100%;
-  border-radius: 100%;
-}
-
-.status_content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-}
-
-.status_content .metric {
-  display: flex;
-  background-color: #e1e2d5;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  filter: drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.397));
-  width: 20%;
-}
-
-.status_content .metric .metric_img {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 5rem;
-  height: 5rem;
-}
-
-.status_content .metric img {
-  height: 100%;
-  width: 100%;
-  background-color: #e1e2d5;
-}
-
-.status_content .metric div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 10rem;
-}
-
-.dashboards_content {
-  display: flex;
-  width: 100%;
-  height: 25rem;
-  justify-content: center;
-}
-
-.dashboard_donut {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 2rem;
-  width: 100%;
-  background-color: #e1e2d5;
-  height: 22.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  filter: drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.397));
-}
-
-.dashboard_donut h3 {
-  font-size: 1.5rem;
-}
-
-.dashboard_lines {
-  position: relative;
-  margin: 0 2rem;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #e1e2d5;
-  height: 24rem;
-  width: 50%;
-  border-radius: 0.25rem;
-  filter: drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.397));
-  padding: 1rem;
-}
-
-.dashboard_lines h3 {
-  font-size: 1.5rem;
-}
-
-.error_message {
-  color: red;
-  text-align: center;
-}
-
-.dashboard_lines canvas {
-  width: 100% !important;
-  height: 20rem !important;
-}
-
 .chart_title {
   margin: 0 0 var(--space-4);
   font-size: var(--text-lg);
@@ -148,4 +5,114 @@
 
 .chart_body {
   height: 300px;
+}
+
+.loading_wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-16);
+}
+
+.header_badges {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.error_banner {
+  padding: var(--space-4);
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  margin-bottom: var(--space-4);
+}
+
+.summary_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.summary_card_body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.summary_icon_balance {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--color-mercury-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mercury);
+}
+
+.summary_label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.summary_value {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: var(--space-1) 0 0;
+}
+
+.summary_icon_income {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 212, 170, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-income);
+}
+
+.summary_value_income {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-income);
+  margin: var(--space-1) 0 0;
+}
+
+.summary_icon_expense {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 71, 87, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-expense);
+}
+
+.summary_value_expense {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-expense);
+  margin: var(--space-1) 0 0;
+}
+
+.charts_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.chart_heading {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.line_chart_body {
+  height: 350px;
 }

@@ -117,3 +117,21 @@
     text-align: left;
   }
 }
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.accent {
+  color: var(--color-mercury, #00d4aa);
+}
+
+.plainLink {
+  text-decoration: none;
+}
+
+.clickable {
+  cursor: pointer;
+}

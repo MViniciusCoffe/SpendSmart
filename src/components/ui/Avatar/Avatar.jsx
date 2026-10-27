@@ -49,8 +49,7 @@ export function AvatarGroup({ children, className = "", max = 5, ...props }) {
         <Avatar
           name={`+${remainingCount}`}
           size="md"
-          className={styles.root}
-          style={{ background: "var(--color-bg-tertiary)", color: "var(--color-text-secondary)" }}
+          className={`${styles.root} ${styles.overflow}`}
         />
       )}
     </div>

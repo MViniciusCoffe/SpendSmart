@@ -128,31 +128,16 @@ export function CategoryForm({
             </div>
           </div>
 
-          <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
+          <div className={`${styles.field} ${styles.fullWidthField}`}>
             <Label htmlFor="color">Cor</Label>
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--space-3)",
-                alignItems: "center",
-                flexWrap: "wrap"
-              }}
-            >
+            <div className={styles.colorRow}>
               <input
                 type="color"
                 id="color"
                 name="color"
                 value={formData.color}
                 onChange={e => handleChange("color", e.target.value)}
-                style={{
-                  width: "48px",
-                  height: "40px",
-                  border: "2px solid var(--color-border)",
-                  borderRadius: "var(--radius-md)",
-                  cursor: "pointer",
-                  background: "none",
-                  padding: 0
-                }}
+                className={styles.colorInput}
                 disabled={isLoading}
               />
               <div
@@ -160,13 +145,11 @@ export function CategoryForm({
                 style={{ backgroundColor: formData.color }}
                 aria-hidden="true"
               />
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
-                {formData.color}
-              </span>
+              <span className={styles.colorHex}>{formData.color}</span>
             </div>
           </div>
 
-          <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
+          <div className={`${styles.field} ${styles.fullWidthField}`}>
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"

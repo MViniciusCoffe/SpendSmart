@@ -58,12 +58,12 @@ export function Navbar({ variant = "public" }) {
       <div className={styles.authGroup}>
         {variant === "public" ? (
           <>
-            <Link href="/login" style={{ textDecoration: "none" }}>
+            <Link href="/login" className={styles.plainLink}>
               <Button variant="ghost" size="sm">
                 Entrar
               </Button>
             </Link>
-            <Link href="/register" style={{ textDecoration: "none" }}>
+            <Link href="/register" className={styles.plainLink}>
               <Button variant="primary" size="sm">
                 Começar grátis
               </Button>
@@ -101,12 +101,12 @@ export function Navbar({ variant = "public" }) {
         <div className={styles.mobileAuthButtons}>
           {variant === "public" ? (
             <>
-              <Link href="/login" onClick={closeMenu} style={{ textDecoration: "none" }}>
+              <Link href="/login" onClick={closeMenu} className={styles.plainLink}>
                 <Button variant="ghost" size="md" fullWidth>
                   Entrar
                 </Button>
               </Link>
-              <Link href="/register" onClick={closeMenu} style={{ textDecoration: "none" }}>
+              <Link href="/register" onClick={closeMenu} className={styles.plainLink}>
                 <Button variant="primary" size="md" fullWidth>
                   Começar grátis
                 </Button>

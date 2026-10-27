@@ -31,10 +31,6 @@
   gap: var(--space-1);
 }
 
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -68,7 +64,28 @@
   transition: var(--transition-fast);
 }
 
-.typeLabels {
+.fullWidthField {
+  grid-column: 1 / -1;
+}
+
+.colorRow {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.colorInput {
+  width: 48px;
+  height: 40px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.colorHex {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }

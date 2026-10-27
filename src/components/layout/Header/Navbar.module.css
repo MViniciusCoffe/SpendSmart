@@ -151,3 +151,7 @@
   gap: var(--space-2, 0.5rem);
   margin-top: var(--space-2, 0.5rem);
 }
+
+.plainLink {
+  text-decoration: none;
+}

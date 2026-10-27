@@ -119,19 +119,6 @@
 }
 
 /* Pulsing for live status */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.pulse {
-  animation: pulse 2s ease-in-out infinite;
-}
 
 /* Responsive */
 @media (max-width: 480px) {
@@ -142,8 +129,7 @@
 }
 
 /* Focus visible for accessibility */
-.badge:focus-visible,
-.root:focus-visible {
+.badge:focus-visible {
   outline: 2px solid var(--color-mercury);
   outline-offset: 2px;
 }

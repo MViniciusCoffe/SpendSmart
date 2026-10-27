@@ -106,7 +106,7 @@ export function ContactForm() {
         </span>
       </div>
 
-      <Button type="submit" variant="primary" size="md" style={{ alignSelf: "flex-start" }}>
+      <Button type="submit" variant="primary" size="md" className={styles.submit_button}>
         Enviar via E-mail
         <Icon name="mail" size={16} />
       </Button>

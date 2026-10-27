@@ -15,7 +15,7 @@ export default function AboutPage() {
     <div className={styles.pageWrapper}>
       <main>
         {/* Hero Section */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+        <Section size="md" className={styles.section_divider}>
           <div className={`${styles.heroContent} animate-slide-up`}>
             <Badge variant="success" dot size="sm">
               Contexto Acadêmico — BSI UFRN 2026
@@ -29,11 +29,8 @@ export default function AboutPage() {
         </Section>
 
         {/* Mission Section */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
-          <Card
-            variant="elevated"
-            style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 2rem" }}
-          >
+        <Section size="md" className={styles.section_divider}>
+          <Card variant="elevated" className={styles.section_inner}>
             <div className={styles.missionHighlight}>
               &ldquo;Projeto acadêmico da disciplina Testes de Software (BSI UFRN 2026) — Controle
               financeiro pessoal com arquitetura moderna e testes automatizados.&rdquo;
@@ -49,7 +46,7 @@ export default function AboutPage() {
         </Section>
 
         {/* Detailed Features */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+        <Section size="md" className={styles.section_divider}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recursos em Detalhes</h2>
             <p className={styles.sectionDescription}>
@@ -63,23 +60,8 @@ export default function AboutPage() {
               <div className={styles.featureIcon}>
                 <Icon name="chart-bar" size={24} />
               </div>
-              <h3
-                style={{
-                  fontSize: "1.2rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Dashboard Inteligente
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: "1.55",
-                  color: "var(--color-text-secondary)"
-                }}
-              >
+              <h3 className={styles.feature_title}>Dashboard Inteligente</h3>
+              <p className={styles.feature_text}>
                 Agrega dados de receitas e despesas com cálculos dinâmicos de saldo líquido,
                 gráficos interativos renderizados via Chart.js e filtros cronológicos para tomada de
                 decisão rápida.
@@ -90,23 +72,8 @@ export default function AboutPage() {
               <div className={styles.featureIcon}>
                 <Icon name="credit-card" size={24} />
               </div>
-              <h3
-                style={{
-                  fontSize: "1.2rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Transações Simples
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: "1.55",
-                  color: "var(--color-text-secondary)"
-                }}
-              >
+              <h3 className={styles.feature_title}>Transações Simples</h3>
+              <p className={styles.feature_text}>
                 Lançamentos tipados com validação preventiva de valores positivos, métodos de
                 pagamento flexíveis e suporte a histórico auditável com isolamento por usuário.
               </p>
@@ -116,23 +83,8 @@ export default function AboutPage() {
               <div className={styles.featureIcon}>
                 <Icon name="tag" size={24} />
               </div>
-              <h3
-                style={{
-                  fontSize: "1.2rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Categorias Personalizadas
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: "1.55",
-                  color: "var(--color-text-secondary)"
-                }}
-              >
+              <h3 className={styles.feature_title}>Categorias Personalizadas</h3>
+              <p className={styles.feature_text}>
                 Organização intuitiva com cores personalizadas e separação rígida entre receitas e
                 despesas, protegidas por constraints de integridade e soft delete.
               </p>
@@ -142,23 +94,8 @@ export default function AboutPage() {
               <div className={styles.featureIcon}>
                 <Icon name="activity" size={24} />
               </div>
-              <h3
-                style={{
-                  fontSize: "1.2rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Status do Sistema
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  lineHeight: "1.55",
-                  color: "var(--color-text-secondary)"
-                }}
-              >
+              <h3 className={styles.feature_title}>Status do Sistema</h3>
+              <p className={styles.feature_text}>
                 Página de status aberta que monitora a saúde das conexões com Supabase Auth,
                 PostgreSQL e endpoints de API, oferecendo total transparência.
               </p>
@@ -167,7 +104,7 @@ export default function AboutPage() {
         </Section>
 
         {/* Tech Stack */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+        <Section size="md" className={styles.section_divider}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Tecnologias Utilizadas</h2>
             <p className={styles.sectionDescription}>
@@ -184,7 +121,7 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
                 className={styles.techCard}
               >
-                <Card hover style={{ width: "100%", padding: "1.25rem 1rem" }}>
+                <Card hover className={styles.stack_card}>
                   <span className={styles.techName}>{tech.name}</span>
                 </Card>
               </a>
@@ -193,7 +130,7 @@ export default function AboutPage() {
         </Section>
 
         {/* Architecture */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+        <Section size="md" className={styles.section_divider}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Pilares de Arquitetura</h2>
             <p className={styles.sectionDescription}>
@@ -204,153 +141,63 @@ export default function AboutPage() {
 
           <div className={styles.archGrid}>
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 services/
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Camada de Negócio
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>Camada de Negócio</h3>
+              <p className={styles.principle_text}>
                 Centralização de validações, tradução de erros e regras de domínio isoladas da
                 interface.
               </p>
             </Card>
 
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 PostgreSQL
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Row Level Security (RLS)
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>Row Level Security (RLS)</h3>
+              <p className={styles.principle_text}>
                 Políticas ativas no banco onde cada usuário só manipula seus próprios registros.
               </p>
             </Card>
 
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 Audit & Safe
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Soft Delete
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>Soft Delete</h3>
+              <p className={styles.principle_text}>
                 Exclusões lógicas via `deleted_at`, preservando integridade referencial.
               </p>
             </Card>
 
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 Jest Projects
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Testes Multi-nível
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>Testes Multi-nível</h3>
+              <p className={styles.principle_text}>
                 4 projetos Jest: unitários com mocks, integração pg-mem, RLS real e testes de
                 regressão.
               </p>
             </Card>
 
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 GitHub Actions
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                CI/CD Automatizado
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>CI/CD Automatizado</h3>
+              <p className={styles.principle_text}>
                 Pipelines contínuos com linting, testes automatizados e análise estática SonarQube.
               </p>
             </Card>
 
             <Card hover>
-              <Badge variant="info" size="sm" style={{ marginBottom: "0.75rem" }}>
+              <Badge variant="info" size="sm" className={styles.stack_card_header}>
                 Serverless API
               </Badge>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.5rem"
-                }}
-              >
-                Operações Privilegiadas
-              </h3>
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: "1.55"
-                }}
-              >
+              <h3 className={styles.principle_title}>Operações Privilegiadas</h3>
+              <p className={styles.principle_text}>
                 Rotas serverless seguras com service role restrito ao servidor para contas e perfis.
               </p>
             </Card>
@@ -358,7 +205,7 @@ export default function AboutPage() {
         </Section>
 
         {/* Team Section */}
-        <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+        <Section size="md" className={styles.section_divider}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Equipe do Projeto</h2>
             <p className={styles.sectionDescription}>
@@ -367,60 +214,20 @@ export default function AboutPage() {
           </div>
 
           <div className={styles.teamGrid}>
-            <Card hover style={{ textAlign: "center", padding: "2rem" }}>
+            <Card hover className={styles.team_card}>
               <div className={styles.teamAvatar}>QA</div>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.25rem"
-                }}
-              >
-                Gerência & QA
-              </h3>
-              <span
-                style={{ fontSize: "0.875rem", color: "var(--color-mercury)", fontWeight: "500" }}
-              >
-                Garantia da Qualidade
-              </span>
-              <p
-                style={{
-                  fontSize: "0.8125rem",
-                  lineHeight: "1.5",
-                  color: "var(--color-text-secondary)",
-                  marginTop: "0.75rem"
-                }}
-              >
+              <h3 className={styles.member_name}>Gerência & QA</h3>
+              <span className={styles.member_role}>Garantia da Qualidade</span>
+              <p className={styles.member_bio}>
                 Planejamento de testes, validação de regras de negócio e regressão.
               </p>
             </Card>
 
-            <Card hover style={{ textAlign: "center", padding: "2rem" }}>
+            <Card hover className={styles.team_card}>
               <div className={styles.teamAvatar}>DEV</div>
-              <h3
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#ffffff",
-                  marginBottom: "0.25rem"
-                }}
-              >
-                Desenvolvedor Principal
-              </h3>
-              <span
-                style={{ fontSize: "0.875rem", color: "var(--color-mercury)", fontWeight: "500" }}
-              >
-                Fullstack & Engenharia
-              </span>
-              <p
-                style={{
-                  fontSize: "0.8125rem",
-                  lineHeight: "1.5",
-                  color: "var(--color-text-secondary)",
-                  marginTop: "0.75rem"
-                }}
-              >
+              <h3 className={styles.member_name}>Desenvolvedor Principal</h3>
+              <span className={styles.member_role}>Fullstack & Engenharia</span>
+              <p className={styles.member_bio}>
                 Implementação fullstack, design tokens, integrações Supabase e suíte Jest.
               </p>
             </Card>
@@ -429,18 +236,9 @@ export default function AboutPage() {
 
         {/* Final CTA */}
         <Section size="lg">
-          <Card variant="elevated" className={styles.ctaCard} style={{ padding: "3.5rem 2rem" }}>
-            <h2 style={{ fontSize: "2rem", fontWeight: "700", color: "#ffffff", margin: 0 }}>
-              Conheça o Código Aberto
-            </h2>
-            <p
-              style={{
-                fontSize: "1rem",
-                color: "var(--color-text-secondary)",
-                maxWidth: "500px",
-                margin: 0
-              }}
-            >
+          <Card variant="elevated" className={`${styles.ctaCard} ${styles.cta_section}`}>
+            <h2 className={styles.cta_title}>Conheça o Código Aberto</h2>
+            <p className={styles.cta_text}>
               O projeto é 100% aberto. Explore os repositórios, documentação de testes e arquitetura
               no GitHub.
             </p>
@@ -448,7 +246,7 @@ export default function AboutPage() {
               href={siteConfig.links.github}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ textDecoration: "none", marginTop: "0.5rem" }}
+              className={styles.cta_link}
             >
               <Button variant="primary" size="lg">
                 Ver no GitHub

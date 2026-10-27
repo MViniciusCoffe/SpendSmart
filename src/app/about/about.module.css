@@ -129,11 +129,6 @@
   color: #ffffff;
 }
 
-.techRole {
-  font-size: 0.75rem;
-  color: var(--color-text-muted, #64748b);
-}
-
 .archGrid {
   display: grid;
   grid-template-columns: 1fr;
@@ -183,4 +178,97 @@
   gap: var(--space-4, 1rem);
   max-width: 800px;
   margin: 0 auto;
+}
+
+.section_divider {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.section_inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+}
+
+.feature_title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.feature_text {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.stack_card {
+  width: 100%;
+  padding: 1.25rem 1rem;
+}
+
+.stack_card_header {
+  margin-bottom: 0.75rem;
+}
+
+.principle_title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.principle_text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.team_card {
+  text-align: center;
+  padding: 2rem;
+}
+
+.member_name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.member_role {
+  font-size: 0.875rem;
+  color: var(--color-mercury);
+  font-weight: 500;
+}
+
+.member_bio {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin-top: 0.75rem;
+}
+
+.cta_section {
+  padding: 3.5rem 2rem;
+}
+
+.cta_title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.cta_text {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  max-width: 500px;
+  margin: 0;
+}
+
+.cta_link {
+  text-decoration: none;
+  margin-top: 0.5rem;
 }

@@ -7,14 +7,11 @@ import { siteConfig } from "@/lib/config/siteConfig"
 export function Footer() {
   return (
     <footer className={styles.footer}>
-      <div
-        className="container"
-        style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1.5rem" }}
-      >
+      <div className={`container ${styles.inner}`}>
         <div className={styles.grid}>
           <div className={styles.brand}>
             <Link href="/" className={styles.brandLogo} aria-label="SpendSmart Início">
-              <Icon name="logo" size={24} style={{ color: "var(--color-mercury, #00d4aa)" }} />
+              <Icon name="logo" size={24} className={styles.accent} />
               <span>{siteConfig.name}</span>
             </Link>
             <p className={styles.brandDesc}>{siteConfig.description}</p>
@@ -51,9 +48,9 @@ export function Footer() {
                   href={tech.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
+                  className={styles.plainLink}
                 >
-                  <Badge variant="default" size="sm" style={{ cursor: "pointer" }}>
+                  <Badge variant="default" size="sm" className={styles.clickable}>
                     {tech.name}
                   </Badge>
                 </a>

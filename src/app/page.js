@@ -32,13 +32,13 @@ export default function Home() {
                 interativos e página de status pública.
               </p>
               <div className={styles.heroActions}>
-                <Link href="/register" style={{ textDecoration: "none" }}>
+                <Link href="/register" className={styles.plain_link}>
                   <Button variant="primary" size="lg">
                     Começar grátis
                     <Icon name="chevron-right" size={16} />
                   </Button>
                 </Link>
-                <Link href="/about" style={{ textDecoration: "none" }}>
+                <Link href="/about" className={styles.plain_link}>
                   <Button variant="secondary" size="lg">
                     Ver demonstração
                   </Button>

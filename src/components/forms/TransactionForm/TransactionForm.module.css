@@ -31,10 +31,6 @@
   gap: var(--space-1);
 }
 
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -58,4 +54,8 @@
 
 .errorIcon {
   flex-shrink: 0;
+}
+
+.fullWidthField {
+  grid-column: 1 / -1;
 }

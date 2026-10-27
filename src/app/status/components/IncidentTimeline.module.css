@@ -402,3 +402,7 @@
     transition: none !important;
   }
 }
+
+.timeline_line {
+  background: var(--color-border);
+}

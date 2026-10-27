@@ -206,7 +206,7 @@ function TransactionsContent() {
     return (
       <PageContainer>
         <PageHeader title="Transações" description="Gerencie suas receitas e despesas" />
-        <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
+        <div className={styles.loading_wrapper}>
           <LoadingSpinner size="lg" ariaLabel="Carregando transações" />
         </div>
       </PageContainer>
@@ -219,7 +219,7 @@ function TransactionsContent() {
         title="Transações"
         description="Gerencie suas receitas e despesas"
         action={
-          <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <div className={styles.header_badges}>
             <Badge variant="income">Receitas: {incomeTransactions.length}</Badge>
             <Badge variant="expense">Despesas: {expenseTransactions.length}</Badge>
           </div>
@@ -227,17 +227,7 @@ function TransactionsContent() {
       />
 
       {errorMessage && (
-        <div
-          style={{
-            padding: "var(--space-4)",
-            background: "rgba(255, 71, 87, 0.1)",
-            border: "1px solid var(--color-error)",
-            borderRadius: "var(--radius-md)",
-            color: "var(--color-error)",
-            marginBottom: "var(--space-4)"
-          }}
-          role="alert"
-        >
+        <div className={styles.error_banner} role="alert">
           {errorMessage}
         </div>
       )}
@@ -252,23 +242,10 @@ function TransactionsContent() {
         </TabList>
 
         <TabPanel value="list">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
-              gap: "var(--space-4)"
-            }}
-          >
+          <div className={styles.tables_grid}>
             <Card variant="default">
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "var(--space-4)"
-                }}
-              >
-                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Despesas</h3>
+              <div className={styles.table_card_header}>
+                <h3 className={styles.table_title}>Despesas</h3>
                 <Badge variant="expense">{expenseTransactions.length}</Badge>
               </div>
               {expenseTransactions.length === 0 ? (
@@ -312,15 +289,8 @@ function TransactionsContent() {
             </Card>
 
             <Card variant="default">
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "var(--space-4)"
-                }}
-              >
-                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Receitas</h3>
+              <div className={styles.table_card_header}>
+                <h3 className={styles.table_title}>Receitas</h3>
                 <Badge variant="income">{incomeTransactions.length}</Badge>
               </div>
               {incomeTransactions.length === 0 ? (
@@ -404,45 +374,21 @@ function TransactionsContent() {
 
       {showDeleteConfirm && selectedTransaction && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "var(--color-overlay)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "var(--space-4)",
-            zIndex: "var(--z-modal)",
-            animation: "fadeIn 0.2s ease-out"
-          }}
+          className={styles.modal_overlay}
           onClick={() => setShowDeleteConfirm(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-confirm-title"
         >
-          <div
-            style={{
-              background: "var(--color-bg-secondary)",
-              borderRadius: "var(--radius-xl)",
-              padding: "var(--space-6)",
-              maxWidth: "400px",
-              width: "100%",
-              boxShadow: "var(--shadow-lg)",
-              border: "1px solid var(--color-border)"
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h2
-              id="delete-confirm-title"
-              style={{ margin: "0 0 var(--space-2)", fontSize: "var(--text-lg)" }}
-            >
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2 id="delete-confirm-title" className={styles.modal_title}>
               Excluir Transação
             </h2>
-            <p style={{ margin: "0 0 var(--space-4)", color: "var(--color-text-secondary)" }}>
+            <p className={styles.modal_text}>
               Tem certeza que deseja excluir <strong>{selectedTransaction.title}</strong>? Esta ação
               não pode ser desfeita.
             </p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+            <div className={styles.modal_actions}>
               <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
                 Cancelar
               </Button>

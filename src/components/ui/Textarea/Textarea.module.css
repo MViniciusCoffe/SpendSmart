@@ -43,12 +43,10 @@
 }
 
 /* Error state */
-.textarea.error,
 .textarea:invalid:not(:placeholder-shown) {
   border-color: var(--color-error);
 }
 
-.textarea.error:focus,
 .textarea:invalid:not(:placeholder-shown):focus {
   box-shadow: 0 0 0 3px var(--color-error-muted);
 }

@@ -207,7 +207,7 @@ export function TransactionForm({
             </div>
           </div>
 
-          <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
+          <div className={`${styles.field} ${styles.fullWidthField}`}>
             <Label htmlFor="title">Título *</Label>
             <Input
               id="title"
@@ -224,7 +224,7 @@ export function TransactionForm({
             {submitted && errors.title && <span className="error-text">{errors.title}</span>}
           </div>
 
-          <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
+          <div className={`${styles.field} ${styles.fullWidthField}`}>
             <Label htmlFor="payment_method">Forma de Pagamento</Label>
             <Dropdown
               id="payment_method"
@@ -237,7 +237,7 @@ export function TransactionForm({
             />
           </div>
 
-          <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
+          <div className={`${styles.field} ${styles.fullWidthField}`}>
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
