@@ -19,6 +19,7 @@ export const Input = forwardRef(function Input(
     max,
     step,
     inputMode,
+    error,
     className = "",
     ...props
   },
@@ -41,7 +42,7 @@ export const Input = forwardRef(function Input(
       max={max}
       step={step}
       inputMode={inputMode}
-      className={`${styles.input} ${className}`}
+      className={`${styles.input} ${error ? styles.error : ""} ${className}`}
       {...props}
     />
   )

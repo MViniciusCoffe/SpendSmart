@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui"
+import { Button, Icon } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
 import styles from "./Header.module.css"
 
@@ -43,16 +43,7 @@ export function Header() {
           className={styles.logo}
           aria-label="SpendSmart Home"
         >
-          <svg className={styles.logoIcon} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <rect width="32" height="32" rx="8" fill="var(--color-mercury)" />
-            <path
-              d="M8 16L12 12L16 16"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <Icon name="logo" size={26} className={styles.logoIcon} aria-hidden="true" />
           <span className={styles.logoText}>SpendSmart</span>
         </Link>
 

@@ -1,22 +1,22 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { Button, Input, Textarea, Label, Card } from "../../../components/ui"
 import { Dropdown } from "../../../components/ui"
 import styles from "./TransactionForm.module.css"
 
 const TYPE_OPTIONS = [
-  { value: "expense", label: "Expense" },
-  { value: "income", label: "Income" }
+  { value: "expense", label: "Despesa" },
+  { value: "income", label: "Receita" }
 ]
 
 const PAYMENT_METHOD_OPTIONS = [
-  { value: "cash", label: "Cash" },
-  { value: "credit_card", label: "Credit Card" },
-  { value: "debit_card", label: "Debit Card" },
+  { value: "cash", label: "Dinheiro" },
+  { value: "credit_card", label: "Cartão de Crédito" },
+  { value: "debit_card", label: "Cartão de Débito" },
   { value: "pix", label: "PIX" },
-  { value: "bank_transfer", label: "Bank Transfer" },
-  { value: "other", label: "Other" }
+  { value: "bank_transfer", label: "Transferência Bancária" },
+  { value: "other", label: "Outro" }
 ]
 
 export function TransactionForm({
@@ -29,8 +29,6 @@ export function TransactionForm({
   className = "",
   ...props
 }) {
-  const prevInitialDataRef = useRef(initialData)
-  const hasChangedRef = useRef(false)
   const [formData, setFormData] = useState({
     type: "expense",
     category_id: "",
@@ -43,49 +41,34 @@ export function TransactionForm({
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
-
-  // Track if initialData has changed
-  useEffect(() => {
-    hasChangedRef.current = prevInitialDataRef.current !== initialData
-    if (hasChangedRef.current) {
-      prevInitialDataRef.current = initialData
-    }
-  }, [initialData])
-
-  // Sync form data with initialData when it changes
-  useEffect(() => {
-    if (hasChangedRef.current) {
-      setFormData(prev => ({ ...prev, ...initialData }))
-      setErrors({})
-      setTouched({})
-    }
-  }, [initialData])
+  const [submitted, setSubmitted] = useState(false)
 
   const validateField = (name, value) => {
     switch (name) {
       case "title":
-        if (!value.trim()) return "Title is required"
-        if (value.trim().length > 100) return "Title must be 100 characters or less"
+        if (!value.trim()) return "Título é obrigatório"
+        if (value.trim().length > 100) return "Título deve ter no máximo 100 caracteres"
         break
       case "amount":
-        if (!value) return "Amount is required"
+        if (!value) return "Valor é obrigatório"
         const num = parseFloat(value.replace(",", "."))
-        if (isNaN(num) || num <= 0) return "Amount must be greater than 0"
+        if (isNaN(num) || num <= 0) return "Valor deve ser maior que 0"
         break
       case "category_id":
-        if (!value) return "Category is required"
+        if (!value) return "Categoria é obrigatória"
         break
       case "occurred_on":
-        if (!value) return "Date is required"
+        if (!value) return "Data é obrigatória"
         break
       case "type":
-        if (!["income", "expense"].includes(value)) return "Invalid type"
+        if (!["income", "expense"].includes(value)) return "Tipo inválido"
         break
     }
     return null
   }
 
   const handleChange = (name, value) => {
+    setSubmitted(false)
     setFormData(prev => ({ ...prev, [name]: value }))
     setTouched(prev => ({ ...prev, [name]: true }))
 
@@ -121,6 +104,7 @@ export function TransactionForm({
 
   const handleSubmit = event => {
     event.preventDefault()
+    setSubmitted(true)
     if (!validateForm()) return
 
     const submitData = {
@@ -138,11 +122,11 @@ export function TransactionForm({
     <Card variant="default" className={`${styles.root} ${className}`} {...props}>
       <form onSubmit={handleSubmit} noValidate>
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Basic Information</h3>
+          <h3 className={styles.sectionTitle}>Informações Básicas</h3>
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <Label htmlFor="type">Type *</Label>
+              <Label htmlFor="type">Tipo *</Label>
               <Dropdown
                 id="type"
                 name="type"
@@ -157,28 +141,28 @@ export function TransactionForm({
                     }
                   }
                 }}
-                required
                 disabled={isLoading}
+                error={submitted && !!errors.type}
               />
-              {touched.type && errors.type && <span className="error-text">{errors.type}</span>}
+              {submitted && errors.type && <span className="error-text">{errors.type}</span>}
             </div>
 
             <div className={styles.field}>
-              <Label htmlFor="category_id">Category *</Label>
+              <Label htmlFor="category_id">Categoria *</Label>
               <Dropdown
                 id="category_id"
                 name="category_id"
                 options={filteredCategories.map(c => ({ value: c.id, label: c.name }))}
                 value={formData.category_id}
                 onChange={value => handleChange("category_id", value)}
-                placeholder="Select a category"
-                required
+                placeholder="Selecione uma categoria"
                 disabled={isLoading || filteredCategories.length === 0}
+                error={submitted && !!errors.category_id}
               />
               {filteredCategories.length === 0 && (
-                <span className="helper-text">No categories available for this type</span>
+                <span className="helper-text">Nenhuma categoria disponível para este tipo</span>
               )}
-              {touched.category_id && errors.category_id && (
+              {submitted && errors.category_id && (
                 <span className="error-text">{errors.category_id}</span>
               )}
             </div>
@@ -186,28 +170,26 @@ export function TransactionForm({
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <Label htmlFor="amount">Amount *</Label>
+              <Label htmlFor="amount">Valor *</Label>
               <Input
                 id="amount"
                 name="amount"
-                type="number"
+                type="text"
                 step="0.01"
                 min="0.01"
                 value={formData.amount}
                 onChange={e => handleChange("amount", e.target.value)}
                 onBlur={e => handleBlur("amount", e.target.value)}
-                placeholder="0.00"
-                required
+                placeholder="0,00"
                 disabled={isLoading}
                 inputMode="decimal"
+                error={submitted && !!errors.amount}
               />
-              {touched.amount && errors.amount && (
-                <span className="error-text">{errors.amount}</span>
-              )}
+              {submitted && errors.amount && <span className="error-text">{errors.amount}</span>}
             </div>
 
             <div className={styles.field}>
-              <Label htmlFor="occurred_on">Date *</Label>
+              <Label htmlFor="occurred_on">Data *</Label>
               <Input
                 id="occurred_on"
                 name="occurred_on"
@@ -215,18 +197,18 @@ export function TransactionForm({
                 value={formData.occurred_on}
                 onChange={e => handleChange("occurred_on", e.target.value)}
                 onBlur={e => handleBlur("occurred_on", e.target.value)}
-                required
                 disabled={isLoading}
                 max={new Date().toISOString().split("T")[0]}
+                error={submitted && !!errors.occurred_on}
               />
-              {touched.occurred_on && errors.occurred_on && (
+              {submitted && errors.occurred_on && (
                 <span className="error-text">{errors.occurred_on}</span>
               )}
             </div>
           </div>
 
           <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">Título *</Label>
             <Input
               id="title"
               name="title"
@@ -234,42 +216,42 @@ export function TransactionForm({
               value={formData.title}
               onChange={e => handleChange("title", e.target.value)}
               onBlur={e => handleBlur("title", e.target.value)}
-              placeholder="Transaction title"
-              required
+              placeholder="Título da transação"
               disabled={isLoading}
               maxLength={100}
+              error={submitted && !!errors.title}
             />
-            {touched.title && errors.title && <span className="error-text">{errors.title}</span>}
+            {submitted && errors.title && <span className="error-text">{errors.title}</span>}
           </div>
 
           <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-            <Label htmlFor="payment_method">Payment Method</Label>
+            <Label htmlFor="payment_method">Forma de Pagamento</Label>
             <Dropdown
               id="payment_method"
               name="payment_method"
               options={PAYMENT_METHOD_OPTIONS}
               value={formData.payment_method}
               onChange={value => handleChange("payment_method", value)}
-              placeholder="Select payment method"
+              placeholder="Selecione a forma de pagamento"
               disabled={isLoading}
             />
           </div>
 
           <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={e => handleChange("description", e.target.value)}
-              placeholder="Optional description"
+              placeholder="Descrição opcional"
               rows={3}
               disabled={isLoading}
             />
           </div>
         </div>
 
-        {Object.keys(errors).some(key => errors[key] && touched[key]) && (
+        {submitted && Object.keys(errors).some(key => errors[key]) && (
           <div className={styles.error} role="alert">
             <svg
               className={styles.errorIcon}
@@ -284,14 +266,14 @@ export function TransactionForm({
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <span>Please fix the errors above before submitting</span>
+            <span>Por favor, corrija os erros acima antes de enviar</span>
           </div>
         )}
 
         <div className={styles.actions}>
           {onCancel && (
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
-              Cancel
+              Cancelar
             </Button>
           )}
           <Button type="submit" variant="primary" loading={isLoading}>

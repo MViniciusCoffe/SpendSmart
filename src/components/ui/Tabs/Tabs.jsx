@@ -1,25 +1,43 @@
 "use client"
 
-import { forwardRef, useState } from "react"
+import { createContext, useContext, forwardRef, useState } from "react"
 import styles from "./Tabs.module.css"
 
+// Context for Tabs
+const TabsContext = createContext(null)
+
+function useTabsContext() {
+  return useContext(TabsContext)
+}
+
+export function TabsProvider({ children, value, onChange }) {
+  return (
+    <TabsContext.Provider value={{ activeValue: value, onChange }}>{children}</TabsContext.Provider>
+  )
+}
+
 export const Tabs = forwardRef(function Tabs(
-  { defaultValue, onChange, children, className = "", ...props },
+  { defaultValue, value: controlledValue, onChange, children, className = "", ...props },
   ref
 ) {
-  const [activeValue, setActiveValue] = useState(defaultValue)
+  const [internalValue, setInternalValue] = useState(defaultValue)
+  const activeValue = controlledValue !== undefined ? controlledValue : internalValue
 
   const handleChange = value => {
-    setActiveValue(value)
+    if (controlledValue === undefined) {
+      setInternalValue(value)
+    }
     onChange?.(value)
   }
 
   return (
-    <div ref={ref} className={`${styles.root} ${className}`} {...props}>
-      <div data-active-value={activeValue} onChange={handleChange}>
-        {children}
+    <TabsProvider value={activeValue} onChange={handleChange}>
+      <div ref={ref} className={`${styles.root} ${className}`} {...props}>
+        <div data-active-value={activeValue} onChange={handleChange}>
+          {children}
+        </div>
       </div>
-    </div>
+    </TabsProvider>
   )
 })
 
@@ -90,18 +108,3 @@ export const TabPanel = forwardRef(function TabPanel(
 })
 
 TabPanel.displayName = "TabPanel"
-
-// Context for Tabs
-import { createContext, useContext } from "react"
-
-const TabsContext = createContext(null)
-
-function useTabsContext() {
-  return useContext(TabsContext)
-}
-
-export function TabsProvider({ children, value, onChange }) {
-  return (
-    <TabsContext.Provider value={{ activeValue: value, onChange }}>{children}</TabsContext.Provider>
-  )
-}

@@ -24,11 +24,12 @@ export default function RegisterPage() {
     e.preventDefault()
 
     if (!nomeCompleto || !email || !senha || !dataNascimento) {
-      if (senha.length < 6) {
-        setErrorMessage("A senha deve ter pelo menos 6 caracteres")
-        return
-      }
       setErrorMessage("Preencha todos os campos obrigatórios")
+      return
+    }
+
+    if (senha.length < 6) {
+      setErrorMessage("A senha deve ter pelo menos 6 caracteres")
       return
     }
 
@@ -142,7 +143,14 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 className={styles.create_button}
-                disabled={isLoading || !nomeCompleto || !email || !senha || !dataNascimento}
+                disabled={
+                  isLoading ||
+                  !nomeCompleto ||
+                  !email ||
+                  !senha ||
+                  senha.length < 6 ||
+                  !dataNascimento
+                }
               >
                 {isLoading ? "Criando..." : "Criar conta"}
               </button>

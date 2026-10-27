@@ -93,6 +93,13 @@
   }
 }
 
+/* Ensure the fixed header never covers page content:
+   padding classes set padding on all sides, so restore the top
+   padding to match the fixed header height. */
+.container {
+  padding-top: calc(1rem + var(--header-height));
+}
+
 /* Page Header */
 .pageHeader {
   display: flex;

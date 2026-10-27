@@ -25,12 +25,12 @@ import { categoryService } from "@/services/categoryService"
 import styles from "./page.module.css"
 
 const PAYMENT_METHOD_OPTIONS = [
-  { value: "cash", label: "Cash" },
-  { value: "credit_card", label: "Credit Card" },
-  { value: "debit_card", label: "Debit Card" },
+  { value: "cash", label: "Dinheiro" },
+  { value: "credit_card", label: "Cartão de Crédito" },
+  { value: "debit_card", label: "Cartão de Débito" },
   { value: "pix", label: "PIX" },
-  { value: "bank_transfer", label: "Bank Transfer" },
-  { value: "other", label: "Other" }
+  { value: "bank_transfer", label: "Transferência Bancária" },
+  { value: "other", label: "Outro" }
 ]
 
 function TransactionsContent() {
@@ -77,7 +77,7 @@ function TransactionsContent() {
         setErrorMessage("")
       } catch (error) {
         console.error("Error fetching data:", error)
-        setErrorMessage("Failed to load transactions.")
+        setErrorMessage("Não foi possível carregar as transações.")
       } finally {
         setIsLoading(false)
       }
@@ -97,7 +97,7 @@ function TransactionsContent() {
       setErrorMessage("")
     } catch (error) {
       console.error("Error refreshing data:", error)
-      setErrorMessage("Failed to refresh transactions.")
+      setErrorMessage("Não foi possível atualizar as transações.")
     }
   }
 
@@ -109,7 +109,7 @@ function TransactionsContent() {
       setSelectedTransaction(null)
     } catch (error) {
       console.error("Error deleting transaction:", error)
-      setErrorMessage(error.message || "Failed to delete transaction.")
+      setErrorMessage(error.message || "Não foi possível excluir a transação.")
     }
   }
 
@@ -119,24 +119,24 @@ function TransactionsContent() {
       handleRefresh()
     } catch (error) {
       console.error("Error creating transaction:", error)
-      setErrorMessage(error.message || "Failed to create transaction.")
+      setErrorMessage(error.message || "Não foi possível criar a transação.")
     }
   }
 
   const expenseColumns = [
-    { key: "title", header: "Title", sortable: true },
+    { key: "title", header: "Título", sortable: true },
     {
       key: "category",
-      header: "Category",
+      header: "Categoria",
       sortable: true,
       render: (_, row) => row.category?.name || "—"
     },
-    { key: "amount", header: "Amount", sortable: true, render: value => formatCurrency(value) },
-    { key: "occurred_on", header: "Date", sortable: true, render: formatDate },
-    { key: "payment_method", header: "Payment", render: value => value || "—" },
+    { key: "amount", header: "Valor", sortable: true, render: value => formatCurrency(value) },
+    { key: "occurred_on", header: "Data", sortable: true, render: formatDate },
+    { key: "payment_method", header: "Pagamento", render: value => value || "—" },
     {
       key: "actions",
-      header: "Actions",
+      header: "Ações",
       render: (_, row) => (
         <Button
           variant="ghost"
@@ -145,7 +145,7 @@ function TransactionsContent() {
             setSelectedTransaction(row)
             setShowDeleteConfirm(true)
           }}
-          aria-label={`Delete ${row.title}`}
+          aria-label={`Excluir ${row.title}`}
         >
           <svg
             width="16"
@@ -164,19 +164,19 @@ function TransactionsContent() {
   ]
 
   const incomeColumns = [
-    { key: "title", header: "Title", sortable: true },
+    { key: "title", header: "Título", sortable: true },
     {
       key: "category",
-      header: "Category",
+      header: "Categoria",
       sortable: true,
       render: (_, row) => row.category?.name || "—"
     },
-    { key: "amount", header: "Amount", sortable: true, render: value => formatCurrency(value) },
-    { key: "occurred_on", header: "Date", sortable: true, render: formatDate },
-    { key: "payment_method", header: "Payment", render: value => value || "—" },
+    { key: "amount", header: "Valor", sortable: true, render: value => formatCurrency(value) },
+    { key: "occurred_on", header: "Data", sortable: true, render: formatDate },
+    { key: "payment_method", header: "Pagamento", render: value => value || "—" },
     {
       key: "actions",
-      header: "Actions",
+      header: "Ações",
       render: (_, row) => (
         <Button
           variant="ghost"
@@ -185,7 +185,7 @@ function TransactionsContent() {
             setSelectedTransaction(row)
             setShowDeleteConfirm(true)
           }}
-          aria-label={`Delete ${row.title}`}
+          aria-label={`Excluir ${row.title}`}
         >
           <svg
             width="16"
@@ -206,9 +206,9 @@ function TransactionsContent() {
   if (isLoading) {
     return (
       <PageContainer>
-        <PageHeader title="Transactions" description="Manage your income and expenses" />
+        <PageHeader title="Transações" description="Gerencie suas receitas e despesas" />
         <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
-          <LoadingSpinner size="lg" ariaLabel="Loading transactions" />
+          <LoadingSpinner size="lg" ariaLabel="Carregando transações" />
         </div>
       </PageContainer>
     )
@@ -217,12 +217,12 @@ function TransactionsContent() {
   return (
     <PageContainer>
       <PageHeader
-        title="Transactions"
-        description="Manage your income and expenses"
+        title="Transações"
+        description="Gerencie suas receitas e despesas"
         action={
           <div style={{ display: "flex", gap: "var(--space-2)" }}>
-            <Badge variant="income">Income: {incomeTransactions.length}</Badge>
-            <Badge variant="expense">Expenses: {expenseTransactions.length}</Badge>
+            <Badge variant="income">Receitas: {incomeTransactions.length}</Badge>
+            <Badge variant="expense">Despesas: {expenseTransactions.length}</Badge>
           </div>
         }
       />
@@ -243,11 +243,11 @@ function TransactionsContent() {
         </div>
       )}
 
-      <Tabs defaultValue="list" onChange={setActiveTab} className={styles.tabs}>
+      <Tabs value={activeTab} onChange={setActiveTab} className={styles.tabs}>
         <TabList>
-          <TabTrigger value="list">List</TabTrigger>
-          <TabTrigger value="add-expense">Add Expense</TabTrigger>
-          <TabTrigger value="add-income">Add Income</TabTrigger>
+          <TabTrigger value="list">Lista</TabTrigger>
+          <TabTrigger value="add-expense">Adicionar Despesa</TabTrigger>
+          <TabTrigger value="add-income">Adicionar Receita</TabTrigger>
         </TabList>
 
         <TabPanel value="list">
@@ -267,7 +267,7 @@ function TransactionsContent() {
                   marginBottom: "var(--space-4)"
                 }}
               >
-                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Expenses</h3>
+                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Despesas</h3>
                 <Badge variant="expense">{expenseTransactions.length}</Badge>
               </div>
               {expenseTransactions.length === 0 ? (
@@ -284,11 +284,11 @@ function TransactionsContent() {
                       <path d="M21 12H3M18 6l-6 6 6 6" />
                     </svg>
                   }
-                  title="No expenses yet"
-                  description="Add your first expense to get started"
+                  title="Sem despesas ainda"
+                  description="Adicione sua primeira despesa para começar"
                   action={
                     <Button variant="primary" size="sm" onClick={() => setActiveTab("add-expense")}>
-                      Add Expense
+                      Adicionar Despesa
                     </Button>
                   }
                 />
@@ -312,7 +312,7 @@ function TransactionsContent() {
                   marginBottom: "var(--space-4)"
                 }}
               >
-                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Income</h3>
+                <h3 style={{ margin: 0, fontSize: "var(--text-lg)" }}>Receitas</h3>
                 <Badge variant="income">{incomeTransactions.length}</Badge>
               </div>
               {incomeTransactions.length === 0 ? (
@@ -329,11 +329,11 @@ function TransactionsContent() {
                       <path d="M12 5v14M19 12H5" />
                     </svg>
                   }
-                  title="No income yet"
-                  description="Add your first income to get started"
+                  title="Sem receitas ainda"
+                  description="Adicione sua primeira receita para começar"
                   action={
                     <Button variant="primary" size="sm" onClick={() => setActiveTab("add-income")}>
-                      Add Income
+                      Adicionar Receita
                     </Button>
                   }
                 />
@@ -356,7 +356,7 @@ function TransactionsContent() {
             categories={expenseCategories}
             onSubmit={handleFormSubmit}
             onCancel={() => setActiveTab("list")}
-            submitLabel="Save Expense"
+            submitLabel="Salvar Despesa"
           />
         </TabPanel>
 
@@ -366,7 +366,7 @@ function TransactionsContent() {
             categories={incomeCategories}
             onSubmit={handleFormSubmit}
             onCancel={() => setActiveTab("list")}
-            submitLabel="Save Income"
+            submitLabel="Salvar Receita"
           />
         </TabPanel>
       </Tabs>
@@ -405,21 +405,21 @@ function TransactionsContent() {
               id="delete-confirm-title"
               style={{ margin: "0 0 var(--space-2)", fontSize: "var(--text-lg)" }}
             >
-              Delete Transaction
+              Excluir Transação
             </h2>
             <p style={{ margin: "0 0 var(--space-4)", color: "var(--color-text-secondary)" }}>
-              Are you sure you want to delete <strong>{selectedTransaction.title}</strong>? This
-              action cannot be undone.
+              Tem certeza que deseja excluir <strong>{selectedTransaction.title}</strong>? Esta ação
+              não pode ser desfeita.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
               <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
-                Cancel
+                Cancelar
               </Button>
               <Button
                 variant="danger"
                 onClick={() => handleDeleteTransaction(selectedTransaction.id)}
               >
-                Delete
+                Excluir
               </Button>
             </div>
           </div>

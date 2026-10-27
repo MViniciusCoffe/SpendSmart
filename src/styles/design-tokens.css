@@ -146,14 +146,63 @@
      Z-Index
      ========================================================================== */
 
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-modal-backdrop: 400;
-  --z-modal: 500;
-  --z-popover: 600;
-  --z-tooltip: 700;
-  --z-toast: 800;
+  --z-negative: -1;
+  --z-base: 0;
+  --z-1: 10;
+  --z-2: 20;
+  --z-3: 30;
+  --z-4: 40;
+  --z-5: 50;
+
+  /* Layout Layers */
+  --z-background: var(--z-base);
+  --z-content: var(--z-1);
+  --z-raised: var(--z-2);
+
+  /* Navigation */
+  --z-nav-backdrop: 100;
+  --z-nav-drawer: 200;
+  --z-header: 300;
+  --z-header-sticky: 400;
+  --z-sidebar: 300;
+
+  /* Overlays */
+  --z-overlay: 500;
+  --z-overlay-high: 600;
+
+  /* Dropdowns & Popovers */
+  --z-dropdown: 700;
+  --z-dropdown-backdrop: 650;
+  --z-popover: 700;
+  --z-popover-arrow: 710;
+
+  /* Tooltips */
+  --z-tooltip: 800;
+  --z-tooltip-arrow: 810;
+
+  /* Modals & Dialogs */
+  --z-modal-backdrop: 900;
+  --z-modal: 1000;
+  --z-modal-content: 1010;
+  --z-modal-close: 1020;
+
+  /* Drawers & Sheets */
+  --z-drawer-backdrop: 900;
+  --z-drawer: 1000;
+  --z-drawer-content: 1010;
+
+  /* Notifications */
+  --z-toast: 1100;
+  --z-toast-container: 1100;
+
+  /* Loading & Progress */
+  --z-loading-overlay: 1200;
+  --z-loading-spinner: 1210;
+
+  /* System Critical */
+  --z-announcer: 2000;
+  --z-focus-visible: 2100;
+  --z-devtools: 9999;
 
   /* ==========================================================================
      Container

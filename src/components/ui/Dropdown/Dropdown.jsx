@@ -13,6 +13,7 @@ export const Dropdown = forwardRef(function Dropdown(
     placeholder,
     required,
     disabled,
+    error,
     className = "",
     ...props
   },
@@ -27,7 +28,7 @@ export const Dropdown = forwardRef(function Dropdown(
       onChange={e => onChange?.(e.target.value)}
       required={required}
       disabled={disabled}
-      className={`${styles.select} ${className}`}
+      className={`${styles.select} ${error ? styles.error : ""} ${className}`}
       {...props}
     >
       {placeholder && (
