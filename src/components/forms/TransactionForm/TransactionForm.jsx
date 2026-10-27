@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button, Input, Textarea, Label, Card } from "../../../components/ui"
 import { Dropdown } from "../../../components/ui"
 import styles from "./TransactionForm.module.css"
+import { parseAmount } from "@/lib/utils/format"
 
 const TYPE_OPTIONS = [
   { value: "expense", label: "Despesa" },
@@ -59,8 +60,9 @@ export function TransactionForm({
         break
       case "amount":
         if (!value) return "Valor é obrigatório"
-        const num = parseFloat(value.replace(",", "."))
-        if (isNaN(num) || num <= 0) return "Valor deve ser maior que 0"
+        const num = parseAmount(value)
+        if (isNaN(num)) return "Valor inválido"
+        if (num <= 0) return "Valor deve ser maior que 0"
         break
       case "category_id":
         if (!value) return "Categoria é obrigatória"
@@ -118,7 +120,7 @@ export function TransactionForm({
 
     const submitData = {
       ...formData,
-      amount: parseFloat(formData.amount.replace(",", ".")).toFixed(2),
+      amount: parseAmount(formData.amount).toFixed(2),
       type: formData.type
     }
 
