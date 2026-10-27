@@ -283,7 +283,11 @@ function TransactionsContent() {
                   title="Sem despesas ainda"
                   description="Adicione sua primeira despesa para começar"
                   action={
-                    <Button variant="primary" size="sm" onClick={() => setActiveTab("add-expense")}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setActiveTab("add-transaction")}
+                    >
                       Adicionar Despesa
                     </Button>
                   }
@@ -328,7 +332,11 @@ function TransactionsContent() {
                   title="Sem receitas ainda"
                   description="Adicione sua primeira receita para começar"
                   action={
-                    <Button variant="primary" size="sm" onClick={() => setActiveTab("add-income")}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setActiveTab("add-transaction")}
+                    >
                       Adicionar Receita
                     </Button>
                   }
