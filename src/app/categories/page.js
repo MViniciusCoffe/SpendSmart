@@ -32,6 +32,9 @@ function CategoriesPage() {
   const [addFormKey, setAddFormKey] = useState(0)
   const [editId, setEditId] = useState(null)
   const [deleteId, setDeleteId] = useState(null)
+  // Transactions using the category picked in the delete tab (null while loading)
+  const [deleteUsage, setDeleteUsage] = useState(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   // Set when an edit changes the type of a category that already has transactions
   const [pendingTypeChange, setPendingTypeChange] = useState(null)
 
@@ -112,15 +115,36 @@ function CategoriesPage() {
     await saveEdit(formData, true)
   }
 
-  const handleDelete = async event => {
-    event.preventDefault()
-    if (!deleteId) return
+  const selectDeleteCategory = async id => {
+    setDeleteId(id)
+    setDeleteUsage(null)
+    if (!id) return
+    try {
+      setDeleteUsage(await categoryService.countTransactions(id))
+    } catch (err) {
+      toastError(err.message)
+    }
+  }
+
+  const confirmDelete = async () => {
+    setShowDeleteDialog(false)
     const ok = await runAction(
       () => categoryService.deleteCategory(deleteId),
       "Categoria excluída com sucesso",
       "Não foi possível excluir a categoria"
     )
-    if (ok) setDeleteId(null)
+    if (ok) selectDeleteCategory(null)
+  }
+
+  // Categories in use can be deleted too (US-009), but the user sees the impact first
+  const handleDelete = async event => {
+    event.preventDefault()
+    if (!deleteId) return
+    if (deleteUsage > 0) {
+      setShowDeleteDialog(true)
+      return
+    }
+    await confirmDelete()
   }
 
   const emptyMessage = categories.length === 0 && (
@@ -203,7 +227,7 @@ function CategoriesPage() {
                     name="category_delete"
                     options={categoryOptions}
                     value={deleteId || ""}
-                    onChange={value => setDeleteId(value ? Number(value) : null)}
+                    onChange={value => selectDeleteCategory(value ? Number(value) : null)}
                     placeholder="Selecione uma categoria"
                   />
                 </div>
@@ -229,6 +253,10 @@ function CategoriesPage() {
                       />
                       {deleteCategory.color}
                     </p>
+                    <p>
+                      <strong>Quantidade de usos:</strong>{" "}
+                      {deleteUsage === null ? "…" : deleteUsage}
+                    </p>
                   </div>
                 )}
 
@@ -242,6 +270,39 @@ function CategoriesPage() {
           </TabPanel>
         </Tabs>
       </div>
+
+      {showDeleteDialog && deleteCategory && (
+        <div
+          className={styles.modal_overlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-category-title"
+        >
+          <div className={styles.modal}>
+            <h2 id="delete-category-title" className={styles.modal_title}>
+              Excluir &quot;{deleteCategory.name}&quot;?
+            </h2>
+            <p className={styles.modal_text}>
+              {deleteUsage === 1
+                ? "1 transação usa esta categoria."
+                : `${deleteUsage} transações usam esta categoria.`}{" "}
+              Elas não serão apagadas: continuam no histórico e nos totais do dashboard, com a
+              categoria exibida como &quot;{deleteCategory.name} (deletada)&quot;.
+            </p>
+            <p className={styles.modal_text}>
+              A categoria deixa de aparecer na lista e não poderá ser usada em novas transações.
+            </p>
+            <div className={styles.modal_actions}>
+              <Button variant="ghost" onClick={() => setShowDeleteDialog(false)}>
+                Cancelar
+              </Button>
+              <Button variant="danger" onClick={confirmDelete} loading={isSaving}>
+                Excluir categoria
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {pendingTypeChange && (
         <div
@@ -258,7 +319,7 @@ function CategoriesPage() {
               Esta categoria tem {pendingTypeChange.transactionCount}{" "}
               {pendingTypeChange.transactionCount === 1 ? "transação" : "transações"}. Para manter
               os totais corretos, {pendingTypeChange.transactionCount === 1 ? "ela" : "elas"} também
-              passará{pendingTypeChange.transactionCount === 1 ? "" : "ão"} a ser{" "}
+              passar{pendingTypeChange.transactionCount === 1 ? "á" : "ão"} a ser{" "}
               {TYPE_LABELS[pendingTypeChange.formData.type].toLowerCase()}.
             </p>
             <div className={styles.modal_actions}>

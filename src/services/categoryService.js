@@ -4,16 +4,17 @@ import { categoryTypeMap } from "@/services/utils/mappers"
 import validators from "@/services/utils/validators"
 
 export const categoryService = {
-  async getCategories() {
+  // includeDeleted keeps soft-deleted categories so old transactions can still show their name
+  async getCategories({ includeDeleted = false } = {}) {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
-          const { data, error } = await supabase
+          let query = supabase
             .from("categories")
             .select("id,name,type,description,color,deleted_at")
             .eq("user_id", session.user.id)
-            .is("deleted_at", null)
-            .order("name", { ascending: true })
+          if (!includeDeleted) query = query.is("deleted_at", null)
+          const { data, error } = await query.order("name", { ascending: true })
           if (error) throw error
           return data.map(categoryTypeMap)
         },
@@ -125,20 +126,6 @@ export const categoryService = {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
-          // Soft delete never triggers the FK's ON DELETE RESTRICT, so check here
-          const { count, error: countError } = await supabase
-            .from("transactions")
-            .select("id", { count: "exact", head: true })
-            .eq("category_id", id)
-            .eq("user_id", session.user.id)
-            .is("deleted_at", null)
-          if (countError) throw countError
-          if (count > 0) {
-            throw new Error(
-              `Não é possível excluir esta categoria: ${count} ${count === 1 ? "transação usa" : "transações usam"} ela. Mova ou exclua as transações antes.`
-            )
-          }
-
           const { error } = await supabase
             .from("categories")
             .update({ deleted_at: new Date().toISOString() })

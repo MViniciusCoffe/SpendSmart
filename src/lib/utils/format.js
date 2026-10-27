@@ -18,3 +18,9 @@ export function formatDate(dateString) {
   if (!year || !month || !day) return "—"
   return new Date(year, month - 1, day).toLocaleDateString("pt-BR")
 }
+
+// Soft-deleted categories still name their old transactions (US-009, CA-009.05)
+export function formatCategoryName(category) {
+  if (!category) return ""
+  return category.deleted_at ? `${category.name} (deletada)` : category.name
+}

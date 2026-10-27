@@ -11,7 +11,7 @@ import { ChartContainer, createGradient } from "@/components/ui"
 import { transactionService } from "@/services/transactionService"
 import { categoryService } from "@/services/categoryService"
 import withAuth from "@/components/withAuth.js"
-import { formatCurrency } from "@/lib/utils/format"
+import { formatCurrency, formatCategoryName } from "@/lib/utils/format"
 
 function DoughnutCard({ title, data, emptyTitle, emptyDescription, emptyIcon }) {
   const values = data?.datasets?.[0]?.data || []
@@ -68,7 +68,7 @@ function DashboardContent() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const allCategories = await categoryService.getCategories()
+        const allCategories = await categoryService.getCategories({ includeDeleted: true })
         setCategories(allCategories)
 
         const allTransactions = await transactionService.getTransactions()
@@ -115,7 +115,7 @@ function DashboardContent() {
         .reduce((acc, expense) => acc + Number(expense.amount), 0)
 
       return {
-        name: category.name,
+        name: formatCategoryName(category),
         value: totalValue || 0,
         color: category.color || "#FFFFFF"
       }
@@ -170,7 +170,7 @@ function DashboardContent() {
         .reduce((acc, income) => acc + Number(income.amount), 0)
 
       return {
-        name: category.name,
+        name: formatCategoryName(category),
         value: totalValue || 0,
         color: category.color || "#FFFFFF"
       }

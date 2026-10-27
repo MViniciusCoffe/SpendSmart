@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import withAuth from "@/components/withAuth.js"
-import { formatCurrency, formatDate } from "@/lib/utils/format"
+import { formatCurrency, formatDate, formatCategoryName } from "@/lib/utils/format"
 import { PageContainer, PageHeader } from "@/components/layout"
 import {
   Card,
@@ -47,10 +47,12 @@ function TransactionsContent() {
   const [initialType, setInitialType] = useState("expense")
   const [editingTransaction, setEditingTransaction] = useState(null)
 
-  const categoryNameById = new Map(categories.map(c => [String(c.id), c.name]))
+  const categoryById = new Map(categories.map(c => [String(c.id), c]))
+  // New transactions may only use active categories (US-009, CA-009.04)
+  const activeCategories = categories.filter(c => !c.deleted_at)
   const rows = transactions.map(t => ({
     ...t,
-    category_name: categoryNameById.get(String(t.category_id)) || ""
+    category_name: formatCategoryName(categoryById.get(String(t.category_id)))
   }))
 
   const expenseTransactions = rows.filter(t => t.type === "expense")
@@ -59,7 +61,7 @@ function TransactionsContent() {
   const loadData = useCallback(async () => {
     try {
       const [allCategories, allTransactions] = await Promise.all([
-        categoryService.getCategories(),
+        categoryService.getCategories({ includeDeleted: true }),
         transactionService.getTransactions()
       ])
       setCategories(allCategories)
@@ -337,7 +339,7 @@ function TransactionsContent() {
           <TransactionForm
             key={`add-${initialType}`}
             initialData={{ type: initialType }}
-            categories={categories}
+            categories={activeCategories}
             onSubmit={handleCreateSubmit}
             onCancel={() => setActiveTab("list")}
             submitLabel="Salvar Transação"
@@ -358,7 +360,9 @@ function TransactionsContent() {
                 description: editingTransaction.description || "",
                 payment_method: editingTransaction.payment_method || ""
               }}
-              categories={categories}
+              categories={categories.filter(
+                c => !c.deleted_at || c.id === editingTransaction.category_id
+              )}
               onSubmit={handleUpdateSubmit}
               onCancel={() => {
                 setActiveTab("list")
