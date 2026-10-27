@@ -12,6 +12,7 @@ import { transactionService } from "@/services/transactionService"
 import { categoryService } from "@/services/categoryService"
 import { profileService } from "@/services/profileService"
 import withAuth from "@/components/withAuth.js"
+import { formatCurrency } from "@/lib/utils/format"
 
 function DashboardContent() {
   const [dados, setDados] = useState({
@@ -82,13 +83,6 @@ function DashboardContent() {
 
     fetchData()
   }, [])
-
-  const formatCurrency = value => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD"
-    }).format(value)
-  }
 
   const buildExpensesCategoryChart = () => {
     if (categories.length === 0 || dados.totalGastos === 0) return null

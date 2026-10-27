@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import withAuth from "@/components/withAuth.js"
+import { formatCurrency, formatDate } from "@/lib/utils/format"
 import { PageContainer, PageHeader } from "@/components/layout"
 import {
   Card,
@@ -52,22 +53,6 @@ function TransactionsContent() {
 
   const expenseTransactions = rows.filter(t => t.type === "expense")
   const incomeTransactions = rows.filter(t => t.type === "income")
-
-  const formatCurrency = value => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD"
-    }).format(value)
-  }
-
-  const formatDate = dateString => {
-    if (!dateString) return "—"
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
-    })
-  }
 
   useEffect(() => {
     const fetchData = async () => {
