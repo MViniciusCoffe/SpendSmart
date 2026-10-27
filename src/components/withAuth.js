@@ -15,7 +15,7 @@ const withAuth = WrappedComponent => {
           const session = await authService.getSession()
 
           if (!session) {
-            // Troca o topo da pilha router para não sujar histórico de navegação com páginas protegidas
+            // Replace instead of push so protected pages don't pollute the history
             router.replace("/login")
           } else {
             setIsAuthorized(true)
@@ -29,13 +29,13 @@ const withAuth = WrappedComponent => {
     }, [router])
 
     if (!isAuthorized) {
-      return null // Futuro componente de carregamento
+      return null // TODO: loading component
     }
 
     return <WrappedComponent {...props} />
   }
 
-  // Define um nome de exibição para facilitar a depuração
+  // Display name for easier debugging
   const componentName = WrappedComponent.displayName || WrappedComponent.name || "Component"
   AuthenticatedPage.displayName = `withAuth(${componentName})`
 

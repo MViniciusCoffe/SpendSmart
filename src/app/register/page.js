@@ -11,11 +11,11 @@ export default function RegisterPage() {
   const router = useRouter()
   const { success } = useToast()
 
-  const [nomeCompleto, setNomeCompleto] = useState("")
+  const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
-  const [senha, setSenha] = useState("")
-  const [dataNascimento, setDataNascimento] = useState("")
-  const [telefone, setTelefone] = useState("")
+  const [password, setPassword] = useState("")
+  const [birthDate, setBirthDate] = useState("")
+  const [phone, setPhone] = useState("")
 
   const [errorMessage, setErrorMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -23,12 +23,12 @@ export default function RegisterPage() {
   const handleRegister = async e => {
     e.preventDefault()
 
-    if (!nomeCompleto || !email || !senha || !dataNascimento) {
+    if (!fullName || !email || !password || !birthDate) {
       setErrorMessage("Preencha todos os campos obrigatórios")
       return
     }
 
-    if (senha.length < 6) {
+    if (password.length < 6) {
       setErrorMessage("A senha deve ter pelo menos 6 caracteres")
       return
     }
@@ -39,10 +39,10 @@ export default function RegisterPage() {
     try {
       await authService.registerUser({
         email,
-        password: senha,
-        full_name: nomeCompleto,
-        birth_date: dataNascimento,
-        phone: telefone
+        password: password,
+        full_name: fullName,
+        birth_date: birthDate,
+        phone: phone
       })
 
       router.push("/dashboard")
@@ -69,14 +69,14 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister}>
             <div>
               <div className={styles.input_group}>
-                <label htmlFor="nomeCompleto">Nome Completo:</label>
+                <label htmlFor="full_name">Nome Completo:</label>
                 <input
                   type="text"
-                  id="nomeCompleto"
-                  name="nomeCompleto"
+                  id="full_name"
+                  name="full_name"
                   placeholder="Digite seu nome completo"
-                  value={nomeCompleto}
-                  onChange={e => setNomeCompleto(e.target.value)}
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
                   required
                 />
               </div>
@@ -101,35 +101,35 @@ export default function RegisterPage() {
                   id="password"
                   name="password"
                   placeholder="Digite sua senha"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   minLength={6}
                   required
                 />
               </div>
 
               <div className={styles.input_group}>
-                <label htmlFor="dataNascimento">Data de Nascimento:</label>
+                <label htmlFor="birth_date">Data de Nascimento:</label>
                 <input
                   type="date"
-                  id="dataNascimento"
-                  name="dataNascimento"
-                  value={dataNascimento}
-                  onChange={e => setDataNascimento(e.target.value)}
+                  id="birth_date"
+                  name="birth_date"
+                  value={birthDate}
+                  onChange={e => setBirthDate(e.target.value)}
                   required
                 />
               </div>
 
               <div className={styles.input_group}>
-                <label htmlFor="telefone">Telefone:</label>
+                <label htmlFor="phone">Telefone:</label>
                 <input
                   type="tel"
-                  id="telefone"
-                  name="telefone"
+                  id="phone"
+                  name="phone"
                   placeholder="Digite seu telefone (opcional)"
-                  value={telefone}
+                  value={phone}
                   maxLength={20}
-                  onChange={e => setTelefone(e.target.value)}
+                  onChange={e => setPhone(e.target.value)}
                 />
               </div>
 
@@ -144,12 +144,7 @@ export default function RegisterPage() {
                 type="submit"
                 className={styles.create_button}
                 disabled={
-                  isLoading ||
-                  !nomeCompleto ||
-                  !email ||
-                  !senha ||
-                  senha.length < 6 ||
-                  !dataNascimento
+                  isLoading || !fullName || !email || !password || password.length < 6 || !birthDate
                 }
               >
                 {isLoading ? "Criando..." : "Criar conta"}

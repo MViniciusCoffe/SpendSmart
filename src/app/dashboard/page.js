@@ -53,12 +53,12 @@ function DoughnutCard({ title, data, emptyTitle, emptyDescription, emptyIcon }) 
 }
 
 function DashboardContent() {
-  const [dados, setDados] = useState({
-    saldo: 0,
-    totalReceitas: 0,
-    totalGastos: 0
+  const [summary, setSummary] = useState({
+    balance: 0,
+    totalIncome: 0,
+    totalExpenses: 0
   })
-  const [spends, setSpends] = useState([])
+  const [expenses, setExpenses] = useState([])
   const [incomes, setIncomes] = useState([])
   const [categories, setCategories] = useState([])
   const [errorMessage, setErrorMessage] = useState("")
@@ -74,29 +74,29 @@ function DashboardContent() {
         const allTransactions = await transactionService.getTransactions()
 
         const fetchedIncomes = allTransactions.filter(t => t.type === "income")
-        const fetchedSpends = allTransactions.filter(t => t.type === "expense")
+        const fetchedExpenses = allTransactions.filter(t => t.type === "expense")
 
         setIncomes(fetchedIncomes)
-        setSpends(fetchedSpends)
+        setExpenses(fetchedExpenses)
 
-        const totalReceitas = fetchedIncomes.reduce(
+        const totalIncome = fetchedIncomes.reduce((acc, item) => acc + Number(item.amount || 0), 0)
+
+        const totalExpenses = fetchedExpenses.reduce(
           (acc, item) => acc + Number(item.amount || 0),
           0
         )
 
-        const totalGastos = fetchedSpends.reduce((acc, item) => acc + Number(item.amount || 0), 0)
+        const balance = totalIncome - totalExpenses
 
-        const saldo = totalReceitas - totalGastos
-
-        setDados({
-          saldo,
-          totalReceitas,
-          totalGastos
+        setSummary({
+          balance,
+          totalIncome,
+          totalExpenses
         })
 
         setErrorMessage("")
       } catch (error) {
-        console.error("Erro no Dashboard:", error)
+        console.error("Error loading dashboard:", error)
         setErrorMessage("Não foi possível carregar os dados do dashboard.")
       } finally {
         setIsLoading(false)
@@ -107,17 +107,17 @@ function DashboardContent() {
   }, [])
 
   const buildExpensesCategoryChart = () => {
-    if (categories.length === 0 || dados.totalGastos === 0) return null
+    if (categories.length === 0 || summary.totalExpenses === 0) return null
 
-    const expensesByCategory = categories.map(categoria => {
-      const totalValue = spends
-        .filter(gasto => gasto.category_id === categoria.id)
-        .reduce((acc, gasto) => acc + Number(gasto.amount), 0)
+    const expensesByCategory = categories.map(category => {
+      const totalValue = expenses
+        .filter(expense => expense.category_id === category.id)
+        .reduce((acc, expense) => acc + Number(expense.amount), 0)
 
       return {
-        name: categoria.name,
+        name: category.name,
         value: totalValue || 0,
-        color: categoria.color || "#FFFFFF"
+        color: category.color || "#FFFFFF"
       }
     })
 
@@ -136,14 +136,14 @@ function DashboardContent() {
   }
 
   const buildExpensesChart = () => {
-    if (spends.length === 0 || dados.totalGastos === 0) return null
+    if (expenses.length === 0 || summary.totalExpenses === 0) return null
 
-    const expensesWithCategory = spends.map(gasto => {
-      const categoria = categories.find(cat => cat.id === gasto.category_id)
+    const expensesWithCategory = expenses.map(expense => {
+      const category = categories.find(cat => cat.id === expense.category_id)
       return {
-        name: gasto.title || "Sem nome",
-        value: Number(gasto.amount),
-        color: categoria?.color || "#FFFFFF"
+        name: expense.title || "Sem nome",
+        value: Number(expense.amount),
+        color: category?.color || "#FFFFFF"
       }
     })
 
@@ -162,17 +162,17 @@ function DashboardContent() {
   }
 
   const buildIncomesCategoryChart = () => {
-    if (categories.length === 0 || dados.totalReceitas === 0) return null
+    if (categories.length === 0 || summary.totalIncome === 0) return null
 
-    const incomesByCategory = categories.map(categoria => {
+    const incomesByCategory = categories.map(category => {
       const totalValue = incomes
-        .filter(receita => receita.category_id === categoria.id)
-        .reduce((acc, receita) => acc + Number(receita.amount), 0)
+        .filter(income => income.category_id === category.id)
+        .reduce((acc, income) => acc + Number(income.amount), 0)
 
       return {
-        name: categoria.name,
+        name: category.name,
         value: totalValue || 0,
-        color: categoria.color || "#FFFFFF"
+        color: category.color || "#FFFFFF"
       }
     })
 
@@ -191,14 +191,14 @@ function DashboardContent() {
   }
 
   const buildIncomesChart = () => {
-    if (incomes.length === 0 || dados.totalReceitas === 0) return null
+    if (incomes.length === 0 || summary.totalIncome === 0) return null
 
-    const incomesWithCategory = incomes.map(receita => {
-      const categoria = categories.find(cat => cat.id === receita.category_id)
+    const incomesWithCategory = incomes.map(income => {
+      const category = categories.find(cat => cat.id === income.category_id)
       return {
-        name: receita.title || "Sem nome",
-        value: Number(receita.amount),
-        color: categoria?.color || "#FFFFFF"
+        name: income.title || "Sem nome",
+        value: Number(income.amount),
+        color: category?.color || "#FFFFFF"
       }
     })
 
@@ -217,18 +217,18 @@ function DashboardContent() {
   }
 
   const buildLineChart = () => {
-    if (spends.length === 0 && incomes.length === 0) return null
+    if (expenses.length === 0 && incomes.length === 0) return null
 
     const combinedData = [
-      ...spends.map(gasto => ({
-        name: gasto.title || "Sem nome",
-        value: Number(gasto.amount),
-        type: "Despesa"
+      ...expenses.map(expense => ({
+        name: expense.title || "Sem nome",
+        value: Number(expense.amount),
+        type: "expense"
       })),
-      ...incomes.map(receita => ({
-        name: receita.title || "Sem nome",
-        value: Number(receita.amount),
-        type: "Receita"
+      ...incomes.map(income => ({
+        name: income.title || "Sem nome",
+        value: Number(income.amount),
+        type: "income"
       }))
     ]
 
@@ -238,7 +238,7 @@ function DashboardContent() {
 
     const overflowSum = overflow.reduce((acc, item) => acc + item.value, 0)
     if (overflowSum > 0) {
-      top10.push({ name: "Outros", value: overflowSum, type: "Outros" })
+      top10.push({ name: "Outros", value: overflowSum, type: "other" })
     }
 
     return {
@@ -252,7 +252,7 @@ function DashboardContent() {
             createGradient(ctx, "rgba(0, 212, 170, 0.3)", "rgba(0, 212, 170, 0)"),
           tension: 0.3,
           fill: true,
-          pointBackgroundColor: top10.map(item => (item.type === "Receita" ? "#00d4aa" : "#ff4757"))
+          pointBackgroundColor: top10.map(item => (item.type === "income" ? "#00d4aa" : "#ff4757"))
         }
       ]
     }
@@ -281,8 +281,8 @@ function DashboardContent() {
         description="Visão geral da sua saúde financeira"
         action={
           <div style={{ display: "flex", gap: "var(--space-2)" }}>
-            <Badge variant="income">Receitas: {formatCurrency(dados.totalReceitas)}</Badge>
-            <Badge variant="expense">Despesas: {formatCurrency(dados.totalGastos)}</Badge>
+            <Badge variant="income">Receitas: {formatCurrency(summary.totalIncome)}</Badge>
+            <Badge variant="expense">Despesas: {formatCurrency(summary.totalExpenses)}</Badge>
           </div>
         }
       />
@@ -356,7 +356,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.saldo !== 0 ? formatCurrency(dados.saldo) : "Sem dados"}
+                {summary.balance !== 0 ? formatCurrency(summary.balance) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -406,7 +406,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.totalReceitas !== 0 ? formatCurrency(dados.totalReceitas) : "Sem dados"}
+                {summary.totalIncome !== 0 ? formatCurrency(summary.totalIncome) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -456,7 +456,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.totalGastos !== 0 ? formatCurrency(dados.totalGastos) : "Sem dados"}
+                {summary.totalExpenses !== 0 ? formatCurrency(summary.totalExpenses) : "Sem dados"}
               </p>
             </div>
           </div>

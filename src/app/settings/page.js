@@ -14,33 +14,33 @@ function SettingsPage() {
   const router = useRouter()
   const { error: toastError, success: toastSuccess } = useToast()
 
-  const [nome, setNome] = useState("")
-  const [senha, setSenha] = useState("")
-  const [dataNascimento, setDataNascimento] = useState("")
-  const [telefone, setTelefone] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [password, setPassword] = useState("")
+  const [birthDate, setBirthDate] = useState("")
+  const [phone, setPhone] = useState("")
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const isSaveDisabled = !nome && !senha && !dataNascimento && !telefone
+  const isSaveDisabled = !fullName && !password && !birthDate && !phone
 
   const handleEdit = async e => {
     e.preventDefault()
 
     try {
       await profileService.updateProfile({
-        full_name: nome,
-        password: senha,
-        birth_date: dataNascimento,
-        phone: telefone
+        full_name: fullName,
+        password: password,
+        birth_date: birthDate,
+        phone: phone
       })
 
       toastSuccess("Alterações salvas com sucesso!")
 
-      // Limpar os campos para o usuário saber que foi salvo
-      setNome("")
-      setSenha("")
-      setDataNascimento("")
-      setTelefone("")
+      // Clear the fields so the user knows the changes were saved
+      setFullName("")
+      setPassword("")
+      setBirthDate("")
+      setPhone("")
     } catch (error) {
       toastError(error.message)
     }
@@ -92,50 +92,50 @@ function SettingsPage() {
               <h1 className={styles.content_h1}>Configurações da Conta</h1>
 
               <div className={styles.form_group}>
-                <Label htmlFor="nome_completo">Nome Completo</Label>
+                <Label htmlFor="full_name">Nome Completo</Label>
                 <Input
-                  id="nome_completo"
-                  name="nome_completo"
+                  id="full_name"
+                  name="full_name"
                   type="text"
-                  value={nome}
-                  onChange={e => setNome(e.target.value)}
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
                   placeholder="Seu nome completo"
                 />
               </div>
 
               <div className={styles.form_group}>
-                <Label htmlFor="senha">Nova Senha</Label>
+                <Label htmlFor="password">Nova Senha</Label>
                 <Input
-                  id="senha"
-                  name="senha"
+                  id="password"
+                  name="password"
                   type="password"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder="Sua nova senha"
                   autoComplete="new-password"
                 />
-                <p className={styles.help_text}>Deixe em branco para manter a senha atual</p>
+                <p className={styles.help_text}>Deixe em branco para manter a password atual</p>
               </div>
 
               <div className={styles.form_group}>
-                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                <Label htmlFor="birth_date">Data de Nascimento</Label>
                 <Input
-                  id="data_nascimento"
-                  name="data_nascimento"
+                  id="birth_date"
+                  name="birth_date"
                   type="date"
-                  value={dataNascimento}
-                  onChange={e => setDataNascimento(e.target.value)}
+                  value={birthDate}
+                  onChange={e => setBirthDate(e.target.value)}
                 />
               </div>
 
               <div className={styles.form_group}>
-                <Label htmlFor="telefone">Telefone</Label>
+                <Label htmlFor="phone">Telefone</Label>
                 <Input
-                  id="telefone"
-                  name="telefone"
+                  id="phone"
+                  name="phone"
                   type="tel"
-                  value={telefone}
-                  onChange={e => setTelefone(e.target.value)}
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
                   placeholder="Seu telefone"
                   maxLength={20}
                 />

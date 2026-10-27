@@ -10,11 +10,11 @@ export default function LoginPage() {
   const router = useRouter()
 
   const [email, setEmail] = useState("")
-  const [senha, setPassword] = useState("")
+  const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  // Redireciona o usuário para "/dashboard" caso ele já tenha uma sessão ativa no supabase
+  // Redirect to "/dashboard" when a Supabase session already exists
   useEffect(() => {
     const checkSession = async () => {
       const session = await authService.getSession()
@@ -28,7 +28,7 @@ export default function LoginPage() {
   const handleLogin = async e => {
     e.preventDefault()
 
-    if (!email || !senha) {
+    if (!email || !password) {
       setErrorMessage("Preencha todos os campos obrigatórios")
       return
     }
@@ -38,9 +38,9 @@ export default function LoginPage() {
 
     try {
       // Supabase valida credenciais
-      await authService.loginUser({ email, password: senha })
+      await authService.loginUser({ email, password: password })
 
-      // Se passar, redireciona para dashboard. Sessão já está salva no navegador pelo supabase
+      // On success go to the dashboard; Supabase already persisted the session
       router.push("/dashboard")
     } catch (error) {
       setErrorMessage(error.message)
@@ -79,7 +79,7 @@ export default function LoginPage() {
                   id="password"
                   name="password"
                   placeholder="Digite sua senha"
-                  value={senha}
+                  value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                 />
@@ -92,7 +92,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 className={styles.login_button}
-                disabled={isLoading || !email || !senha}
+                disabled={isLoading || !email || !password}
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </button>
