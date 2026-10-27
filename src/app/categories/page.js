@@ -189,7 +189,7 @@ function CategoriesPage() {
 
           {/* --- ABA ADICIONAR --- */}
           {activeTab === "add" && (
-            <Card variant="default" className={styles.formCard}>
+            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
               <form onSubmit={handleAddSubmit}>
                 <h1 className={styles.content_h1}>Adicionar Categoria</h1>
 
@@ -266,7 +266,7 @@ function CategoriesPage() {
 
           {/* --- ABA EDITAR --- */}
           {activeTab === "edit" && (
-            <Card variant="default" className={styles.formCard}>
+            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
               <form onSubmit={handleEditSubmit}>
                 <h1 className={styles.content_h1}>Edit Category</h1>
 
@@ -371,7 +371,7 @@ function CategoriesPage() {
 
           {/* --- ABA EXCLUIR --- */}
           {activeTab === "delete" && (
-            <Card variant="default" className={styles.formCard}>
+            <Card variant="default" className={styles.formCard} style={{ width: "100%" }}>
               <form onSubmit={handleDeleteSubmit}>
                 <h1 className={styles.content_h1}>Delete Category</h1>
 
