@@ -15,10 +15,29 @@ import {
  * Supports ?fail=database,auth to simulate failures for testing
  */
 
+// Each check gives up after this long, so an unreachable project shows up as "critical"
+// instead of hanging until the serverless function times out (504). A per-request timeout
+// alone is not enough: supabase-js retries failed requests, multiplying the wait.
+const CHECK_TIMEOUT_MS = 3000
+
+const fetchWithTimeout = (url, options = {}) =>
+  fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(CHECK_TIMEOUT_MS) })
+
+function withDeadline(promise, ms = CHECK_TIMEOUT_MS) {
+  let timer
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+  })
+  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer))
+}
+
 // Create admin client for health checks
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { persistSession: false },
+  global: { fetch: fetchWithTimeout }
+})
 
 async function checkDatabase(request) {
   const failures = getSimulatedFailures(request)
@@ -33,7 +52,7 @@ async function checkDatabase(request) {
   }
   const start = Date.now()
   try {
-    const { error } = await supabaseAdmin.from("profiles").select("id").limit(1)
+    const { error } = await withDeadline(supabaseAdmin.from("profiles").select("id").limit(1))
     const latency = Date.now() - start
     return {
       id: "database",
@@ -66,7 +85,7 @@ async function checkAuth(request) {
   }
   const start = Date.now()
   try {
-    const { error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1 })
+    const { error } = await withDeadline(supabaseAdmin.auth.admin.listUsers({ perPage: 1 }))
     const latency = Date.now() - start
     return {
       id: "auth",
@@ -103,7 +122,7 @@ async function checkRealtime(request) {
       config: { broadcast: { self: false } }
     })
     await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Realtime timeout")), 5000)
+      const timeout = setTimeout(() => reject(new Error("Realtime timeout")), CHECK_TIMEOUT_MS)
       channel.subscribe(status => {
         if (status === "SUBSCRIBED") {
           clearTimeout(timeout)
@@ -147,7 +166,7 @@ async function checkStorage(request) {
   }
   const start = Date.now()
   try {
-    const { error } = await supabaseAdmin.storage.listBuckets()
+    const { error } = await withDeadline(supabaseAdmin.storage.listBuckets())
     const latency = Date.now() - start
     return {
       id: "storage",
@@ -275,11 +294,13 @@ export async function GET(request) {
 
     let incidents = []
     try {
-      const { data: incidentData } = await supabaseAdmin
-        .from("incidents")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10)
+      const { data: incidentData } = await withDeadline(
+        supabaseAdmin
+          .from("incidents")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(10)
+      )
       if (incidentData) {
         incidents = incidentData.map(i => ({
           id: i.id,
