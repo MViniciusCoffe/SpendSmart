@@ -42,9 +42,6 @@ function TransactionsContent() {
   const [selectedTransaction, setSelectedTransaction] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const expenseCategories = categories.filter(c => c.type === "expense" && !c.deleted_at)
-  const incomeCategories = categories.filter(c => c.type === "income" && !c.deleted_at)
-
   const expenseTransactions = transactions.filter(t => t.type === "expense")
   const incomeTransactions = transactions.filter(t => t.type === "income")
 
@@ -246,8 +243,7 @@ function TransactionsContent() {
       <Tabs value={activeTab} onChange={setActiveTab} className={styles.tabs}>
         <TabList>
           <TabTrigger value="list">Lista</TabTrigger>
-          <TabTrigger value="add-expense">Adicionar Despesa</TabTrigger>
-          <TabTrigger value="add-income">Adicionar Receita</TabTrigger>
+          <TabTrigger value="add-transaction">Adicionar Transação</TabTrigger>
         </TabList>
 
         <TabPanel value="list">
@@ -350,23 +346,13 @@ function TransactionsContent() {
           </div>
         </TabPanel>
 
-        <TabPanel value="add-expense">
+        <TabPanel value="add-transaction">
           <TransactionForm
             initialData={{ type: "expense" }}
-            categories={expenseCategories}
+            categories={categories}
             onSubmit={handleFormSubmit}
             onCancel={() => setActiveTab("list")}
-            submitLabel="Salvar Despesa"
-          />
-        </TabPanel>
-
-        <TabPanel value="add-income">
-          <TransactionForm
-            initialData={{ type: "income" }}
-            categories={incomeCategories}
-            onSubmit={handleFormSubmit}
-            onCancel={() => setActiveTab("list")}
-            submitLabel="Salvar Receita"
+            submitLabel="Salvar Transação"
           />
         </TabPanel>
       </Tabs>
