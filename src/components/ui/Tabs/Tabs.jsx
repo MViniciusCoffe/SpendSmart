@@ -33,9 +33,7 @@ export const Tabs = forwardRef(function Tabs(
   return (
     <TabsProvider value={activeValue} onChange={handleChange}>
       <div ref={ref} className={`${styles.root} ${className}`} {...props}>
-        <div data-active-value={activeValue} onChange={handleChange}>
-          {children}
-        </div>
+        <div data-active-value={activeValue}>{children}</div>
       </div>
     </TabsProvider>
   )
