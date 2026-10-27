@@ -18,8 +18,8 @@ verificar. O formato é "Como / Quero / Para que", com critérios no formato
 > para começar a controlar minhas finanças.
 
 **Derivada de:** RF01
-**Tela:** `pages/register.js`
-**Service:** `services/authServices.js:4`
+**Tela:** `src/app/register/page.js`
+**Service:** `authService.registerUser` (`src/services/authServices.js`)
 
 | ID        | Critério de aceitação                                                                                       |
 | :-------- | :---------------------------------------------------------------------------------------------------------- |
@@ -68,9 +68,8 @@ Funcionalidade: US-001 — Criar conta
     Então a conta criada é desfeita (rollback total)
     E vejo uma mensagem de erro, sem caminho de conta órfã
 
-  # PENDENTE: CA-001.03 não tem bloqueio no cliente hoje e CT01.04 não faz
-  # rollback (issue #25) — a conta permanece no Auth sem perfil. Os cenários
-  # acima descrevem o comportamento esperado após a correção da Iteração 1.
+  # CA-001.03 atendido: o cadastro bloqueia senha com menos de 6 caracteres no
+  # cliente (#43) e a criação do perfil tem rollback (#25, PR #47).
 ```
 
 ---
@@ -80,8 +79,8 @@ Funcionalidade: US-001 — Criar conta
 > Como usuário cadastrado, quero entrar com e-mail e senha, para acessar meus dados.
 
 **Derivada de:** RF02
-**Tela:** `pages/login.js`
-**Service:** `services/authServices.js:43`
+**Tela:** `src/app/login/page.js`
+**Service:** `authService.loginUser` (`src/services/authServices.js`)
 
 | ID        | Critério de aceitação                                                                                                                         |
 | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -98,8 +97,8 @@ Funcionalidade: US-001 — Criar conta
 > corretas.
 
 **Derivada de:** RF04
-**Tela:** `pages/accountConfig.js`
-**Service:** `services/profileService.js:4`
+**Tela:** `src/app/settings/page.js`
+**Service:** `profileService.getProfile` e `profileService.updateProfile` (`src/services/profileService.js`)
 
 | ID        | Critério de aceitação                                                                    |
 | :-------- | :--------------------------------------------------------------------------------------- |
@@ -116,9 +115,9 @@ Funcionalidade: US-001 — Criar conta
 > removidos permanentemente.
 
 **Derivada de:** RF05
-**Tela:** `pages/accountConfig.js:55`
-**Service:** `services/profileService.js:46`
-**Rota:** `pages/api/deleteAccount.js`
+**Tela:** `src/app/settings/page.js`
+**Service:** rota `src/app/api/deleteAccount/route.js`
+**Rota:** `src/app/api/deleteAccount/route.js`
 
 | ID        | Critério de aceitação                                                                                             |
 | :-------- | :---------------------------------------------------------------------------------------------------------------- |
@@ -128,7 +127,7 @@ Funcionalidade: US-001 — Criar conta
 | CA-004.04 | Dado a exclusão, quando tento acessar rotas privadas, então sou devolvido ao login                                |
 
 > A rota valida o token com o cliente público e só então age com a chave administrativa.
-> Ver `pages/api/deleteAccount.js:19-28`.
+> Ver `src/app/api/deleteAccount/route.js:19-28`.
 
 ---
 
@@ -163,8 +162,8 @@ Funcionalidade: US-001 — Criar conta
 > meus lançamentos.
 
 **Derivada de:** RF06
-**Tela:** `pages/categoriaPage.js`
-**Service:** `services/categoryService.js:26`
+**Tela:** `src/app/categories/page.js`
+**Service:** `categoryService.createCategory` (`src/services/categoryService.js`)
 
 | ID        | Critério de aceitação                                                                                                                 |
 | :-------- | :------------------------------------------------------------------------------------------------------------------------------------ |
@@ -212,7 +211,7 @@ Funcionalidade: US-006 — Criar categoria
 > Como usuário autenticado, quero ver minhas categorias, para escolhê-las nos lançamentos.
 
 **Derivada de:** RF07
-**Service:** `services/categoryService.js:12`
+**Service:** `categoryService.getCategories` (`src/services/categoryService.js`)
 
 | ID        | Critério de aceitação                                                                                      |
 | :-------- | :--------------------------------------------------------------------------------------------------------- |
@@ -258,7 +257,7 @@ Funcionalidade: US-007 — Listar categorias
 > descrição ou cor.
 
 **Derivada de:** RF08
-**Service:** `services/categoryService.js:51`
+**Service:** `categoryService.updateCategory` e `countTransactions` (`src/services/categoryService.js`)
 
 | ID        | Critério de aceitação                                                                                                  |
 | :-------- | :--------------------------------------------------------------------------------------------------------------------- |
@@ -310,7 +309,7 @@ Funcionalidade: US-008 — Alterar categoria
 > limpa **sem perder meu histórico financeiro**.
 
 **Derivada de:** RF09
-**Service:** `services/categoryService.js:67`
+**Service:** `categoryService.deleteCategory`, `restoreCategory` e `countTransactions` (`src/services/categoryService.js`)
 
 | ID        | Critério de aceitação                                                                                                                 |
 | :-------- | :------------------------------------------------------------------------------------------------------------------------------------ |
@@ -386,8 +385,8 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 > Como usuário autenticado, quero registrar uma receita, para acompanhar o que entrou.
 
 **Derivada de:** RF10
-**Tela:** `pages/rendaPage.js`
-**Service:** `services/transactionService.js:31`
+**Tela:** `src/app/transactions/page.js`
+**Service:** `transactionService.createTransaction` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                                                       |
 | :-------- | :---------------------------------------------------------------------------------------------------------- |
@@ -396,11 +395,8 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 | CA-010.03 | Dado uma receita registrada, quando consulto, então o título e a data aparecem preenchidos no detalhe       |
 | CA-010.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais e nunca é negativo             |
 
-> **CA-010.03 não é atendido.** O formulário vincula o campo ao estado `nome`, mas o envio usa
-> `fonteRenda`, que não tem input; a receita é gravada com título vazio. Ver issue
-> [#10](https://github.com/MViniciusCoffe/SpendSmart/issues/10). CA-010.03 também depende da
-> divergência de campos descrita na issue
-> [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21).
+> **CA-010.03 atendido.** O título vem do mesmo `TransactionForm` usado para receitas e despesas,
+> e o campo enviado bate com o do service (issues #10 e #21, PR #42).
 
 ---
 
@@ -409,7 +405,7 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 > Como usuário autenticado, quero ver minhas receitas, para conferir o que registrei.
 
 **Derivada de:** RF11
-**Service:** `services/transactionService.js:6`
+**Service:** `transactionService.getTransactions` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                                            |
 | :-------- | :----------------------------------------------------------------------------------------------- |
@@ -424,7 +420,7 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 > Como usuário autenticado, quero excluir uma receita registrada por engano.
 
 **Derivada de:** RF12
-**Service:** `services/transactionService.js:92`
+**Service:** `transactionService.deleteTransaction` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                            |
 | :-------- | :------------------------------------------------------------------------------- |
@@ -438,8 +434,8 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 > Como usuário autenticado, quero registrar uma despesa, para acompanhar o que saiu.
 
 **Derivada de:** RF13
-**Tela:** `pages/gastosPage.js`
-**Service:** `services/transactionService.js:31`
+**Tela:** `src/app/transactions/page.js`
+**Service:** `transactionService.createTransaction` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                                                        |
 | :-------- | :----------------------------------------------------------------------------------------------------------- |
@@ -448,9 +444,8 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 | CA-013.03 | Dado uma despesa registrada, quando consulto o detalhe, então data e forma de pagamento aparecem preenchidas |
 | CA-013.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais                                 |
 
-> **CA-013.03 não é atendido.** A tela lê `data` e `forma_pagamento`, mas o service devolve
-> `data_ocorrencia` e `metodo_pagamento`. Ver issue
-> [#21](https://github.com/MViniciusCoffe/SpendSmart/issues/21).
+> **CA-013.03 atendido.** A tela lê `occurred_on` e `payment_method`, os mesmos campos que o service
+> devolve (issue #21, PR #42).
 
 **Cenários formais (Gherkin):**
 
@@ -489,9 +484,8 @@ Funcionalidade: US-013 — Registrar despesa
     Então o sistema rejeita o registro
     E nenhuma transação é persistida
 
-  # PENDENTE: CA-013.03 não é atendido hoje (issue #21) — a UI lê data/forma_pagamento
-  # mas o service devolve data_ocorrencia/metodo_pagamento. CT13.05 descreve o
-  # comportamento esperado após a correção da invariante categoria/transação.
+  # CA-013.03 atendido (issue #21, PR #42). CT13.05 (tipo da transação igual ao da
+  # categoria) é garantido pela aplicação ao mudar o tipo da categoria (CA-008.03).
 ```
 
 ---
@@ -501,7 +495,7 @@ Funcionalidade: US-013 — Registrar despesa
 > Como usuário autenticado, quero ver minhas despesas, para conferir o que registrei.
 
 **Derivada de:** RF14
-**Service:** `services/transactionService.js:6`
+**Service:** `transactionService.getTransactions` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                                                         |
 | :-------- | :------------------------------------------------------------------------------------------------------------ |
@@ -516,7 +510,7 @@ Funcionalidade: US-013 — Registrar despesa
 > Como usuário autenticado, quero excluir uma despesa registrada por engano.
 
 **Derivada de:** RF15
-**Service:** `services/transactionService.js:92`
+**Service:** `transactionService.deleteTransaction` (`src/services/transactionService.js`)
 
 | ID        | Critério de aceitação                                                |
 | :-------- | :------------------------------------------------------------------- |
@@ -533,7 +527,7 @@ Funcionalidade: US-013 — Registrar despesa
 > sem percorrer cada lançamento.
 
 **Derivada de:** RF10 a RF15 agregadas (não há RF próprio no Documento de Visão)
-**Tela:** `pages/dashboard.js`
+**Tela:** `src/app/dashboard/page.js`
 
 | ID        | Critério de aceitação                                                                                                              |
 | :-------- | :--------------------------------------------------------------------------------------------------------------------------------- |

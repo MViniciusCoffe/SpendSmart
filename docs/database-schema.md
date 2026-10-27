@@ -236,8 +236,8 @@ As três são `FOR ALL`. O `USING` filtra a leitura e o `WITH CHECK` valida a es
 As políticas usam a identidade da sessão do Supabase Auth. Elas não confiam em um `user_id` enviado pelo _frontend_.
 
 O RLS é a última barreira, não a única. Os _services_ filtram por `user_id` explicitamente em toda
-leitura e escrita, conforme `services/categoryService.js:31,41` e
-`services/transactionService.js:33,46`.
+leitura e escrita, conforme os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e
+`src/services/transactionService.js`.
 
 ## Limites conhecidos
 

@@ -1,5 +1,10 @@
 # Relatório do Estado Atual dos Testes
 
+> **Registro histórico.** Este documento descreve o projeto na data em que foi escrito e é mantido
+> como evidência. Os caminhos citados (`pages/gastosPage.js`, `pages/register.js`, `services/`...)
+> eram os da época: o front-end hoje está em `src/app/` (App Router) e os serviços em
+> `src/services/`. O estado atual está no `README.md`.
+
 Diagnóstico formal do estado dos testes do SpendSmart antes da disciplina de Testes de Software
 (BSI, UFRN, 2026), exigido pela entrega P1. Data de referência: **06/10/2026**. Atualizado em
 **21/10/2026** para refletir o estado real completo (incluindo testes RLS).

@@ -45,13 +45,13 @@ aplicação ficam acessíveis a terceiros.
 
 ## 2. Variáveis por ambiente
 
-| Variável                                                                              | Onde é lida                                                    | Dev | Preview | Produção |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --- | ------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                                                            | `infra/supabase.js:3`                                          | sim | sim     | sim      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                                                | `infra/supabase.js:4`                                          | sim | sim     | sim      |
-| `SUPABASE_SERVICE_ROLE_KEY`                                                           | `pages/api/createProfile.js:6`, `pages/api/deleteAccount.js:6` | sim | sim     | sim      |
-| `DATABASE_URL`                                                                        | `infra/scripts/wait-for-postgres.js:12`, `node-pg-migrate`     | sim | não     | não      |
-| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` | `infra/compose.yaml`                                           | não | não     | não      |
+| Variável                                                                              | Onde é lida                                                                    | Dev | Preview | Produção |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --- | ------- | -------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                                                            | `src/lib/supabase.js:3`                                                        | sim | sim     | sim      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                                                | `src/lib/supabase.js:4`                                                        | sim | sim     | sim      |
+| `SUPABASE_SERVICE_ROLE_KEY`                                                           | `src/app/api/createProfile/route.js:6`, `src/app/api/deleteAccount/route.js:6` | sim | sim     | sim      |
+| `DATABASE_URL`                                                                        | `infra/scripts/wait-for-postgres.js:12`, `node-pg-migrate`                     | sim | não     | não      |
+| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` | `infra/compose.yaml`                                                           | não | não     | não      |
 
 ### Sobre o nome da chave pública
 
@@ -63,7 +63,7 @@ A variável chama-se `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. O Supabase renomeou
 
 `SUPABASE_SERVICE_ROLE_KEY` **não pode ter prefixo `NEXT_PUBLIC_`**. Com esse prefixo ela seria
 embutida no bundle enviado ao navegador, e qualquer visitante poderia ler dados de qualquer
-usuário, além de poder criar e excluir contas. Ela só pode ser lida dentro de `pages/api/*`,
+usuário, além de poder criar e excluir contas. Ela só pode ser lida dentro de `src/app/api/*`,
 que roda no servidor. Há dois pontos de leitura hoje: `createProfile` e `deleteAccount`.
 
 ---
@@ -107,7 +107,7 @@ migração roda no container, não no serverless, então a variável não viaja.
 importante: **qualquer Preview passa a ser um endpoint com acesso de serviço ao banco de
 produção**. Uma Preview é criada por branch, e branch é algo que qualquer um pode abrir neste
 repositório público. O `SUPABASE_SERVICE_ROLE_KEY` não fica exposto no bundle do navegador, mas
-`pages/api/createProfile.js` e `pages/api/deleteAccount.js` leem essa chave no servidor e ficam
+`src/app/api/createProfile/route.js` e `src/app/api/deleteAccount/route.js` leem essa chave no servidor e ficam
 alcançáveis no domínio da Preview. Um deploy de Preview consegue criar e apagar contas no banco
 real.
 
