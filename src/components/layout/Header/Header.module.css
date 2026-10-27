@@ -195,6 +195,19 @@
   outline-offset: 2px;
 }
 
+/* Desktop Auth Group (public routes) */
+.authGroupDesktop {
+  display: none;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .authGroupDesktop {
+    display: flex;
+  }
+}
+
 /* Mobile Menu Button */
 .mobileMenuButton {
   display: flex;
@@ -381,6 +394,13 @@
 .mobileNavLink.active {
   color: var(--color-mercury);
   background: var(--color-mercury-muted);
+}
+
+.mobileAuthButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
 }
 
 .divider {

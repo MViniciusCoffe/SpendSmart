@@ -1,5 +1,5 @@
 import React from "react"
-import { Navbar, Footer } from "@/components/layout"
+import { Footer } from "@/components/layout"
 import { Button, Card, Badge, Icon, Section } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
 import styles from "./about.module.css"
@@ -13,8 +13,6 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <div className={styles.pageWrapper}>
-      <Navbar variant="public" />
-
       <main>
         {/* Hero Section */}
         <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>

@@ -1,5 +1,5 @@
 import React from "react"
-import { Navbar, Footer } from "@/components/layout"
+import { Footer } from "@/components/layout"
 import { Card, Icon, Section, Accordion } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
 import { ContactForm } from "./ContactForm"
@@ -31,8 +31,6 @@ export default function ContactPage() {
 
   return (
     <div className={styles.pageWrapper}>
-      <Navbar variant="public" />
-
       <main>
         {/* Hero Section */}
         <Section size="md" style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>

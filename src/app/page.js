@@ -1,6 +1,6 @@
 import React from "react"
 import Link from "next/link"
-import { Navbar, Footer } from "@/components/layout"
+import { Footer } from "@/components/layout"
 import { Button, Card, Badge, Icon, Section } from "@/components/ui"
 import styles from "./page.module.css"
 
@@ -13,8 +13,6 @@ export const metadata = {
 export default function Home() {
   return (
     <div className={styles.pageWrapper}>
-      <Navbar variant="public" />
-
       <main>
         {/* Hero Section */}
         <Section size="lg" className={styles.heroSection}>
