@@ -103,7 +103,6 @@ function TransactionsContent() {
       await loadData()
       setActiveTab("list")
     } catch (error) {
-      console.error("Error saving transaction:", error)
       toastError(error.message || "Não foi possível salvar a transação.")
     }
   }
@@ -119,7 +118,6 @@ function TransactionsContent() {
       await loadData()
       setActiveTab("list")
     } catch (error) {
-      console.error("Error saving transaction:", error)
       toastError(error.message || "Não foi possível salvar a transação.")
     }
   }

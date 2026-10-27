@@ -19,6 +19,19 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "other", label: "Outro" }
 ]
 
+// Mirrors validators.data in the service so bad dates are caught before submit
+function isValidDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const [year, month, day] = value.split("-").map(Number)
+  const date = new Date(year, month - 1, day)
+  return (
+    year >= 1900 &&
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  )
+}
+
 export function TransactionForm({
   initialData = {},
   categories = [],
@@ -59,6 +72,7 @@ export function TransactionForm({
         break
       case "occurred_on":
         if (!value) return "Data é obrigatória"
+        if (!isValidDate(value)) return "Data inválida"
         break
       case "type":
         if (!["income", "expense"].includes(value)) return "Tipo inválido"
