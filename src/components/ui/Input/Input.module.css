@@ -61,12 +61,12 @@
 
 /* Error state */
 .input.error,
-.input:invalid:not(:placeholder-shown) {
+.input:user-invalid {
   border-color: var(--color-error);
 }
 
 .input.error:focus,
-.input:invalid:not(:placeholder-shown):focus {
+.input:user-invalid:focus {
   box-shadow: 0 0 0 3px var(--color-error-muted);
 }
 
