@@ -13,7 +13,6 @@ export function AuthProvider({ children }) {
 
   const fetchUser = useCallback(async () => {
     try {
-      setLoading(true)
       const session = await authService.getSession()
       if (session?.user) {
         let userData = session.user
@@ -36,13 +35,13 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Initial fetch - run once on mount
-   
+
   useEffect(() => {
-    const fetch = async () => {
+    const loadUser = async () => {
       await fetchUser()
     }
-    fetch()
-  }, [])
+    loadUser()
+  }, [fetchUser])
 
   const login = useCallback(async (email, password) => {
     setError(null)
@@ -94,9 +93,10 @@ export function AuthProvider({ children }) {
     async profileData => {
       setError(null)
       try {
-        await authService.updateProfile(profileData)
+        await profileService.updateProfile(profileData)
+        const { password, ...publicData } = profileData
         if (user) {
-          setUser({ ...user, ...profileData })
+          setUser({ ...user, ...publicData })
         }
       } catch (err) {
         setError(err.message)
