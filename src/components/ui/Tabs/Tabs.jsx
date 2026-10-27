@@ -10,7 +10,7 @@ function useTabsContext() {
   return useContext(TabsContext)
 }
 
-export function TabsProvider({ children, value, onChange }) {
+function TabsProvider({ children, value, onChange }) {
   return (
     <TabsContext.Provider value={{ activeValue: value, onChange }}>{children}</TabsContext.Provider>
   )

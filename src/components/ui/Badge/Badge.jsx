@@ -29,33 +29,3 @@ export function Badge({
 }
 
 // Convenience variants
-export function StatusBadge({ status, className = "", ...props }) {
-  const variants = {
-    operational: "success",
-    degraded: "warning",
-    partial: "warning",
-    critical: "error",
-    maintenance: "info",
-    pending: "warning",
-    unknown: "default"
-  }
-
-  const variant = variants[status] || "default"
-  const label = status?.charAt(0).toUpperCase() + status?.slice(1) || "Desconhecido"
-
-  return (
-    <Badge variant={variant} size="sm" className={className}>
-      {label}
-    </Badge>
-  )
-}
-
-export function CountBadge({ count, max = 99, className = "", ...props }) {
-  const displayCount = count > max ? `${max}+` : count
-
-  return (
-    <span className={`${styles.badge} ${styles.count} ${className}`} {...props}>
-      {displayCount}
-    </span>
-  )
-}

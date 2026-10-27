@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic"
 
 import { useEffect, useState } from "react"
 import styles from "./page.module.css"
-import { ClientOnly } from "@/components/ui"
 import { PageContainer, PageHeader } from "@/components/layout"
 import { Card, Badge, EmptyState, LoadingSpinner } from "@/components/ui"
 import { ChartContainer, createGradient } from "@/components/ui"

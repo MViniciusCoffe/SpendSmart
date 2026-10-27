@@ -85,56 +85,6 @@
   transform: translateY(-2px);
 }
 
-/* Sub-components */
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-4);
-}
-
-.title {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0;
-  line-height: var(--line-height-tight);
-}
-
-.description {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: var(--space-1) 0 0 0;
-  line-height: var(--line-height-normal);
-}
-
-.content {
-  /* Content area - no specific styles needed */
-}
-
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-  margin-top: var(--space-4);
-}
-
-/* Interactive card */
-.clickable {
-  cursor: pointer;
-}
-
-.clickable:focus-visible {
-  outline: 2px solid var(--color-mercury);
-  outline-offset: 2px;
-}
-
 /* Responsive */
 @media (max-width: 480px) {
   .padding-md {

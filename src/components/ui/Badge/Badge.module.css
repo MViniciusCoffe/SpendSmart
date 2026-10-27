@@ -92,13 +92,6 @@
   height: 8px;
 }
 
-/* Count badge */
-.count {
-  min-width: 20px;
-  text-align: center;
-  padding: 0 var(--space-2);
-}
-
 /* Animation for new badges */
 @keyframes popIn {
   0% {
