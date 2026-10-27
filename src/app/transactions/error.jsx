@@ -7,8 +7,8 @@ export default function Error({ error, reset }) {
     <RouteError
       error={error}
       reset={reset}
-      title="Unable to load transactions"
-      description="We couldn't load your transactions. Please try again."
+      title="Não foi possível carregar as transações"
+      description="Não conseguimos carregar suas transações. Tente novamente."
     />
   )
 }

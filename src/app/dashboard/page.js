@@ -22,7 +22,7 @@ function DashboardContent() {
   const [spends, setSpends] = useState([])
   const [incomes, setIncomes] = useState([])
   const [categories, setCategories] = useState([])
-  const [nomeUsuario, setNomeUsuario] = useState("User")
+  const [nomeUsuario, setNomeUsuario] = useState("Usuário")
   const [errorMessage, setErrorMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -74,7 +74,7 @@ function DashboardContent() {
         setErrorMessage("")
       } catch (error) {
         console.error("Erro no Dashboard:", error)
-        setErrorMessage("Failed to load dashboard data.")
+        setErrorMessage("Não foi possível carregar os dados do dashboard.")
       } finally {
         setIsLoading(false)
       }
@@ -125,7 +125,7 @@ function DashboardContent() {
     const expensesWithCategory = spends.map(gasto => {
       const categoria = categories.find(cat => cat.id === gasto.category_id)
       return {
-        name: gasto.title || "Unnamed",
+        name: gasto.title || "Sem nome",
         value: Number(gasto.amount),
         color: categoria?.color || "#FFFFFF"
       }
@@ -180,7 +180,7 @@ function DashboardContent() {
     const incomesWithCategory = incomes.map(receita => {
       const categoria = categories.find(cat => cat.id === receita.category_id)
       return {
-        name: receita.title || "Unnamed",
+        name: receita.title || "Sem nome",
         value: Number(receita.amount),
         color: categoria?.color || "#FFFFFF"
       }
@@ -205,14 +205,14 @@ function DashboardContent() {
 
     const combinedData = [
       ...spends.map(gasto => ({
-        name: gasto.title || "Unnamed",
+        name: gasto.title || "Sem nome",
         value: Number(gasto.amount),
-        type: "Expense"
+        type: "Despesa"
       })),
       ...incomes.map(receita => ({
-        name: receita.title || "Unnamed",
+        name: receita.title || "Sem nome",
         value: Number(receita.amount),
-        type: "Income"
+        type: "Receita"
       }))
     ]
 
@@ -222,23 +222,21 @@ function DashboardContent() {
 
     const overflowSum = overflow.reduce((acc, item) => acc + item.value, 0)
     if (overflowSum > 0) {
-      top10.push({ name: "Others", value: overflowSum, type: "Others" })
+      top10.push({ name: "Outros", value: overflowSum, type: "Outros" })
     }
 
     return {
       labels: top10.map(item => item.name),
       datasets: [
         {
-          label: "Values",
+          label: "Valores",
           data: top10.map(item => item.value),
           borderColor: "rgb(0, 212, 170)",
           backgroundColor: ctx =>
             createGradient(ctx, "rgba(0, 212, 170, 0.3)", "rgba(0, 212, 170, 0)"),
           tension: 0.3,
           fill: true,
-          pointBackgroundColor: top10.map(item =>
-            item.type === "Income" ? "var(--color-income)" : "var(--color-expense)"
-          )
+          pointBackgroundColor: top10.map(item => (item.type === "Receita" ? "#00d4aa" : "#ff4757"))
         }
       ]
     }
@@ -248,7 +246,7 @@ function DashboardContent() {
     return (
       <PageContainer>
         <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
-          <LoadingSpinner size="lg" ariaLabel="Loading dashboard" />
+          <LoadingSpinner size="lg" ariaLabel="Carregando dashboard" />
         </div>
       </PageContainer>
     )
@@ -264,11 +262,11 @@ function DashboardContent() {
     <PageContainer>
       <PageHeader
         title="Dashboard"
-        description="Overview of your financial health"
+        description="Visão geral da sua saúde financeira"
         action={
           <div style={{ display: "flex", gap: "var(--space-2)" }}>
-            <Badge variant="income">Income: {formatCurrency(dados.totalReceitas)}</Badge>
-            <Badge variant="expense">Expense: {formatCurrency(dados.totalGastos)}</Badge>
+            <Badge variant="income">Receitas: {formatCurrency(dados.totalReceitas)}</Badge>
+            <Badge variant="expense">Despesas: {formatCurrency(dados.totalGastos)}</Badge>
           </div>
         }
       />
@@ -332,7 +330,7 @@ function DashboardContent() {
                   margin: 0
                 }}
               >
-                Current Balance
+                Saldo Atual
               </h3>
               <p
                 style={{
@@ -342,7 +340,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.saldo !== 0 ? formatCurrency(dados.saldo) : "No data"}
+                {dados.saldo !== 0 ? formatCurrency(dados.saldo) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -382,7 +380,7 @@ function DashboardContent() {
                   margin: 0
                 }}
               >
-                Total Income
+                Total de Receitas
               </h3>
               <p
                 style={{
@@ -392,7 +390,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.totalReceitas !== 0 ? formatCurrency(dados.totalReceitas) : "No data"}
+                {dados.totalReceitas !== 0 ? formatCurrency(dados.totalReceitas) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -432,7 +430,7 @@ function DashboardContent() {
                   margin: 0
                 }}
               >
-                Total Expenses
+                Total de Despesas
               </h3>
               <p
                 style={{
@@ -442,7 +440,7 @@ function DashboardContent() {
                   margin: "var(--space-1) 0 0"
                 }}
               >
-                {dados.totalGastos !== 0 ? formatCurrency(dados.totalGastos) : "No data"}
+                {dados.totalGastos !== 0 ? formatCurrency(dados.totalGastos) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -459,7 +457,7 @@ function DashboardContent() {
       >
         <Card variant="default">
           <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Expenses by Category
+            Despesas por Categoria
           </h3>
           <div style={{ height: "300px" }}>
             {expensesCategoryData ? (
@@ -504,8 +502,8 @@ function DashboardContent() {
                     <path d="M12 6a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6z" />
                   </svg>
                 }
-                title="No expense data"
-                description="Add expenses to see the breakdown by category"
+                title="Sem dados de despesas"
+                description="Adicione despesas para ver a divisão por categoria"
               />
             )}
           </div>
@@ -513,7 +511,7 @@ function DashboardContent() {
 
         <Card variant="default">
           <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Expenses by Transaction
+            Despesas por Transação
           </h3>
           <div style={{ height: "300px" }}>
             {expensesData ? (
@@ -561,8 +559,8 @@ function DashboardContent() {
                     <polyline points="10 9 9 9 8 9" />
                   </svg>
                 }
-                title="No expense transactions"
-                description="Add expense transactions to see the breakdown"
+                title="Sem transações de despesa"
+                description="Adicione transações de despesa para ver a divisão"
               />
             )}
           </div>
@@ -579,7 +577,7 @@ function DashboardContent() {
       >
         <Card variant="default">
           <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Income by Category
+            Receitas por Categoria
           </h3>
           <div style={{ height: "300px" }}>
             {incomesCategoryData ? (
@@ -623,8 +621,8 @@ function DashboardContent() {
                     <path d="M12 5v14M19 12H5" />
                   </svg>
                 }
-                title="No income data"
-                description="Add income to see the breakdown by category"
+                title="Sem dados de receitas"
+                description="Adicione receitas para ver a divisão por categoria"
               />
             )}
           </div>
@@ -632,7 +630,7 @@ function DashboardContent() {
 
         <Card variant="default">
           <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-            Income by Source
+            Receitas por Origem
           </h3>
           <div style={{ height: "300px" }}>
             {incomesData ? (
@@ -676,8 +674,8 @@ function DashboardContent() {
                     <path d="M12 5v14M19 12H5" />
                   </svg>
                 }
-                title="No income transactions"
-                description="Add income transactions to see the breakdown"
+                title="Sem transações de receita"
+                description="Adicione transações de receita para ver a divisão"
               />
             )}
           </div>
@@ -686,7 +684,7 @@ function DashboardContent() {
 
       <Card variant="default">
         <h3 style={{ margin: "0 0 var(--space-4)", fontSize: "var(--text-lg)" }}>
-          Top 10 Transactions (Income & Expenses)
+          Top 10 Transações (Receitas e Despesas)
         </h3>
         <div style={{ height: "350px" }}>
           {lineData ? (
@@ -707,8 +705,8 @@ function DashboardContent() {
                   <path d="M9 3v18" />
                 </svg>
               }
-              title="No transaction data"
-              description="Add transactions to see the top 10 comparison"
+              title="Sem dados de transações"
+              description="Adicione transações para ver a comparação do top 10"
             />
           )}
         </div>

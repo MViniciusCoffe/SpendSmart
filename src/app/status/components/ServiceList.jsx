@@ -19,10 +19,10 @@ export function ServiceList({ services }) {
           <span className={styles.servicesIcon} aria-hidden="true">
             <ServicesListIcon width={20} height={20} />
           </span>
-          Services
+          Serviços
         </h2>
         <Card variant="default" className={styles.emptyCard}>
-          <p className={styles.emptyText}>No services to display</p>
+          <p className={styles.emptyText}>Nenhum serviço para exibir</p>
         </Card>
       </section>
     )
@@ -34,9 +34,9 @@ export function ServiceList({ services }) {
         <span className={styles.servicesIcon} aria-hidden="true">
           <ServicesListIcon width={20} height={20} />
         </span>
-        Services
+        Serviços
       </h2>
-      <div className={styles.grid} role="list" aria-label="Services">
+      <div className={styles.grid} role="list" aria-label="Serviços">
         {services.map(service => {
           const ServiceIcon = serviceIconMap[service.id]
           const statusColor = getStatusColor(service.status)

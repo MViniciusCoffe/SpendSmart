@@ -44,8 +44,14 @@ function TransactionsContent() {
   const [initialType, setInitialType] = useState("expense")
   const [editingTransaction, setEditingTransaction] = useState(null)
 
-  const expenseTransactions = transactions.filter(t => t.type === "expense")
-  const incomeTransactions = transactions.filter(t => t.type === "income")
+  const categoryNameById = new Map(categories.map(c => [String(c.id), c.name]))
+  const rows = transactions.map(t => ({
+    ...t,
+    category_name: categoryNameById.get(String(t.category_id)) || ""
+  }))
+
+  const expenseTransactions = rows.filter(t => t.type === "expense")
+  const incomeTransactions = rows.filter(t => t.type === "income")
 
   const formatCurrency = value => {
     return new Intl.NumberFormat("en-US", {
@@ -114,20 +120,12 @@ function TransactionsContent() {
 
   const handleEditTransaction = transaction => {
     setEditingTransaction(transaction)
-    setActiveTab("add-transaction")
+    setActiveTab("edit-transaction")
   }
 
-  const handleFormSubmit = async data => {
+  const handleCreateSubmit = async data => {
     try {
-      if (editingTransaction) {
-        await transactionService.updateTransaction({
-          id: editingTransaction.id,
-          ...data
-        })
-        setEditingTransaction(null)
-      } else {
-        await transactionService.createTransaction(data)
-      }
+      await transactionService.createTransaction(data)
       handleRefresh()
       setActiveTab("list")
     } catch (error) {
@@ -136,120 +134,93 @@ function TransactionsContent() {
     }
   }
 
-  const expenseColumns = [
-    { key: "title", header: "Título", sortable: true },
-    {
-      key: "category",
-      header: "Categoria",
-      sortable: true,
-      render: (_, row) => row.category?.name || "—"
-    },
-    { key: "amount", header: "Valor", sortable: true, render: value => formatCurrency(value) },
-    { key: "occurred_on", header: "Data", sortable: true, render: formatDate },
-    { key: "payment_method", header: "Pagamento", render: value => value || "—" },
-    {
-      key: "actions",
-      header: "Ações",
-      render: (_, row) => (
-        <div style={{ display: "flex", gap: "var(--space-2)" }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEditTransaction(row)}
-            aria-label={`Editar ${row.title}`}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedTransaction(row)
-              setShowDeleteConfirm(true)
-            }}
-            aria-label={`Excluir ${row.title}`}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </Button>
-        </div>
-      )
+  const handleUpdateSubmit = async data => {
+    try {
+      await transactionService.updateTransaction({
+        id: editingTransaction.id,
+        ...data
+      })
+      setEditingTransaction(null)
+      handleRefresh()
+      setActiveTab("list")
+    } catch (error) {
+      console.error("Error saving transaction:", error)
+      setErrorMessage(error.message || "Não foi possível salvar a transação.")
     }
-  ]
+  }
 
-  const incomeColumns = [
+  const EditIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+
+  const DeleteIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
+  )
+
+  const transactionColumns = [
     { key: "title", header: "Título", sortable: true },
     {
-      key: "category",
+      key: "category_name",
       header: "Categoria",
       sortable: true,
-      render: (_, row) => row.category?.name || "—"
+      render: value => value || "—"
     },
     { key: "amount", header: "Valor", sortable: true, render: value => formatCurrency(value) },
     { key: "occurred_on", header: "Data", sortable: true, render: formatDate },
-    { key: "payment_method", header: "Pagamento", render: value => value || "—" },
+    {
+      key: "payment_method",
+      header: "Pagamento",
+      render: value =>
+        PAYMENT_METHOD_OPTIONS.find(option => option.value === value)?.label || value || "—"
+    },
     {
       key: "actions",
       header: "Ações",
       render: (_, row) => (
-        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+        <div className={styles.row_actions}>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => handleEditTransaction(row)}
             aria-label={`Editar ${row.title}`}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
+            <EditIcon />
+            Editar
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
+            className={styles.action_delete}
             onClick={() => {
               setSelectedTransaction(row)
               setShowDeleteConfirm(true)
             }}
             aria-label={`Excluir ${row.title}`}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
+            <DeleteIcon />
+            Excluir
           </Button>
         </div>
       )
@@ -300,6 +271,9 @@ function TransactionsContent() {
         <TabList>
           <TabTrigger value="list">Lista</TabTrigger>
           <TabTrigger value="add-transaction">Adicionar Transação</TabTrigger>
+          {editingTransaction && (
+            <TabTrigger value="edit-transaction">Atualizar Transação</TabTrigger>
+          )}
         </TabList>
 
         <TabPanel value="list">
@@ -353,7 +327,7 @@ function TransactionsContent() {
                 />
               ) : (
                 <Table
-                  columns={expenseColumns}
+                  columns={transactionColumns}
                   data={expenseTransactions}
                   keyField="id"
                   sortable
@@ -405,7 +379,7 @@ function TransactionsContent() {
                 />
               ) : (
                 <Table
-                  columns={incomeColumns}
+                  columns={transactionColumns}
                   data={incomeTransactions}
                   keyField="id"
                   sortable
@@ -418,29 +392,39 @@ function TransactionsContent() {
 
         <TabPanel value="add-transaction">
           <TransactionForm
-            initialData={
-              editingTransaction
-                ? {
-                    id: editingTransaction.id,
-                    type: editingTransaction.type,
-                    category_id: String(editingTransaction.category_id),
-                    amount: String(editingTransaction.amount).replace(".", ","),
-                    title: editingTransaction.title,
-                    occurred_on: editingTransaction.occurred_on,
-                    description: editingTransaction.description || "",
-                    payment_method: editingTransaction.payment_method || ""
-                  }
-                : { type: initialType }
-            }
+            key={`add-${initialType}`}
+            initialData={{ type: initialType }}
             categories={categories}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setActiveTab("list")
-              setEditingTransaction(null)
-            }}
-            submitLabel={editingTransaction ? "Atualizar Transação" : "Salvar Transação"}
+            onSubmit={handleCreateSubmit}
+            onCancel={() => setActiveTab("list")}
+            submitLabel="Salvar Transação"
           />
         </TabPanel>
+
+        {editingTransaction && (
+          <TabPanel value="edit-transaction">
+            <TransactionForm
+              key={`edit-${editingTransaction.id}`}
+              initialData={{
+                id: editingTransaction.id,
+                type: editingTransaction.type,
+                category_id: String(editingTransaction.category_id),
+                amount: String(editingTransaction.amount).replace(".", ","),
+                title: editingTransaction.title,
+                occurred_on: editingTransaction.occurred_on,
+                description: editingTransaction.description || "",
+                payment_method: editingTransaction.payment_method || ""
+              }}
+              categories={categories}
+              onSubmit={handleUpdateSubmit}
+              onCancel={() => {
+                setActiveTab("list")
+                setEditingTransaction(null)
+              }}
+              submitLabel="Atualizar Transação"
+            />
+          </TabPanel>
+        )}
       </Tabs>
 
       {showDeleteConfirm && selectedTransaction && (

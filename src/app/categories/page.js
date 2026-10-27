@@ -9,8 +9,8 @@ import { categoryService } from "@/services/categoryService"
 import styles from "./page.module.css"
 
 const TYPE_OPTIONS = [
-  { value: "income", label: "Income" },
-  { value: "expense", label: "Expense" }
+  { value: "income", label: "Receita" },
+  { value: "expense", label: "Despesa" }
 ]
 
 function CategoriesPage() {
@@ -66,16 +66,16 @@ function CategoriesPage() {
 
   const validateAddForm = () => {
     const newErrors = {}
-    if (!addForm.name.trim()) newErrors.name = "Name is required"
-    if (addForm.name.trim().length > 50) newErrors.name = "Name must be 50 characters or less"
+    if (!addForm.name.trim()) newErrors.name = "Nome é obrigatório"
+    if (addForm.name.trim().length > 50) newErrors.name = "Nome deve ter no máximo 50 caracteres"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const validateEditForm = () => {
     const newErrors = {}
-    if (!editForm.name.trim()) newErrors.name = "Name is required"
-    if (editForm.name.trim().length > 50) newErrors.name = "Name must be 50 characters or less"
+    if (!editForm.name.trim()) newErrors.name = "Nome é obrigatório"
+    if (editForm.name.trim().length > 50) newErrors.name = "Nome deve ter no máximo 50 caracteres"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -86,11 +86,11 @@ function CategoriesPage() {
 
     try {
       await categoryService.createCategory(addForm)
-      toastSuccess("Category added successfully")
+      toastSuccess("Categoria adicionada com sucesso")
       setAddForm({ name: "", type: "income", description: "", color: "#FFFFFF" })
       await fetchCategories()
     } catch (err) {
-      toastError(err.message || "Unable to add category")
+      toastError(err.message || "Não foi possível adicionar a categoria")
     }
   }
 
@@ -100,11 +100,11 @@ function CategoriesPage() {
 
     try {
       await categoryService.updateCategory(editForm)
-      toastSuccess("Category updated successfully")
+      toastSuccess("Categoria atualizada com sucesso")
       setEditForm({ id: null, name: "", type: "income", description: "", color: "#FFFFFF" })
       await fetchCategories()
     } catch (err) {
-      toastError(err.message || "Unable to update category")
+      toastError(err.message || "Não foi possível atualizar a categoria")
     }
   }
 
@@ -114,12 +114,12 @@ function CategoriesPage() {
 
     try {
       await categoryService.deleteCategory(deleteId)
-      toastSuccess("Category deleted successfully")
+      toastSuccess("Categoria excluída com sucesso")
       setDeleteId(null)
       setDeleteDetails(null)
       await fetchCategories()
     } catch (err) {
-      toastError(err.message || "Unable to delete category")
+      toastError(err.message || "Não foi possível excluir a categoria")
     }
   }
 
@@ -187,285 +187,265 @@ function CategoriesPage() {
             </button>
           </div>
 
-          <div className={styles.cardsContainer}>
-            {/* --- ABA ADICIONAR --- */}
-            <Card
-              variant="default"
-              className={styles.formCard}
-              style={{
-                width: "100%",
-                maxWidth: "100%",
-                visibility: activeTab === "add" ? "visible" : "hidden",
-                position: activeTab === "add" ? "static" : "absolute",
-                pointerEvents: activeTab === "add" ? "auto" : "none"
-              }}
-            >
-              <form onSubmit={handleAddSubmit}>
-                <h1 className={styles.content_h1}>Adicionar Categoria</h1>
+          {/* --- ABA ADICIONAR --- */}
+          {activeTab === "add" && (
+            <div style={{ width: "100%" }}>
+              <Card variant="default" className={styles.formCard}>
+                <form onSubmit={handleAddSubmit}>
+                  <h1 className={styles.content_h1}>Adicionar Categoria</h1>
 
-                <div className={styles.form_group}>
-                  <Label htmlFor="name" required>
-                    Category Name
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={addForm.name}
-                    onChange={e => setAddForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Category name"
-                    maxLength={50}
-                    error={errors.name}
-                  />
-                  {errors.name && <p className={styles.error_message}>{errors.name}</p>}
-                </div>
+                  <div className={styles.form_group}>
+                    <Label htmlFor="name" required>
+                      Nome da Categoria
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={addForm.name}
+                      onChange={e => setAddForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Nome da categoria"
+                      maxLength={50}
+                      error={errors.name}
+                    />
+                    {errors.name && <p className={styles.error_message}>{errors.name}</p>}
+                  </div>
 
-                <div className={styles.form_group}>
-                  <Label htmlFor="type" required>
-                    Type
-                  </Label>
-                  <Dropdown
-                    id="type"
-                    name="type"
-                    options={TYPE_OPTIONS}
-                    value={addForm.type}
-                    onChange={value => setAddForm(prev => ({ ...prev, type: value }))}
-                    required
-                  />
-                </div>
+                  <div className={styles.form_group}>
+                    <Label htmlFor="type" required>
+                      Tipo
+                    </Label>
+                    <Dropdown
+                      id="type"
+                      name="type"
+                      options={TYPE_OPTIONS}
+                      value={addForm.type}
+                      onChange={value => setAddForm(prev => ({ ...prev, type: value }))}
+                      required
+                    />
+                  </div>
 
-                <div className={styles.form_group}>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={addForm.description}
-                    onChange={e => setAddForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Optional description"
-                    rows={3}
-                  />
-                </div>
+                  <div className={styles.form_group}>
+                    <Label htmlFor="description">Descrição</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={addForm.description}
+                      onChange={e => setAddForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Descrição opcional"
+                      rows={3}
+                    />
+                  </div>
 
-                <div className={styles.form_group}>
-                  <Label htmlFor="color">Color</Label>
-                  <div className={styles.color_picker_container}>
+                  <div className={styles.form_group}>
+                    <Label htmlFor="color">Cor</Label>
+                    <div className={styles.color_picker_container}>
+                      <input
+                        type="color"
+                        id="color"
+                        name="color"
+                        value={addForm.color}
+                        onChange={e => setAddForm(prev => ({ ...prev, color: e.target.value }))}
+                        className={styles.color_input}
+                      />
+                      <div
+                        className={styles.color_display}
+                        style={{ backgroundColor: addForm.color }}
+                      />
+                      <span className={styles.hex_value}>{addForm.color}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.button_group}>
+                    <Button type="submit" variant="primary" disabled={!addForm.name.trim()}>
+                      Salvar Categoria
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
+          {/* --- ABA EDITAR --- */}
+          {activeTab === "edit" && (
+            <div style={{ maxWidth: 700, margin: "0 auto" }}>
+              <Card variant="default" className={styles.formCard}>
+                <form onSubmit={handleEditSubmit}>
+                  <h1 className={styles.content_h1}>Editar Categoria</h1>
+
+                  {categories.length === 0 && (
+                    <p className={styles.empty_message}>
+                      Você ainda não tem categorias. Crie uma na aba &quot;Adicionar&quot;.
+                    </p>
+                  )}
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="categoria_edit">Selecionar Categoria</Label>
+                    <Dropdown
+                      id="categoria_edit"
+                      name="categoria_edit"
+                      options={categories.map(c => ({ value: c.id, label: c.name }))}
+                      value={editForm.id || ""}
+                      onChange={value => {
+                        if (value) handleEditSelect(value)
+                        else
+                          setEditForm({
+                            id: null,
+                            name: "",
+                            type: "income",
+                            description: "",
+                            color: "#FFFFFF"
+                          })
+                      }}
+                      placeholder="Selecione uma categoria"
+                    />
+                  </div>
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="edit_name" required>
+                      Nome da Categoria
+                    </Label>
+                    <Input
+                      id="edit_name"
+                      name="edit_name"
+                      type="text"
+                      value={editForm.name}
+                      onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Nome da categoria"
+                      maxLength={50}
+                      error={errors.name}
+                      disabled={!editForm.id}
+                    />
+                    {errors.name && <p className={styles.error_message}>{errors.name}</p>}
+                  </div>
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="edit_type" required>
+                      Tipo
+                    </Label>
+                    <Dropdown
+                      id="edit_type"
+                      name="edit_type"
+                      options={TYPE_OPTIONS}
+                      value={editForm.type}
+                      onChange={value => setEditForm(prev => ({ ...prev, type: value }))}
+                      disabled={!editForm.id}
+                    />
+                  </div>
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="edit_description">Descrição</Label>
+                    <Textarea
+                      id="edit_description"
+                      name="edit_description"
+                      value={editForm.description}
+                      onChange={e =>
+                        setEditForm(prev => ({ ...prev, description: e.target.value }))
+                      }
+                      placeholder="Descrição opcional"
+                      rows={3}
+                      disabled={!editForm.id}
+                    />
+                  </div>
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="edit_color">Cor</Label>
                     <input
                       type="color"
-                      id="color"
-                      name="color"
-                      value={addForm.color}
-                      onChange={e => setAddForm(prev => ({ ...prev, color: e.target.value }))}
+                      id="edit_color"
+                      name="edit_color"
+                      value={editForm.color}
+                      onChange={e => setEditForm(prev => ({ ...prev, color: e.target.value }))}
                       className={styles.color_input}
+                      disabled={!editForm.id}
                     />
-                    <div
-                      className={styles.color_display}
-                      style={{ backgroundColor: addForm.color }}
+                  </div>
+
+                  <div className={styles.button_group}>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={!editForm.id || !editForm.name.trim()}
+                    >
+                      Atualizar Categoria
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
+          {/* --- ABA EXCLUIR --- */}
+          {activeTab === "delete" && (
+            <div style={{ maxWidth: 700, margin: "0 auto" }}>
+              <Card variant="default" className={styles.formCard}>
+                <form onSubmit={handleDeleteSubmit}>
+                  <h1 className={styles.content_h1}>Excluir Categoria</h1>
+
+                  {categories.length === 0 && (
+                    <p className={styles.empty_message}>
+                      Você ainda não tem categorias. Crie uma na aba &quot;Adicionar&quot;.
+                    </p>
+                  )}
+
+                  <div className={styles.form_group}>
+                    <Label htmlFor="category_delete">Selecionar Categoria</Label>
+                    <Dropdown
+                      id="category_delete"
+                      name="category_delete"
+                      options={categories.map(c => ({ value: c.id, label: c.name }))}
+                      value={deleteId || ""}
+                      onChange={value => {
+                        if (value) handleDeleteSelect(value)
+                        else {
+                          setDeleteId(null)
+                          setDeleteDetails(null)
+                        }
+                      }}
+                      placeholder="Selecione uma categoria"
                     />
-                    <span className={styles.hex_value}>{addForm.color}</span>
                   </div>
-                </div>
 
-                <div className={styles.button_group}>
-                  <Button type="submit" variant="primary" disabled={!addForm.name.trim()}>
-                    Save Category
-                  </Button>
-                </div>
-              </form>
-            </Card>
+                  {deleteDetails && (
+                    <div className={styles.category_details}>
+                      <h2>Detalhes da Categoria</h2>
+                      <p>
+                        <strong>Nome:</strong> {deleteDetails.name}
+                      </p>
+                      <p>
+                        <strong>Tipo:</strong>{" "}
+                        {deleteDetails.type === "income" ? "Receita" : "Despesa"}
+                      </p>
+                      <p>
+                        <strong>Descrição:</strong>{" "}
+                        {deleteDetails.description || "Nenhuma descrição informada."}
+                      </p>
+                      <p>
+                        <strong>Cor:</strong>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "20px",
+                            height: "20px",
+                            backgroundColor: deleteDetails.color,
+                            border: "1px solid var(--color-border)",
+                            borderRadius: "var(--radius-sm)",
+                            verticalAlign: "middle",
+                            marginLeft: "var(--space-2)"
+                          }}
+                        />
+                        {deleteDetails.color}
+                      </p>
+                    </div>
+                  )}
 
-            {/* --- ABA EDITAR --- */}
-            <Card
-              variant="default"
-              className={styles.formCard}
-              style={{
-                width: "100%",
-                maxWidth: "100%",
-                visibility: activeTab === "edit" ? "visible" : "hidden",
-                position: activeTab === "edit" ? "static" : "absolute",
-                pointerEvents: activeTab === "edit" ? "auto" : "none"
-              }}
-            >
-              <form onSubmit={handleEditSubmit}>
-                <h1 className={styles.content_h1}>Edit Category</h1>
-
-                {categories.length === 0 && (
-                  <p className={styles.empty_message}>
-                    You have no categories yet. Create one in the &quot;Add&quot; tab.
-                  </p>
-                )}
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="categoria_edit">Select Category</Label>
-                  <Dropdown
-                    id="categoria_edit"
-                    name="categoria_edit"
-                    options={categories.map(c => ({ value: c.id, label: c.name }))}
-                    value={editForm.id || ""}
-                    onChange={value => {
-                      if (value) handleEditSelect(value)
-                      else
-                        setEditForm({
-                          id: null,
-                          name: "",
-                          type: "income",
-                          description: "",
-                          color: "#FFFFFF"
-                        })
-                    }}
-                    placeholder="Select a category"
-                  />
-                </div>
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="edit_name" required>
-                    Category Name
-                  </Label>
-                  <Input
-                    id="edit_name"
-                    name="edit_name"
-                    type="text"
-                    value={editForm.name}
-                    onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Category name"
-                    maxLength={50}
-                    error={errors.name}
-                    disabled={!editForm.id}
-                  />
-                  {errors.name && <p className={styles.error_message}>{errors.name}</p>}
-                </div>
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="edit_type" required>
-                    Type
-                  </Label>
-                  <Dropdown
-                    id="edit_type"
-                    name="edit_type"
-                    options={TYPE_OPTIONS}
-                    value={editForm.type}
-                    onChange={value => setEditForm(prev => ({ ...prev, type: value }))}
-                    disabled={!editForm.id}
-                  />
-                </div>
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="edit_description">Description</Label>
-                  <Textarea
-                    id="edit_description"
-                    name="edit_description"
-                    value={editForm.description}
-                    onChange={e => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Optional description"
-                    rows={3}
-                    disabled={!editForm.id}
-                  />
-                </div>
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="edit_color">Color</Label>
-                  <input
-                    type="color"
-                    id="edit_color"
-                    name="edit_color"
-                    value={editForm.color}
-                    onChange={e => setEditForm(prev => ({ ...prev, color: e.target.value }))}
-                    className={styles.color_input}
-                    disabled={!editForm.id}
-                  />
-                </div>
-
-                <div className={styles.button_group}>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={!editForm.id || !editForm.name.trim()}
-                  >
-                    Update Category
-                  </Button>
-                </div>
-              </form>
-            </Card>
-
-            {/* --- ABA EXCLUIR --- */}
-            <Card
-              variant="default"
-              className={styles.formCard}
-              style={{
-                width: "100%",
-                maxWidth: "100%",
-                visibility: activeTab === "delete" ? "visible" : "hidden",
-                position: activeTab === "delete" ? "static" : "absolute",
-                pointerEvents: activeTab === "delete" ? "auto" : "none"
-              }}
-            >
-              <form onSubmit={handleDeleteSubmit}>
-                <h1 className={styles.content_h1}>Delete Category</h1>
-
-                {categories.length === 0 && (
-                  <p className={styles.empty_message}>
-                    You have no categories yet. Create one in the &quot;Add&quot; tab.
-                  </p>
-                )}
-
-                <div className={styles.form_group}>
-                  <Label htmlFor="category_delete">Select Category</Label>
-                  <Dropdown
-                    id="category_delete"
-                    name="category_delete"
-                    options={categories.map(c => ({ value: c.id, label: c.name }))}
-                    value={deleteId || ""}
-                    onChange={value => {
-                      if (value) handleDeleteSelect(value)
-                      else {
-                        setDeleteId(null)
-                        setDeleteDetails(null)
-                      }
-                    }}
-                    placeholder="Select a category"
-                  />
-                </div>
-
-                {deleteDetails && (
-                  <div className={styles.category_details}>
-                    <h2>Category Details</h2>
-                    <p>
-                      <strong>Name:</strong> {deleteDetails.name}
-                    </p>
-                    <p>
-                      <strong>Type:</strong>{" "}
-                      {deleteDetails.type === "income" ? "Income" : "Expense"}
-                    </p>
-                    <p>
-                      <strong>Description:</strong>{" "}
-                      {deleteDetails.description || "No description provided."}
-                    </p>
-                    <p>
-                      <strong>Color:</strong>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: "20px",
-                          height: "20px",
-                          backgroundColor: deleteDetails.color,
-                          border: "1px solid var(--color-border)",
-                          borderRadius: "var(--radius-sm)",
-                          verticalAlign: "middle",
-                          marginLeft: "var(--space-2)"
-                        }}
-                      />
-                      {deleteDetails.color}
-                    </p>
+                  <div className={styles.button_group}>
+                    <Button type="submit" variant="danger" disabled={!deleteId}>
+                      Excluir Categoria
+                    </Button>
                   </div>
-                )}
-
-                <div className={styles.button_group}>
-                  <Button type="submit" variant="danger" disabled={!deleteId}>
-                    Delete Category
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </div>
+                </form>
+              </Card>
+            </div>
+          )}
         </div>
       </PageContainer>
     </>

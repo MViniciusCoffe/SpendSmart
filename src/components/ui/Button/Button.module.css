@@ -123,6 +123,11 @@
   transition: opacity var(--duration-fast) var(--easing-ease-out);
 }
 
+.content svg {
+  flex-shrink: 0;
+  max-width: none;
+}
+
 .loading .content {
   opacity: 0;
 }

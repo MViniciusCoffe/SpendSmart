@@ -17,40 +17,40 @@ export const statusVariantMap = {
 
 // Human-readable status labels
 export const statusLabelMap = {
-  operational: "Operational",
-  degraded: "Degraded",
-  critical: "Critical",
+  operational: "Operacional",
+  degraded: "Degradado",
+  critical: "Crítico",
   normal: "Normal",
-  warning: "Warning",
-  error: "Error",
-  maintenance: "Maintenance",
-  resolved: "Resolved"
+  warning: "Alerta",
+  error: "Erro",
+  maintenance: "Manutenção",
+  resolved: "Resolvido"
 }
 
 // Status descriptions for tooltips/aria
 export const statusDescriptionMap = {
-  operational: "All systems operational",
-  degraded: "Performance degraded",
-  critical: "Major outage",
-  normal: "Normal operation",
-  warning: "Warning threshold exceeded",
-  error: "Error state",
-  maintenance: "Scheduled maintenance",
-  resolved: "Incident resolved"
+  operational: "Todos os sistemas operacionais",
+  degraded: "Desempenho degradado",
+  critical: "Interrupção grave",
+  normal: "Operação normal",
+  warning: "Limite de alerta excedido",
+  error: "Estado de erro",
+  maintenance: "Manutenção programada",
+  resolved: "Incidente resolvido"
 }
 
 export const statusTitleMap = {
-  operational: "All Systems Operational",
-  degraded: "Degraded Performance",
-  critical: "Major Outage",
-  error: "Status Unavailable"
+  operational: "Todos os Sistemas Operacionais",
+  degraded: "Desempenho Degradado",
+  critical: "Interrupção Grave",
+  error: "Status Indisponível"
 }
 
 export const statusMessageMap = {
-  operational: "All systems are running normally",
-  degraded: "Some systems are experiencing issues",
-  critical: "Critical systems are down",
-  error: "Unable to fetch system status"
+  operational: "Todos os sistemas estão funcionando normalmente",
+  degraded: "Alguns sistemas estão com problemas",
+  critical: "Sistemas críticos estão fora do ar",
+  error: "Não foi possível obter o status do sistema"
 }
 
 // Status colors for CSS custom properties
@@ -79,10 +79,10 @@ export const statusGlowMap = {
 
 export const metricConfig = [
   { key: "apiLatency", label: "API Latency (p95)", unit: "ms", valueKey: "p95", icon: "api" },
-  { key: "dbLatency", label: "Database Latency (p95)", unit: "ms", valueKey: "p95", icon: "db" },
+  { key: "dbLatency", label: "Latência do Banco (p95)", unit: "ms", valueKey: "p95", icon: "db" },
   {
     key: "uptime",
-    label: "Uptime (30d)",
+    label: "Disponibilidade (30d)",
     unit: "%",
     valueKey: "uptime",
     isPercentage: true,
@@ -90,7 +90,7 @@ export const metricConfig = [
   },
   {
     key: "services",
-    label: "Services Operational",
+    label: "Serviços Operacionais",
     unit: "",
     valueKey: "servicesUp",
     totalKey: "servicesTotal",
@@ -117,38 +117,38 @@ export const metricColorMap = {
 export const serviceMetadata = {
   database: {
     id: "database",
-    name: "PostgreSQL Database",
-    description: "Primary database (Supabase Postgres)",
+    name: "Banco de Dados PostgreSQL",
+    description: "Banco principal (Supabase Postgres)",
     icon: "database"
   },
   auth: {
     id: "auth",
-    name: "Authentication",
+    name: "Autenticação",
     description: "Supabase Auth (GoTrue)",
     icon: "auth"
   },
   realtime: {
     id: "realtime",
-    name: "Realtime Engine",
+    name: "Motor de Tempo Real",
     description: "Supabase Realtime (Postgres Changes)",
     icon: "realtime"
   },
   storage: {
     id: "storage",
-    name: "File Storage",
-    description: "Supabase Storage (S3-compatible)",
+    name: "Armazenamento de Arquivos",
+    description: "Supabase Storage (compatível com S3)",
     icon: "storage"
   },
   api: {
     id: "api",
     name: "API Gateway",
-    description: "Next.js API Routes",
+    description: "Rotas de API do Next.js",
     icon: "api"
   },
   cdn: {
     id: "cdn",
     name: "CDN / Edge Network",
-    description: "Vercel Edge Network",
+    description: "Rede Edge da Vercel",
     icon: "cdn"
   }
 }
@@ -157,42 +157,42 @@ export const serviceMetadata = {
 export const severityConfig = {
   critical: {
     variant: "error",
-    label: "Major Outage",
+    label: "Interrupção Grave",
     dotColor: "var(--color-error)",
     bg: "rgba(255, 71, 87, 0.1)",
     border: "rgba(255, 71, 87, 0.2)"
   },
   major: {
     variant: "warning",
-    label: "Partial Outage",
+    label: "Interrupção Parcial",
     dotColor: "var(--color-warning)",
     bg: "rgba(255, 179, 0, 0.1)",
     border: "rgba(255, 179, 0, 0.2)"
   },
   minor: {
     variant: "info",
-    label: "Minor Issue",
+    label: "Problema Leve",
     dotColor: "var(--color-info)",
     bg: "rgba(0, 180, 255, 0.1)",
     border: "rgba(0, 180, 255, 0.2)"
   },
   degraded: {
     variant: "warning",
-    label: "Degraded",
+    label: "Degradado",
     dotColor: "var(--color-warning)",
     bg: "rgba(255, 179, 0, 0.1)",
     border: "rgba(255, 179, 0, 0.2)"
   },
   maintenance: {
     variant: "default",
-    label: "Maintenance",
+    label: "Manutenção",
     dotColor: "var(--color-text-muted)",
     bg: "var(--color-bg-tertiary)",
     border: "var(--color-border)"
   },
   resolved: {
     variant: "success",
-    label: "Resolved",
+    label: "Resolvido",
     dotColor: "var(--color-success)",
     bg: "rgba(0, 212, 170, 0.1)",
     border: "rgba(0, 212, 170, 0.2)"

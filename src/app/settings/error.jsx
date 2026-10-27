@@ -7,8 +7,8 @@ export default function Error({ error, reset }) {
     <RouteError
       error={error}
       reset={reset}
-      title="Unable to load settings"
-      description="We couldn't load your account settings. Please try again."
+      title="Não foi possível carregar as configurações"
+      description="Não conseguimos carregar as configurações da sua conta. Tente novamente."
     />
   )
 }

@@ -26,7 +26,7 @@ const navigation = [
     )
   },
   {
-    name: "Transactions",
+    name: "Transações",
     href: "/transactions",
     icon: (
       <svg
@@ -41,7 +41,7 @@ const navigation = [
     )
   },
   {
-    name: "Categories",
+    name: "Categorias",
     href: "/categories",
     icon: (
       <svg
@@ -57,7 +57,7 @@ const navigation = [
     )
   },
   {
-    name: "Settings",
+    name: "Configurações",
     href: "/settings",
     icon: (
       <svg
@@ -92,7 +92,7 @@ export function Sidebar({ isOpen, onClose }) {
   return (
     <aside
       className={`${styles.sidebar} ${isOpen ? styles.open : ""} ${collapsed ? styles.collapsed : ""}`}
-      aria-label="Main navigation"
+      aria-label="Navegação principal"
     >
       <div className={styles.header}>
         <Link
@@ -115,7 +115,7 @@ export function Sidebar({ isOpen, onClose }) {
         <button
           className={styles.toggleButton}
           onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
           aria-expanded={!collapsed}
         >
           <svg
@@ -131,7 +131,7 @@ export function Sidebar({ isOpen, onClose }) {
         </button>
       </div>
 
-      <nav className={styles.nav} aria-label="Main navigation">
+      <nav className={styles.nav} aria-label="Navegação principal">
         <ul className={styles.navList} role="list">
           {navigation.map(item => (
             <li key={item.name}>
@@ -164,7 +164,7 @@ export function Sidebar({ isOpen, onClose }) {
             <span className={styles.userEmail}>user@email.com</span>
           </div>
         </div>
-        <button className={styles.logoutButton} aria-label="Logout">
+        <button className={styles.logoutButton} aria-label="Sair">
           <svg
             viewBox="0 0 24 24"
             fill="none"

@@ -7,8 +7,8 @@ export default function Error({ error, reset }) {
     <RouteError
       error={error}
       reset={reset}
-      title="Unable to load dashboard"
-      description="We couldn't load your financial dashboard. Please try again."
+      title="Não foi possível carregar o dashboard"
+      description="Não conseguimos carregar seu dashboard financeiro. Tente novamente."
     />
   )
 }

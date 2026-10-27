@@ -25,7 +25,7 @@ export function TransactionForm({
   onSubmit,
   onCancel,
   isLoading = false,
-  submitLabel = "Save Transaction",
+  submitLabel = "Salvar Transação",
   className = "",
   ...props
 }) {

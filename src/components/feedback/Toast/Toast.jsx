@@ -27,7 +27,7 @@ export function ToastProvider({ children }) {
   return (
     <>
       {children}
-      <div className="toast-container" role="region" aria-label="Notifications" aria-live="polite">
+      <div className="toast-container" role="region" aria-label="Notificações" aria-live="polite">
         {toasts.map(toast => (
           <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
         ))}
@@ -120,7 +120,7 @@ function Toast({ toast, onDismiss }) {
       <button
         onClick={() => onDismiss(toast.id)}
         className="flex-shrink-0 p-1 text-current opacity-50 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss"
+        aria-label="Dispensar"
       >
         <svg
           viewBox="0 0 24 24"
@@ -152,7 +152,7 @@ export function ToastContainer({ toasts, onDismiss }) {
     <div
       className="toast-container fixed bottom-4 right-4 z-[var(--z-toast)] flex flex-col gap-2 w-80 max-w-md"
       role="region"
-      aria-label="Notifications"
+      aria-label="Notificações"
       aria-live="polite"
     >
       {toasts.map(toast => (

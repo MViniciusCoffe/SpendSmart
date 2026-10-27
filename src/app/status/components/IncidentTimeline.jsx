@@ -15,20 +15,20 @@ export function IncidentTimeline({ incidents }) {
           <span className={styles.incidentsIcon} aria-hidden="true">
             <IncidentIcon width={24} height={24} />
           </span>
-          Incident History
+          Histórico de Incidentes
         </h2>
         <Card variant="default" className={styles.emptyCard}>
           <div className={styles.emptyContent}>
             <div className={styles.emptyIconWrapper}>
               <SuccessEmptyIcon className={styles.emptyIcon} />
             </div>
-            <h3 className={styles.emptyTitle}>No incidents reported</h3>
-            <p className={styles.emptyDescription}>All systems have been operating normally</p>
+            <h3 className={styles.emptyTitle}>Nenhum incidente registrado</h3>
+            <p className={styles.emptyDescription}>Todos os sistemas estão operando normalmente</p>
             <div className={styles.emptySubtext}>
               <span className={styles.emptyCheck} aria-hidden="true">
                 ✓
               </span>
-              <span>No incidents in the last 90 days</span>
+              <span>Nenhum incidente nos últimos 90 dias</span>
             </div>
           </div>
         </Card>
@@ -42,9 +42,9 @@ export function IncidentTimeline({ incidents }) {
         <span className={styles.incidentsIcon} aria-hidden="true">
           <IncidentIcon width={24} height={24} />
         </span>
-        Incident History
+        Histórico de Incidentes
       </h2>
-      <div className={styles.timeline} role="list" aria-label="Incident timeline">
+      <div className={styles.timeline} role="list" aria-label="Linha do tempo de incidentes">
         {incidents.map((incident, index) => {
           const config = getSeverityConfig(incident.severity)
           const isResolved = incident.resolved || incident.severity === "resolved"

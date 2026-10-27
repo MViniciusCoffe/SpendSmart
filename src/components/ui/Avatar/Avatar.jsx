@@ -19,7 +19,7 @@ export function Avatar({ src, alt, name, size = "md", className = "", ...props }
     <div
       className={`${styles.root} ${styles[size]} ${className}`}
       role="img"
-      aria-label={alt || name || "User avatar"}
+      aria-label={alt || name || "Avatar do usuário"}
       {...props}
     >
       {hasImage ? (

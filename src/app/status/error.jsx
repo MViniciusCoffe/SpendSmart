@@ -21,9 +21,9 @@ export default function Error({ error, reset }) {
         </svg>
       </div>
 
-      <h1 className={styles.title}>Unable to load status</h1>
+      <h1 className={styles.title}>Não foi possível carregar o status</h1>
       <p className={styles.description}>
-        We couldn&apos;t load the system status page. This might be a temporary issue.
+        Não conseguimos carregar a página de status do sistema. Pode ser um problema temporário.
       </p>
 
       {process.env.NODE_ENV === "development" && error?.message && (
@@ -32,15 +32,16 @@ export default function Error({ error, reset }) {
 
       <div className={styles.actions}>
         <Button variant="primary" fullWidth onClick={() => reset()}>
-          Try again
+          Tentar novamente
         </Button>
         <Button variant="secondary" fullWidth onClick={() => window.location.reload()}>
-          Reload page
+          Recarregar página
         </Button>
       </div>
 
       <p className={styles.helpText}>
-        If the problem persists, please contact support or check our status page at{" "}
+        Se o problema persistir, entre em contato com o suporte ou consulte nossa página de status
+        em{" "}
         <a href="/status" target="_blank" rel="noopener noreferrer">
           status.spendsmart.app
         </a>

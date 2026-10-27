@@ -6,8 +6,8 @@ import { Dropdown } from "../../../components/ui"
 import styles from "./CategoryForm.module.css"
 
 const TYPE_OPTIONS = [
-  { value: "income", label: "Income" },
-  { value: "expense", label: "Expense" }
+  { value: "income", label: "Receita" },
+  { value: "expense", label: "Despesa" }
 ]
 
 function getInitialFormData(initialData) {
@@ -25,7 +25,7 @@ export function CategoryForm({
   onSubmit,
   onCancel,
   isLoading = false,
-  submitLabel = "Save Category",
+  submitLabel = "Salvar Categoria",
   className = "",
   ...props
 }) {
@@ -55,11 +55,11 @@ export function CategoryForm({
   const validateField = (name, value) => {
     switch (name) {
       case "name":
-        if (!value.trim()) return "Name is required"
-        if (value.trim().length > 50) return "Name must be 50 characters or less"
+        if (!value.trim()) return "Nome é obrigatório"
+        if (value.trim().length > 50) return "Nome deve ter no máximo 50 caracteres"
         break
       case "type":
-        if (!["income", "expense"].includes(value)) return "Invalid type"
+        if (!["income", "expense"].includes(value)) return "Tipo inválido"
         break
     }
     return null
@@ -114,7 +114,7 @@ export function CategoryForm({
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">Nome *</Label>
               <Input
                 id="name"
                 name="name"
@@ -131,7 +131,7 @@ export function CategoryForm({
             </div>
 
             <div className={styles.field}>
-              <Label htmlFor="type">Type *</Label>
+              <Label htmlFor="type">Tipo *</Label>
               <Dropdown
                 id="type"
                 name="type"
@@ -212,14 +212,14 @@ export function CategoryForm({
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <span>Please fix the errors above before submitting</span>
+            <span>Por favor, corrija os erros acima antes de enviar</span>
           </div>
         )}
 
         <div className={styles.actions}>
           {onCancel && (
             <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
-              Cancel
+              Cancelar
             </Button>
           )}
           <Button type="submit" variant="primary" loading={isLoading}>

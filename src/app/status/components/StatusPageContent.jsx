@@ -26,7 +26,7 @@ export function StatusPageContent() {
         const response = await fetch(url, {
           headers: { "Cache-Control": "no-cache" }
         })
-        if (!response.ok) throw new Error("Failed to fetch status")
+        if (!response.ok) throw new Error("Falha ao buscar o status")
         const json = await response.json()
         setData(json)
       } catch (err) {
@@ -43,18 +43,18 @@ export function StatusPageContent() {
     return (
       <PageContainer>
         <PageHeader
-          title="System Status"
-          description="Unable to load system status"
+          title="Status do Sistema"
+          description="Não foi possível carregar o status do sistema"
           action={
             <Button variant="primary" onClick={() => window.location.reload()}>
-              Retry
+              Tentar novamente
             </Button>
           }
         />
         <div className={styles.errorState}>
-          <p className={styles.errorMessage}>Failed to load system status: {error}</p>
+          <p className={styles.errorMessage}>Falha ao carregar o status do sistema: {error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>
-            Retry
+            Tentar novamente
           </Button>
         </div>
       </PageContainer>
@@ -70,11 +70,11 @@ export function StatusPageContent() {
       <header className={styles.masthead}>
         <div className={styles.mastheadCopy}>
           <span className={styles.eyebrow}>SPENDSMART / OPERATIONS</span>
-          <h1>System status</h1>
-          <p>Live telemetry for the systems keeping your financial workspace moving.</p>
+          <h1>Status do sistema</h1>
+          <p>Telemetria ao vivo dos sistemas que mantêm seu espaço financeiro funcionando.</p>
         </div>
-        <Link href="/" className={styles.dashboardLink} aria-label="Back to dashboard">
-          <span>Back to dashboard</span>
+        <Link href="/" className={styles.dashboardLink} aria-label="Voltar ao dashboard">
+          <span>Voltar ao dashboard</span>
           <svg
             width="16"
             height="16"

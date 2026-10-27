@@ -1,6 +1,8 @@
 .app_content {
   padding: var(--space-6) var(--space-4);
+  width: 100%;
   max-width: 800px;
+  box-sizing: border-box;
   margin: 0 auto;
 }
 
@@ -12,17 +14,20 @@
 
 .tabs {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
   margin-bottom: var(--space-6);
   border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-4);
 }
 
 .tab_button {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
+  flex: 1 1 0;
+  min-width: 0;
+  margin-bottom: -1px;
+  padding: var(--space-4) var(--space-3);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
+  text-align: center;
+  white-space: nowrap;
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   background: transparent;
@@ -52,14 +57,8 @@
   border-bottom-color: var(--color-mercury);
 }
 
-.cardsContainer {
-  position: relative;
-  width: 100%;
-}
-
 .formCard {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 100%;
   padding: var(--space-6);
   box-sizing: border-box;
 }

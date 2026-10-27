@@ -6,7 +6,7 @@ export default function Loading() {
 
 export function StatusPageSkeleton() {
   return (
-    <div className={styles.container} aria-busy="true" aria-label="Loading system status">
+    <div className={styles.container} aria-busy="true" aria-label="Carregando status do sistema">
       <header className={styles.masthead}>
         <div className={styles.mastheadCopy}>
           <div className={styles.skeletonEyebrow} />

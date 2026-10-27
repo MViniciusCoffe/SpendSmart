@@ -2,7 +2,7 @@
 
 import styles from "./LoadingSpinner.module.css"
 
-export function LoadingSpinner({ size = "md", className = "", ariaLabel = "Loading" } = {}) {
+export function LoadingSpinner({ size = "md", className = "", ariaLabel = "Carregando" } = {}) {
   return (
     <div
       className={`${styles.spinner} ${styles[size]} ${className}`}
@@ -23,7 +23,7 @@ export function LoadingSpinner({ size = "md", className = "", ariaLabel = "Loadi
         />
       </svg>
       <span className={styles.label} aria-hidden="true">
-        Loading...
+        Carregando...
       </span>
     </div>
   )
@@ -38,10 +38,10 @@ export function LoadingOverlay({ children, isLoading, className = "" } = {}) {
           className={styles.overlayContent}
           role="status"
           aria-live="polite"
-          aria-label="Loading"
+          aria-label="Carregando"
         >
           <div className={styles.spinner} />
-          <span className={styles.overlayLabel}>Loading...</span>
+          <span className={styles.overlayLabel}>Carregando...</span>
         </div>
       )}
     </div>

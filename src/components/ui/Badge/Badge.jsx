@@ -41,7 +41,7 @@ export function StatusBadge({ status, className = "", ...props }) {
   }
 
   const variant = variants[status] || "default"
-  const label = status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"
+  const label = status?.charAt(0).toUpperCase() + status?.slice(1) || "Desconhecido"
 
   return (
     <Badge variant={variant} size="sm" className={className}>

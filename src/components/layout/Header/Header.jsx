@@ -41,7 +41,7 @@ export function Header() {
         <Link
           href={isPublicRoute ? "/" : "/dashboard"}
           className={styles.logo}
-          aria-label="SpendSmart Home"
+          aria-label="Início SpendSmart"
         >
           <Icon name="logo" size={26} className={styles.logoIcon} aria-hidden="true" />
           <span className={styles.logoText}>SpendSmart</span>
@@ -91,7 +91,7 @@ export function Header() {
                 <span className={styles.userEmail}>{user?.email}</span>
               </div>
             </div>
-            <button className={styles.logoutButton} onClick={handleLogout} aria-label="Logout">
+            <button className={styles.logoutButton} onClick={handleLogout} aria-label="Sair">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -113,7 +113,7 @@ export function Header() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-menu"
-          aria-label="Toggle menu"
+          aria-label="Alternar menu"
         >
           <span className={styles.hamburger} aria-hidden="true">
             <span className={mobileMenuOpen ? "open" : ""} />
@@ -135,7 +135,7 @@ export function Header() {
             id="mobile-menu"
             className={styles.mobileNav}
             role="navigation"
-            aria-label="Mobile navigation"
+            aria-label="Navegação móvel"
           >
             <div className={styles.mobileHeader}>
               <Link
@@ -158,7 +158,7 @@ export function Header() {
               <button
                 className={styles.closeButton}
                 onClick={() => setMobileMenuOpen(false)}
-                aria-label="Close menu"
+                aria-label="Fechar menu"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -232,7 +232,7 @@ export function Header() {
                         <polyline points="16 17 21 12 16 7" />
                         <line x1="21" y1="12" x2="9" y2="12" />
                       </svg>
-                      <span>Logout</span>
+                      <span>Sair</span>
                     </button>
                   </li>
                 </>

@@ -7,8 +7,8 @@ export default function Error({ error, reset }) {
     <RouteError
       error={error}
       reset={reset}
-      title="Unable to load categories"
-      description="We couldn't load your categories. Please try again."
+      title="Não foi possível carregar as categorias"
+      description="Não conseguimos carregar suas categorias. Tente novamente."
     />
   )
 }

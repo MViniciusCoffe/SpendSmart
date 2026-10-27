@@ -11,7 +11,7 @@ export const Table = forwardRef(function Table(
     sortable = false,
     stickyHeader = false,
     className = "",
-    emptyMessage = "No data available",
+    emptyMessage = "Nenhum dado disponível",
     renderRow,
     ...props
   },

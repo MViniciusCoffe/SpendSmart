@@ -3,6 +3,10 @@
 import { useEffect, useRef, useMemo } from "react"
 import {
   Chart as ChartJS,
+  BarController,
+  DoughnutController,
+  LineController,
+  PieController,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -17,6 +21,10 @@ import {
 import styles from "./ChartContainer.module.css"
 
 ChartJS.register(
+  BarController,
+  DoughnutController,
+  LineController,
+  PieController,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -29,59 +37,75 @@ ChartJS.register(
   Filler
 )
 
-const defaultOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
+// Canvas can't resolve CSS variables, so design tokens are read at render time
+function themeColor(token, fallback) {
+  if (typeof window === "undefined") return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+  return value || fallback
+}
+
+const RADIAL_TYPES = ["doughnut", "pie", "polarArea", "radar"]
+
+function getDefaultOptions(type) {
+  const textColor = themeColor("--color-text-primary", "#ffffff")
+  const gridColor = themeColor("--color-border", "#2a2a2a")
+
+  const scaleOptions = {
+    grid: {
+      color: gridColor,
+      drawBorder: false
     },
-    tooltip: {
-      backgroundColor: "var(--color-bg-tertiary)",
-      titleColor: "var(--color-text-primary)",
-      bodyColor: "var(--color-text-secondary)",
-      borderColor: "var(--color-border)",
-      borderWidth: 1,
-      padding: 12,
-      displayColors: true,
-      usePointStyle: true
+    ticks: {
+      color: textColor,
+      font: {
+        size: 11
+      }
     }
-  },
-  scales: {
-    x: {
-      grid: {
-        color: "var(--color-border)",
-        drawBorder: false
-      },
-      ticks: {
-        color: "var(--color-text-muted)",
-        font: {
-          size: 11
+  }
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    color: textColor,
+    plugins: {
+      legend: {
+        display: false,
+        labels: {
+          color: textColor
         }
+      },
+      tooltip: {
+        backgroundColor: themeColor("--color-bg-tertiary", "#1a1a1a"),
+        titleColor: textColor,
+        bodyColor: themeColor("--color-text-secondary", "#a0a0a0"),
+        borderColor: gridColor,
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+        usePointStyle: true
       }
     },
-    y: {
-      grid: {
-        color: "var(--color-border)",
-        drawBorder: false
-      },
-      ticks: {
-        color: "var(--color-text-muted)",
-        font: {
-          size: 11
+    scales: RADIAL_TYPES.includes(type)
+      ? {}
+      : {
+          x: scaleOptions,
+          y: {
+            ...scaleOptions,
+            ticks: {
+              ...scaleOptions.ticks,
+              callback: function (value) {
+                return new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL"
+                }).format(value)
+              }
+            }
+          }
         },
-        callback: function (value) {
-          return new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-          }).format(value)
-        }
-      }
+    interaction: {
+      intersect: false,
+      mode: "index"
     }
-  },
-  interaction: {
-    intersect: false,
-    mode: "index"
   }
 }
 
@@ -106,21 +130,23 @@ export function ChartContainer({
   const canvasRef = useRef(null)
   const chartRef = useRef(null)
 
-  const mergedOptions = useMemo(
-    () => ({
+  const mergedOptions = useMemo(() => {
+    const defaultOptions = getDefaultOptions(type)
+    return {
       ...defaultOptions,
       ...options,
       plugins: {
         ...defaultOptions.plugins,
-        ...options.plugins
+        ...options.plugins,
+        legend: { ...defaultOptions.plugins.legend, ...options.plugins?.legend },
+        tooltip: { ...defaultOptions.plugins.tooltip, ...options.plugins?.tooltip }
       },
       scales: {
         ...defaultOptions.scales,
         ...options.scales
       }
-    }),
-    [options]
-  )
+    }
+  }, [type, options])
 
   useEffect(() => {
     const ctx = canvasRef.current?.getContext("2d")
@@ -176,8 +202,10 @@ export function ChartContainer({
 }
 
 export function createGradient(ctx, color1, color2) {
-  if (!ctx) return color1
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300)
+  // Scriptable options receive Chart.js' context, not the canvas 2D context
+  const canvasCtx = ctx?.chart?.ctx ?? ctx
+  if (!canvasCtx?.createLinearGradient) return color1
+  const gradient = canvasCtx.createLinearGradient(0, 0, 0, 300)
   gradient.addColorStop(0, color1)
   gradient.addColorStop(1, color2)
   return gradient

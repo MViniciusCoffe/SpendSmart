@@ -21,7 +21,7 @@ export function StatusBanner({ status = "operational", timestamp }) {
     pulseColor: getStatusColor(normalizedStatus),
     glowColor: getStatusGlow(normalizedStatus)
   }
-  const lastUpdated = timestamp ? new Date(timestamp).toLocaleString() : "Just now"
+  const lastUpdated = timestamp ? new Date(timestamp).toLocaleString("pt-BR") : "Agora mesmo"
   const StatusIcon = statusIconMap[normalizedStatus]
 
   return (
@@ -50,7 +50,7 @@ export function StatusBanner({ status = "operational", timestamp }) {
             </Badge>
             <time className={styles.lastUpdated} dateTime={timestamp}>
               <ClockIcon width={14} height={14} />
-              Last updated: {lastUpdated}
+              Última atualização: {lastUpdated}
             </time>
           </div>
         </div>

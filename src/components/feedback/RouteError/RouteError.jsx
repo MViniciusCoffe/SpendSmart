@@ -15,7 +15,7 @@ export function RouteError({ error, reset, title, description }) {
         <pre className={styles.details}>{error.message}</pre>
       )}
       <Button variant="primary" onClick={reset}>
-        Try again
+        Tentar novamente
       </Button>
     </main>
   )

@@ -23,18 +23,18 @@ export function SystemMetrics({ metrics }) {
             <span className={styles.metricsIcon} aria-hidden="true">
               <MetricsIcon width={24} height={24} />
             </span>
-            System Metrics
+            Métricas do Sistema
           </h2>
           <p className={styles.sectionSubtitle}>
-            Real-time performance indicators across all infrastructure
+            Indicadores de desempenho em tempo real de toda a infraestrutura
           </p>
         </div>
         <div className={styles.headerActions}>
           <div className={styles.lastCheck}>
-            Last updated:{" "}
+            Última atualização:{" "}
             {metrics.lastCheck ? new Date(metrics.lastCheck).toLocaleTimeString() : "—"}
           </div>
-          <Link href="/" className={styles.homeLink} aria-label="Back to dashboard">
+          <Link href="/" className={styles.homeLink} aria-label="Voltar ao dashboard">
             <HomeIcon width={18} height={18} />
             <span>Dashboard</span>
           </Link>
@@ -82,7 +82,7 @@ export function SystemMetrics({ metrics }) {
                     <span className={styles.metricUnit}>{config.unit}</span>
                   </span>
                   {config.key === "apiLatency" && metrics.apiLatency?.avg && (
-                    <span className={styles.metricAvg}>avg {metrics.apiLatency.avg}ms</span>
+                    <span className={styles.metricAvg}>média {metrics.apiLatency.avg}ms</span>
                   )}
                   {config.key === "uptime" && (
                     <span className={styles.metricSubLabel}>99.97% target</span>
