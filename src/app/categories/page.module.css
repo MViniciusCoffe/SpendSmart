@@ -12,51 +12,6 @@
   }
 }
 
-.tabs {
-  display: flex;
-  gap: var(--space-1);
-  margin-bottom: var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.tab_button {
-  flex: 1 1 0;
-  min-width: 0;
-  margin-bottom: -1px;
-  padding: var(--space-4) var(--space-3);
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  text-align: center;
-  white-space: nowrap;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  cursor: pointer;
-  transition:
-    color var(--duration-fast) var(--easing-ease-out),
-    border-color var(--duration-fast) var(--easing-ease-out),
-    background-color var(--duration-fast) var(--easing-ease-out);
-}
-
-.tab_button:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-tertiary);
-}
-
-.tab_button:focus-visible {
-  outline: none;
-  border-bottom-color: var(--color-mercury);
-  box-shadow: 0 0 0 2px var(--color-mercury-muted);
-}
-
-.tab_button.active_tab {
-  color: var(--color-mercury);
-  border-bottom-color: var(--color-mercury);
-}
-
 .formCard {
   width: 100%;
   padding: var(--space-6);
@@ -87,40 +42,6 @@
   margin: 0;
 }
 
-.color_picker_container {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.color_input {
-  width: 48px;
-  height: 40px;
-  padding: var(--space-1);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  background: none;
-}
-
-.color_input:hover {
-  border-color: var(--color-mercury);
-}
-
-.color_display {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--color-border);
-}
-
-.hex_value {
-  font-family: var(--font-mono, monospace);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
 .category_details {
   margin-top: var(--space-6);
   padding: var(--space-4);
@@ -146,30 +67,28 @@
   color: var(--color-text-primary);
 }
 
-.error_message {
-  color: var(--color-error);
-  font-size: var(--text-sm);
-  margin-top: var(--space-1);
+.tab_list {
+  margin-bottom: var(--space-6);
 }
 
-.loadingContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
+.tab_list > [role="tab"] {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-bottom: -1px;
+  padding: var(--space-4) var(--space-3);
+  font-size: var(--text-base);
 }
 
-.loadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-mercury);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.stacked_card {
+  margin-top: var(--space-4);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.color_swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: var(--space-2);
+  vertical-align: middle;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }

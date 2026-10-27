@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { Button, Input, Textarea, Label, Card } from "../../../components/ui"
 import { Dropdown } from "../../../components/ui"
 import styles from "./CategoryForm.module.css"
@@ -26,31 +26,14 @@ export function CategoryForm({
   onCancel,
   isLoading = false,
   submitLabel = "Salvar Categoria",
+  title = "Detalhes da Categoria",
   className = "",
   ...props
 }) {
-  const prevInitialDataRef = useRef(initialData)
-  const hasChangedRef = useRef(false)
+  // To load a different category, remount the form with a new `key`
   const [formData, setFormData] = useState(() => getInitialFormData(initialData))
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
-
-  // Track if initialData has changed
-  useEffect(() => {
-    hasChangedRef.current = prevInitialDataRef.current !== initialData
-    if (hasChangedRef.current) {
-      prevInitialDataRef.current = initialData
-    }
-  }, [initialData])
-
-  // Sync form data with initialData when it changes
-  useEffect(() => {
-    if (hasChangedRef.current) {
-      setFormData(getInitialFormData(initialData))
-      setErrors({})
-      setTouched({})
-    }
-  }, [initialData])
 
   const validateField = (name, value) => {
     switch (name) {
@@ -110,7 +93,7 @@ export function CategoryForm({
     <Card variant="default" className={`${styles.root} ${className}`} {...props}>
       <form onSubmit={handleSubmit} noValidate>
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Category Details</h3>
+          <h3 className={styles.sectionTitle}>{title}</h3>
 
           <div className={styles.row}>
             <div className={styles.field}>
@@ -122,7 +105,7 @@ export function CategoryForm({
                 value={formData.name}
                 onChange={e => handleChange("name", e.target.value)}
                 onBlur={e => handleBlur("name", e.target.value)}
-                placeholder="Category name"
+                placeholder="Nome da categoria"
                 required
                 disabled={isLoading}
                 maxLength={50}
@@ -146,7 +129,7 @@ export function CategoryForm({
           </div>
 
           <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-            <Label htmlFor="color">Color</Label>
+            <Label htmlFor="color">Cor</Label>
             <div
               style={{
                 display: "flex",
@@ -184,13 +167,13 @@ export function CategoryForm({
           </div>
 
           <div className={styles.field} style={{ gridColumn: "1 / -1" }}>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={e => handleChange("description", e.target.value)}
-              placeholder="Optional description"
+              placeholder="Descrição opcional"
               rows={3}
               disabled={isLoading}
             />
