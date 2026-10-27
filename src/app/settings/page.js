@@ -3,8 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import withAuth from "@/components/withAuth.js"
-import { PageContainer } from "@/components/layout"
+import { PageContainer, PageHeader } from "@/components/layout"
 import { Button, Input, Label, Card, Badge } from "@/components/ui"
+import { ConfirmDialog } from "@/components/feedback"
+import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/contexts/ToastContext"
 import { profileService } from "@/services/profileService"
 import { authService } from "@/services/authServices"
@@ -12,6 +14,8 @@ import styles from "./page.module.css"
 
 function SettingsPage() {
   const router = useRouter()
+  // Log out through the context so the header and withAuth see it immediately
+  const { logout } = useAuth()
   const { error: toastError, success: toastSuccess } = useToast()
 
   const [fullName, setFullName] = useState("")
@@ -65,31 +69,24 @@ function SettingsPage() {
 
     toastSuccess("Conta excluída com sucesso.")
 
-    try {
-      await authService.logoutUser()
-    } catch (error) {
-      console.error("[Supabase Logout Error]", error.message)
-    }
-
+    // The context logout never throws: the account is already gone either way
+    await logout()
     router.replace("/login")
   }
 
   const handleLogout = async () => {
-    try {
-      await authService.logoutUser()
-      router.replace("/login")
-    } catch (error) {
-      toastError(error.message)
-    }
+    await logout()
+    router.replace("/login")
   }
 
   return (
     <>
       <PageContainer>
+        <PageHeader title="Configurações" description="Gerencie seu perfil e sua conta" />
         <div className={styles.app_content}>
           <Card variant="default" className={styles.formCard}>
             <form onSubmit={handleEdit}>
-              <h1 className={styles.content_h1}>Configurações da Conta</h1>
+              <h2 className={styles.content_h1}>Dados do perfil</h2>
 
               <div className={styles.form_group}>
                 <Label htmlFor="full_name">Nome Completo</Label>
@@ -168,33 +165,18 @@ function SettingsPage() {
           </Card>
 
           {/* Delete Confirmation Modal */}
-          {showDeleteConfirm && (
-            <div
-              className={styles.modal_overlay}
-              onClick={() => setShowDeleteConfirm(false)}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="delete-confirm-title"
-            >
-              <div className={styles.modal_content} onClick={e => e.stopPropagation()}>
-                <h2 id="delete-confirm-title" className={styles.modal_title}>
-                  Excluir Conta
-                </h2>
-                <p className={styles.modal_description}>
-                  Tem certeza que deseja excluir sua conta? Todos os seus dados serão apagados para
-                  sempre. Esta ação não pode ser desfeita.
-                </p>
-                <div className={styles.modal_actions}>
-                  <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
-                    Cancelar
-                  </Button>
-                  <Button variant="danger" onClick={handleDeleteConfirm}>
-                    Excluir Minha Conta
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ConfirmDialog
+            open={showDeleteConfirm}
+            title="Excluir Conta"
+            confirmLabel="Excluir Minha Conta"
+            onConfirm={handleDeleteConfirm}
+            onCancel={() => setShowDeleteConfirm(false)}
+          >
+            <p>
+              Tem certeza que deseja excluir sua conta? Todos os seus dados serão apagados para
+              sempre. Esta ação não pode ser desfeita.
+            </p>
+          </ConfirmDialog>
         </div>
       </PageContainer>
     </>

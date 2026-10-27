@@ -20,6 +20,7 @@ import {
   Table,
   Dropdown
 } from "@/components/ui"
+import { ConfirmDialog } from "@/components/feedback"
 import { TransactionForm } from "@/components/forms"
 import { useToast } from "@/contexts/ToastContext"
 import { transactionService } from "@/services/transactionService"
@@ -401,36 +402,18 @@ function TransactionsContent() {
         )}
       </Tabs>
 
-      {showDeleteConfirm && selectedTransaction && (
-        <div
-          className={styles.modal_overlay}
-          onClick={() => setShowDeleteConfirm(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-confirm-title"
-        >
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2 id="delete-confirm-title" className={styles.modal_title}>
-              Excluir Transação
-            </h2>
-            <p className={styles.modal_text}>
-              Tem certeza que deseja excluir <strong>{selectedTransaction.title}</strong>? Esta ação
-              não pode ser desfeita.
-            </p>
-            <div className={styles.modal_actions}>
-              <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => handleDeleteTransaction(selectedTransaction.id)}
-              >
-                Excluir
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm && Boolean(selectedTransaction)}
+        title="Excluir Transação"
+        confirmLabel="Excluir"
+        onConfirm={() => handleDeleteTransaction(selectedTransaction.id)}
+        onCancel={() => setShowDeleteConfirm(false)}
+      >
+        <p>
+          Tem certeza que deseja excluir <strong>{selectedTransaction?.title}</strong>? Esta ação
+          não pode ser desfeita.
+        </p>
+      </ConfirmDialog>
     </PageContainer>
   )
 }

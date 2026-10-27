@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import withAuth from "@/components/withAuth.js"
-import { PageContainer } from "@/components/layout"
+import { PageContainer, PageHeader } from "@/components/layout"
 import {
   Button,
   Label,
@@ -15,6 +15,7 @@ import {
   TabPanel
 } from "@/components/ui"
 import { CategoryForm } from "@/components/forms"
+import { ConfirmDialog } from "@/components/feedback"
 import { useToast } from "@/contexts/ToastContext"
 import { categoryService } from "@/services/categoryService"
 import styles from "./page.module.css"
@@ -166,6 +167,7 @@ function CategoriesPage() {
   if (isLoading) {
     return (
       <PageContainer>
+        <PageHeader title="Categorias" description="Organize suas receitas e despesas" />
         <LoadingSpinner size="lg" ariaLabel="Carregando categorias" />
       </PageContainer>
     )
@@ -173,6 +175,7 @@ function CategoriesPage() {
 
   return (
     <PageContainer>
+      <PageHeader title="Categorias" description="Organize suas receitas e despesas" />
       <div className={styles.app_content}>
         <Tabs value={activeTab} onChange={setActiveTab}>
           <TabList className={styles.tab_list}>
@@ -192,7 +195,7 @@ function CategoriesPage() {
 
           <TabPanel value="edit">
             <Card variant="default" className={styles.formCard}>
-              <h1 className={styles.content_h1}>Editar Categoria</h1>
+              <h2 className={styles.content_h1}>Editar Categoria</h2>
               {emptyMessage}
               <div className={styles.form_group}>
                 <Label htmlFor="category_edit">Selecionar Categoria</Label>
@@ -228,7 +231,7 @@ function CategoriesPage() {
           <TabPanel value="delete">
             <Card variant="default" className={styles.formCard}>
               <form onSubmit={handleDelete}>
-                <h1 className={styles.content_h1}>Excluir Categoria</h1>
+                <h2 className={styles.content_h1}>Excluir Categoria</h2>
                 {emptyMessage}
                 <div className={styles.form_group}>
                   <Label htmlFor="category_delete">Selecionar Categoria</Label>
@@ -244,7 +247,7 @@ function CategoriesPage() {
 
                 {deleteCategory && (
                   <div className={styles.category_details}>
-                    <h2>Detalhes da Categoria</h2>
+                    <h3>Detalhes da Categoria</h3>
                     <p>
                       <strong>Nome:</strong> {deleteCategory.name}
                     </p>
@@ -311,68 +314,43 @@ function CategoriesPage() {
         </Tabs>
       </div>
 
-      {showDeleteDialog && deleteCategory && (
-        <div
-          className={styles.modal_overlay}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-category-title"
-        >
-          <div className={styles.modal}>
-            <h2 id="delete-category-title" className={styles.modal_title}>
-              Excluir &quot;{deleteCategory.name}&quot;?
-            </h2>
-            <p className={styles.modal_text}>
-              {deleteUsage === 1
-                ? "1 transação usa esta categoria."
-                : `${deleteUsage} transações usam esta categoria.`}{" "}
-              Elas não serão apagadas: continuam no histórico e nos totais do dashboard, com a
-              categoria exibida como &quot;{deleteCategory.name} (deletada)&quot;.
-            </p>
-            <p className={styles.modal_text}>
-              A categoria deixa de aparecer na lista e não poderá ser usada em novas transações.
-            </p>
-            <div className={styles.modal_actions}>
-              <Button variant="ghost" onClick={() => setShowDeleteDialog(false)}>
-                Cancelar
-              </Button>
-              <Button variant="danger" onClick={confirmDelete} loading={isSaving}>
-                Excluir categoria
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteDialog && Boolean(deleteCategory)}
+        title={`Excluir "${deleteCategory?.name}"?`}
+        confirmLabel="Excluir categoria"
+        loading={isSaving}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      >
+        <p>
+          {deleteUsage === 1
+            ? "1 transação usa esta categoria."
+            : `${deleteUsage} transações usam esta categoria.`}{" "}
+          Elas não serão apagadas: continuam no histórico e nos totais do dashboard, com a categoria
+          exibida como &quot;{deleteCategory?.name} (deletada)&quot;.
+        </p>
+        <p>A categoria deixa de aparecer na lista e não poderá ser usada em novas transações.</p>
+      </ConfirmDialog>
 
-      {pendingTypeChange && (
-        <div
-          className={styles.modal_overlay}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="type-change-title"
-        >
-          <div className={styles.modal}>
-            <h2 id="type-change-title" className={styles.modal_title}>
-              Mudar tipo da categoria?
-            </h2>
-            <p className={styles.modal_text}>
-              Esta categoria tem {pendingTypeChange.transactionCount}{" "}
-              {pendingTypeChange.transactionCount === 1 ? "transação" : "transações"}. Para manter
-              os totais corretos, {pendingTypeChange.transactionCount === 1 ? "ela" : "elas"} também
-              passar{pendingTypeChange.transactionCount === 1 ? "á" : "ão"} a ser{" "}
-              {TYPE_LABELS[pendingTypeChange.formData.type].toLowerCase()}.
-            </p>
-            <div className={styles.modal_actions}>
-              <Button variant="ghost" onClick={() => setPendingTypeChange(null)}>
-                Cancelar
-              </Button>
-              <Button variant="primary" onClick={confirmTypeChange} loading={isSaving}>
-                Mudar categoria e transações
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={Boolean(pendingTypeChange)}
+        title="Mudar tipo da categoria?"
+        confirmLabel="Mudar categoria e transações"
+        variant="primary"
+        loading={isSaving}
+        onConfirm={confirmTypeChange}
+        onCancel={() => setPendingTypeChange(null)}
+      >
+        {pendingTypeChange && (
+          <p>
+            Esta categoria tem {pendingTypeChange.transactionCount}{" "}
+            {pendingTypeChange.transactionCount === 1 ? "transação" : "transações"}. Para manter os
+            totais corretos, {pendingTypeChange.transactionCount === 1 ? "ela" : "elas"} também
+            passar{pendingTypeChange.transactionCount === 1 ? "á" : "ão"} a ser{" "}
+            {TYPE_LABELS[pendingTypeChange.formData.type].toLowerCase()}.
+          </p>
+        )}
+      </ConfirmDialog>
     </PageContainer>
   )
 }
