@@ -11,8 +11,8 @@ export const siteConfig = {
   links: {
     github: "https://github.com/MViniciusCoffe/SpendSmart",
     githubIssues: "https://github.com/MViniciusCoffe/SpendSmart/issues",
-    linkedin: "https://www.linkedin.com/in/marcus-vinicius-coffe/",
-    email: "mviniciuscoffe@gmail.com"
+    linkedin: "https://www.linkedin.com/in/devmarquinhos/",
+    email: "infobasicifrn2017marcusv@gmail.com"
   },
   publicNav: [
     { href: "/", label: "Início" },
