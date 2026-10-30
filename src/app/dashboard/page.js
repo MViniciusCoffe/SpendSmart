@@ -272,6 +272,8 @@ function DashboardContent() {
   const incomesCategoryData = buildIncomesCategoryChart()
   const incomesData = buildIncomesChart()
   const lineData = buildLineChart()
+  // Counts, not amounts: a zero balance with transactions is R$ 0,00, not "Sem dados" (CT16.06)
+  const hasTransactions = incomes.length + expenses.length > 0
 
   return (
     <PageContainer>
@@ -311,7 +313,7 @@ function DashboardContent() {
             <div>
               <h3 className={styles.summary_label}>Saldo Atual</h3>
               <p className={styles.summary_value}>
-                {summary.balance !== 0 ? formatCurrency(summary.balance) : "Sem dados"}
+                {hasTransactions ? formatCurrency(summary.balance) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -334,7 +336,7 @@ function DashboardContent() {
             <div>
               <h3 className={styles.summary_label}>Total de Receitas</h3>
               <p className={styles.summary_value_income}>
-                {summary.totalIncome !== 0 ? formatCurrency(summary.totalIncome) : "Sem dados"}
+                {incomes.length > 0 ? formatCurrency(summary.totalIncome) : "Sem dados"}
               </p>
             </div>
           </div>
@@ -357,7 +359,7 @@ function DashboardContent() {
             <div>
               <h3 className={styles.summary_label}>Total de Despesas</h3>
               <p className={styles.summary_value_expense}>
-                {summary.totalExpenses !== 0 ? formatCurrency(summary.totalExpenses) : "Sem dados"}
+                {expenses.length > 0 ? formatCurrency(summary.totalExpenses) : "Sem dados"}
               </p>
             </div>
           </div>

@@ -277,15 +277,15 @@ Cenário: Falha ao carregar
   Então vejo "Não foi possível carregar os dados do dashboard."
 ```
 
-| ID      | Cenário / Descrição                         | Passos para execução                                                                                                  | Dados de entrada                                            | Resultado esperado                                                                                                                                | Tipo   |
-| :------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ | :----- |
-| CT16.01 | Saldo e totais formatados                   | 1. Autenticar como usuário A<br>2. Abrir `/dashboard`<br>3. Conferir os três cartões                                  | Receitas `2500,00` + `300,00`; despesas `87,40` + `1200,00` | Receitas R$ 2.800,00; Despesas R$ 1.287,40; Saldo R$ 1.512,60                                                                                     | Manual |
-| CT16.02 | Gráficos por categoria                      | 1. Autenticar como usuário A<br>2. Passar o mouse sobre as fatias dos gráficos por categoria                          | Despesas em "Mercado" (`87,40`) e "Aluguel" (`1200,00`)     | Cada fatia mostra o nome da categoria, o valor em R$ e o percentual; a soma das fatias é igual ao total do cartão                                 | Manual |
-| CT16.03 | Usuário sem lançamentos                     | 1. Autenticar como usuário B<br>2. Abrir `/dashboard`                                                                 | Nenhum lançamento                                           | Cartões exibem "Sem dados"; gráficos mostram o estado vazio ("Sem dados de despesas", "Sem dados de receitas"); nenhum NaN; a tela não quebra     | Manual |
-| CT16.04 | Falha ao buscar dados                       | 1. Autenticar<br>2. Derrubar o Supabase local (`npm run infra:down`) ou bloquear a rede<br>3. Recarregar `/dashboard` | Backend indisponível                                        | Banner "Não foi possível carregar os dados do dashboard." em vez de tela vazia                                                                    | Manual |
-| CT16.05 | Categoria excluída com lançamentos (US-009) | 1. Excluir uma categoria que tem despesas<br>2. Abrir `/dashboard`                                                    | Categoria "Mercado" excluída com 1 despesa                  | A despesa continua nos totais e o gráfico mostra "Mercado (deletada)"                                                                             | Manual |
-| CT16.06 | Saldo exatamente zero com lançamentos       | 1. Registrar receita e despesa de mesmo valor<br>2. Abrir `/dashboard`                                                | Receita `500,00`; despesa `500,00`                          | **Defeito conhecido:** o cartão de saldo mostra "Sem dados", porque a tela testa `balance !== 0` (`src/app/dashboard/page.js`). Esperado: R$ 0,00 | Manual |
-| CT16.07 | Isolamento entre usuários                   | 1. Abrir o dashboard como usuário A e anotar os totais<br>2. Trocar para o usuário B                                  | Duas contas de teste                                        | Nenhum valor de A aparece para B (filtro por `user_id` + RLS)                                                                                     | Manual |
+| ID      | Cenário / Descrição                         | Passos para execução                                                                                                  | Dados de entrada                                            | Resultado esperado                                                                                                                                       | Tipo   |
+| :------ | :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :----- |
+| CT16.01 | Saldo e totais formatados                   | 1. Autenticar como usuário A<br>2. Abrir `/dashboard`<br>3. Conferir os três cartões                                  | Receitas `2500,00` + `300,00`; despesas `87,40` + `1200,00` | Receitas R$ 2.800,00; Despesas R$ 1.287,40; Saldo R$ 1.512,60                                                                                            | Manual |
+| CT16.02 | Gráficos por categoria                      | 1. Autenticar como usuário A<br>2. Passar o mouse sobre as fatias dos gráficos por categoria                          | Despesas em "Mercado" (`87,40`) e "Aluguel" (`1200,00`)     | Cada fatia mostra o nome da categoria, o valor em R$ e o percentual; a soma das fatias é igual ao total do cartão                                        | Manual |
+| CT16.03 | Usuário sem lançamentos                     | 1. Autenticar como usuário B<br>2. Abrir `/dashboard`                                                                 | Nenhum lançamento                                           | Cartões exibem "Sem dados"; gráficos mostram o estado vazio ("Sem dados de despesas", "Sem dados de receitas"); nenhum NaN; a tela não quebra            | Manual |
+| CT16.04 | Falha ao buscar dados                       | 1. Autenticar<br>2. Derrubar o Supabase local (`npm run infra:down`) ou bloquear a rede<br>3. Recarregar `/dashboard` | Backend indisponível                                        | Banner "Não foi possível carregar os dados do dashboard." em vez de tela vazia                                                                           | Manual |
+| CT16.05 | Categoria excluída com lançamentos (US-009) | 1. Excluir uma categoria que tem despesas<br>2. Abrir `/dashboard`                                                    | Categoria "Mercado" excluída com 1 despesa                  | A despesa continua nos totais e o gráfico mostra "Mercado (deletada)"                                                                                    | Manual |
+| CT16.06 | Saldo exatamente zero com lançamentos       | 1. Registrar receita e despesa de mesmo valor<br>2. Abrir `/dashboard`                                                | Receita `500,00`; despesa `500,00`                          | Cartão de saldo mostra R$ 0,00, não "Sem dados" (regressão de MEL-01: a tela testava `balance !== 0`; corrigido para testar a existência de lançamentos) | Manual |
+| CT16.07 | Isolamento entre usuários                   | 1. Abrir o dashboard como usuário A e anotar os totais<br>2. Trocar para o usuário B                                  | Duas contas de teste                                        | Nenhum valor de A aparece para B (filtro por `user_id` + RLS)                                                                                            | Manual |
 
 > O dashboard ainda não tem teste automatizado: o front-end está fora da cobertura (issue #33). Os
 > dados que ele soma vêm de `transactionService.getTransactions` e
@@ -296,14 +296,14 @@ Cenário: Falha ao carregar
 
 ## 7. Rastreabilidade
 
-| US     | Casos           | RF        | Defeitos de regressão                         |
-| :----- | :-------------- | :-------- | :-------------------------------------------- |
-| US-001 | CT01.01–CT01.04 | RF01      | #25                                           |
-| US-010 | CT10.01–CT10.05 | RF10      | #10, #21                                      |
-| US-007 | CT07.01–CT07.03 | RF07      | —                                             |
-| US-013 | CT13.01–CT13.05 | RF13      | #21                                           |
-| US-002 | CT02.01–CT02.07 | RF02      | #24                                           |
-| US-016 | CT16.01–CT16.07 | RF10–RF15 | Saldo zero exibido como "Sem dados" (CT16.06) |
+| US     | Casos           | RF        | Defeitos de regressão          |
+| :----- | :-------------- | :-------- | :----------------------------- |
+| US-001 | CT01.01–CT01.04 | RF01      | #25                            |
+| US-010 | CT10.01–CT10.05 | RF10      | #10, #21                       |
+| US-007 | CT07.01–CT07.03 | RF07      | —                              |
+| US-013 | CT13.01–CT13.05 | RF13      | #21                            |
+| US-002 | CT02.01–CT02.07 | RF02      | #24                            |
+| US-016 | CT16.01–CT16.07 | RF10–RF15 | MEL-01 (saldo zero, corrigido) |
 
 **Total: 6 US, 31 casos de teste.** I1 e I2: 17 casos (10 manuais, 4 automáticos de unidade, 3
 manuais com verificação de isolamento). I3: 14 casos (4 automáticos de unidade e 10 manuais, dos
@@ -334,13 +334,13 @@ quais 1 com verificação de isolamento).
 
 ## 9. Riscos
 
-| Risco                                                                               | Impacto                          | Mitigação / Contingência                                                                                       |
-| :---------------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| RLS não ativo no banco local (`to_regclass('auth.users')` não é criado)             | Alto. Isolamento não exercitado  | CT07.03 e CT10.05 rodam apenas na stack local do Supabase; sem ela, registrar como **bloqueada** (issue #20).  |
-| Defeitos conhecidos das US (issues #10, #21, #25, CT16.06) podem falhar na execução | Médio. Confundir plano reprovado | Casos marcados **Defeito conhecido** devem resultar em "Falhou" com evidência, sem reprovar o plano.           |
-| Datas das iterações 4 a 6 ainda não conciliadas com o usuário                       | Baixo. Atraso no planejamento    | Nenhum impacto na I1–I3; revisar o cronograma na reunião de fechamento da unidade 2.                           |
-| Falta de dupla verificação (QA aprova a própria US)                                 | Médio. Vaidade no aceite         | Regra de [test-plan.md](test-plan.md) §9: relatório sempre escrito pelo colega que não desenvolveu a história. |
-| Falha de ambiente (banco indisponível, migrations não aplicadas)                    | Médio. Bloqueio de execução      | Critérios de entrada (§8.1) devem estar marcados antes de iniciar; re-seed dos dados sintéticos.               |
+| Risco                                                                      | Impacto                          | Mitigação / Contingência                                                                                       |
+| :------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| RLS não ativo no banco local (`to_regclass('auth.users')` não é criado)    | Alto. Isolamento não exercitado  | CT07.03 e CT10.05 rodam apenas na stack local do Supabase; sem ela, registrar como **bloqueada** (issue #20).  |
+| Defeitos conhecidos das US (issues #10, #21, #25) podem falhar na execução | Médio. Confundir plano reprovado | Casos marcados **Defeito conhecido** devem resultar em "Falhou" com evidência, sem reprovar o plano.           |
+| Datas das iterações 4 a 6 ainda não conciliadas com o usuário              | Baixo. Atraso no planejamento    | Nenhum impacto na I1–I3; revisar o cronograma na reunião de fechamento da unidade 2.                           |
+| Falta de dupla verificação (QA aprova a própria US)                        | Médio. Vaidade no aceite         | Regra de [test-plan.md](test-plan.md) §9: relatório sempre escrito pelo colega que não desenvolveu a história. |
+| Falha de ambiente (banco indisponível, migrations não aplicadas)           | Médio. Bloqueio de execução      | Critérios de entrada (§8.1) devem estar marcados antes de iniciar; re-seed dos dados sintéticos.               |
 
 ---
 
