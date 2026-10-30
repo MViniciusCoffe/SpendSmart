@@ -285,7 +285,7 @@ A separação é em dois níveis, porque nem toda verificação precisa de Auth:
 | Categoria            | Ferramenta                                               | Uso                                                                                                          |
 | :------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | Testes unitários     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                         |
-| Transformação        | `babel-jest` com `babel.config.js`                       | Converte ESM e JSX e resolve os aliases `@/...` (`babel-plugin-module-resolver`)                             |
+| Transformação        | `babel-jest` com `jest.babel.config.js`                  | Converte ESM e JSX e resolve os aliases `@/...` (`babel-plugin-module-resolver`)                             |
 | Testes de mutação    | Stryker 10 (`npm run test:mutation`)                     | Score 97,10% em `services/` — ver [mutation-testing.md](mutation-testing.md)                                 |
 | Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                        |
 | Testes de integração | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                                |

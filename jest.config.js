@@ -6,7 +6,7 @@ module.exports = {
       roots: ["<rootDir>/tests/unit", "<rootDir>/src/services", "<rootDir>/src"],
       testMatch: ["**/*.test.js"],
       transform: {
-        "^.+\\.jsx?$": ["babel-jest", { configFile: "./babel.config.js" }]
+        "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
       collectCoverageFrom: ["services/**/*.js", "src/**/*.js"],
       coverageDirectory: "coverage/unit",
@@ -31,7 +31,7 @@ module.exports = {
       roots: ["<rootDir>/tests/integration/postgres"],
       testMatch: ["**/*.test.js"],
       transform: {
-        "^.+\\.jsx?$": ["babel-jest", { configFile: "./babel.config.js" }]
+        "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
       setupFiles: ["<rootDir>/tests/setupEnv.js", "<rootDir>/tests/setup.js"],
       testTimeout: 30000,
@@ -53,11 +53,10 @@ module.exports = {
       roots: ["<rootDir>/tests/integration/supabase"],
       testMatch: ["**/*.test.js"],
       transform: {
-        "^.+\\.jsx?$": ["babel-jest", { configFile: "./babel.config.js" }]
+        "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
       setupFiles: ["<rootDir>/tests/setupEnv.js", "<rootDir>/tests/setup.js"],
       testTimeout: 60000,
-      maxWorkers: 1,
       moduleNameMapper: {
         "^@/components/(.*)$": "<rootDir>/src/components/$1",
         "^@/styles/(.*)$": "<rootDir>/src/styles/$1",
@@ -76,7 +75,7 @@ module.exports = {
       roots: ["<rootDir>/tests/regression"],
       testMatch: ["**/*.test.js"],
       transform: {
-        "^.+\\.jsx?$": ["babel-jest", { configFile: "./babel.config.js" }]
+        "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
       testTimeout: 30000,
       moduleNameMapper: {

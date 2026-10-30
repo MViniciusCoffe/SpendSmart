@@ -49,16 +49,17 @@ Verificar com `npx eslint <arquivo> ; echo $LASTEXITCODE` antes de subir, e não
 
 ## 2. O Babel fica dentro do jest.config.js
 
-**Decisão.** O preset fica no `transform` do `jest.config.js`. Não existe `babel.config.js` na raiz.
+**Decisão.** A configuração do Babel fica em `jest.babel.config.js`, referenciada explicitamente
+pelo `transform` de cada project do `jest.config.js`. Não existe `babel.config.js` na raiz.
 
 ```js
 transform: {
-  "^.+\\.jsx?$": [
-    "babel-jest",
-    { presets: [["@babel/preset-env", { targets: { node: "current" } }]] },
-  ],
+  "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
 },
 ```
+
+O arquivo traz `preset-env`, `preset-react` e o `babel-plugin-module-resolver` dos aliases `@/...`.
+O nome não é nenhum dos que o Next.js procura (`.babelrc*`, `babel.config.*`), então só o Jest o lê.
 
 **Por que.** Um `babel.config.js` na raiz é detectado pelo Next.js, que passa a usar Babel no lugar
 do SWC em todo o desenvolvimento e em todo o build. Isso vale para quem roda `next dev`, mesmo sem
@@ -67,6 +68,11 @@ converte.
 
 **Alternativa rejeitada.** `babel.config.js` na raiz, que é o que o
 [plano de testes](test-plan.md) recomendava antes desta revisão. A recomendação foi corrigida.
+
+**Registro de regressão.** Na refatoração do front-end um `babel.config.js` voltou à raiz, e o
+`next build` passou a imprimir `Using external babel configuration from .../babel.config.js`. O
+arquivo foi renomeado para `jest.babel.config.js`; com o `.next` limpo, a compilação do build caiu de
+9,8 s para 3,3 s e a mensagem sumiu.
 
 **Reavaliar quando.** Nunca, enquanto o projeto usar Next.js com SWC.
 

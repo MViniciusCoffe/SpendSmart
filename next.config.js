@@ -37,10 +37,6 @@ const nextConfig = {
     }
 
     return config
-  },
-  // Image optimization (optional, for future use)
-  images: {
-    domains: ["localhost"]
   }
 }
 

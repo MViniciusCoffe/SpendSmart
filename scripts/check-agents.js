@@ -7,7 +7,15 @@ const path = require("path")
 
 const ROOT = process.cwd()
 const EXTENSIONS = [".js", ".jsx", ".json", ".md"]
-const IGNORE_DIRS = ["node_modules", ".next", "coverage", ".git", ".husky"]
+const IGNORE_DIRS = [
+  "node_modules",
+  ".next",
+  "coverage",
+  ".git",
+  ".husky",
+  "reports",
+  ".stryker-tmp"
+]
 const IGNORE_FILES = ["AGENTS.md", "scripts/check-agents.js", "docs/"]
 
 function walk(dir, ext) {
