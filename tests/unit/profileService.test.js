@@ -68,6 +68,7 @@ describe("updateProfile", () => {
     })
 
     expect(resultado).toBe(true)
+    expect(supabase.from).toHaveBeenCalledWith("profiles")
     // O serviço traduz os nomes do formulário para os nomes das colunas do banco
     expect(update).toHaveBeenCalledWith({
       full_name: "Joao Silva",
