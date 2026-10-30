@@ -123,11 +123,11 @@ cp .env.development.example .env.development
 | `npm run migrations:up`          | Aplica as migrations de `supabase/migrations/` (lê `.env.development`) |
 | `npm run migrations:down`        | Desfaz a última migration                                              |
 | `npm run migrations:create`      | Cria um arquivo de migration com timestamp                             |
-| `npm run migrations:supabase:up` | Aplica as migrations no Supabase remoto (lê `.env.supabase`)           |
+| `npm run migrations:supabase:up` | Aplica as migrations no banco do `.env.development`                    |
 
-> `migrations:up` e `migrations:down` leem `.env.development`; `migrations:supabase:up` lê
-> `.env.supabase`. Não existe `migrations:supabase:down` — se precisar reverter no Supabase, use
-> `node-pg-migrate down` apontando explicitamente para `.env.supabase`.
+> Os três comandos leem `.env.development`. Não existe um `.env.supabase` separado: o conteúdo
+> seria o mesmo do `.env.development`, então `migrations:supabase:up` foi apontado para ele. Para
+> reverter, use `npm run migrations:down`.
 
 ### 2.4 O que o Postgres local valida e o que não valida
 

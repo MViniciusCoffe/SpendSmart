@@ -606,7 +606,7 @@ risco de corrupção, Preview deployments com acesso de serviço ao banco real.
 | ------------------- | ------------------------------------------------------------------------------ | ------------------ | --------------- |
 | **Supabase CLI**    | `dev`, `infra:up`, `infra:down`, `infra:reset`, `infra:studio`, `infra:status` | `.env.local`       | Padrão          |
 | **Docker Compose**  | `services:up`, `services:down`, `migrations:up`, `migrations:down`             | `.env.development` | Fallback        |
-| **Supabase remoto** | `migrations:supabase:up`                                                       | `.env.supabase`    | Deploy/produção |
+| **Supabase remoto** | `migrations:supabase:up`                                                       | `.env.development` | Deploy/produção |
 
 **Decisões de design:**
 
@@ -663,7 +663,8 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 
 - `.env.local.example` — template com placeholders
 - `.env.development.example` — template Docker Compose
-- `.env.supabase.example` — pendente (issue #20)
+- Não há `.env.supabase`: o conteúdo seria igual ao do `.env.development`, então
+  `migrations:supabase:up` lê o `.env.development`.
 
 **Reavaliar quando.** Next.js mudar prioridade de arquivos `.env` (improvável).
 

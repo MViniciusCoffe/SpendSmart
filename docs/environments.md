@@ -70,19 +70,18 @@ que roda no servidor. Há dois pontos de leitura hoje: `createProfile` e `delete
 
 ## 3. Arquivos de ambiente
 
-| Arquivo                    | Versionado | Conteúdo atual                                       | Para que serve                                             |
-| -------------------------- | ---------- | ---------------------------------------------------- | ---------------------------------------------------------- |
-| `.env.development`         | não        | `DATABASE_URL` (Supabase remoto) + 3 chaves          | Fonte do Next.js em desenvolvimento e do `node-pg-migrate` |
-| `.env.supabase`            | não        | `DATABASE_URL` (Supabase remoto) + 2 chaves públicas | Alimenta `npm run migrations:supabase:up`                  |
-| `.env.development.example` | sim        | Só `POSTGRES_*` do Docker                            | Modelo do Postgres local                                   |
+| Arquivo                    | Versionado | Conteúdo atual                              | Para que serve                                             |
+| -------------------------- | ---------- | ------------------------------------------- | ---------------------------------------------------------- |
+| `.env.development`         | não        | `DATABASE_URL` (Supabase remoto) + 3 chaves | Fonte do Next.js em desenvolvimento e do `node-pg-migrate` |
+| `.env.development.example` | sim        | Só `POSTGRES_*` do Docker                   | Modelo do Postgres local                                   |
 
 O `.gitignore` bloqueia `.env*` e libera apenas os arquivos `.example`. Isso está correto e deve
 permanecer.
 
 ### Lacunas conhecidas
 
-1. **`.env.supabase` não tem `SUPABASE_SERVICE_ROLE_KEY`.** Se ele virar a fonte das rotas de
-   API em algum momento, elas vão falhar sem erro claro.
+1. **Não há `.env.supabase`.** Seria igual ao `.env.development`, então `npm run
+migrations:supabase:up` lê o `.env.development`.
 2. **Não existe `.env.example` genérico** com as quatro variáveis do Supabase.
 3. **`migrations:supabase:up` não aparece em nenhum documento.** Era este o único comando de
    migração descrito no `README.md` antes desta revisão.
@@ -222,12 +221,12 @@ Um host `*.supabase.com` significa banco remoto. `localhost` significa Postgres 
 
 ### Direção planejada
 
-1. Mover o `DATABASE_URL` remoto para `.env.supabase`, deixando `.env.development` só com as
-   variáveis do Postgres local e as duas chaves públicas.
+1. ~~Mover o `DATABASE_URL` remoto para `.env.supabase`~~ — descartado: o `.env.supabase` seria
+   igual ao `.env.development`, e `migrations:supabase:up` passou a ler o `.env.development`.
 2. Tirar `migrations:up` do encadeamento automático, ou exigir flag explícita.
 3. Completar `.env.development.example` com `NEXT_PUBLIC_SUPABASE_URL` e
    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. Criar `.env.supabase.example` com `SUPABASE_SERVICE_ROLE_KEY` vazia.
+4. ~~Criar `.env.supabase.example`~~ — descartado pelo mesmo motivo do item 1.
 5. Adicionar `migrations:supabase:down`, hoje inexistente.
 
 Enquanto isso não for feito, **trate `npm run dev` como um comando que escreve no banco de
