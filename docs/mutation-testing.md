@@ -89,8 +89,10 @@ o que permite conferir o score sem rodar nada localmente.
 | Linha de base          | `bf7cb75` |              188 |    480 |            68 | **87,59%** |
 | Filtros e soft delete  | `8dcda35` |              198 |    506 |            42 | **92,34%** |
 | Bordas, cache e logger | `ce6d12b` |              208 |    531 |            17 | **96,90%** |
+| E-mail normalizado     | (este)    |              210 |    535 |            16 | **97,10%** |
 
-Total de 548 mutantes em todas as rodadas, com 0 sem cobertura e 0 timeouts.
+548 mutantes nas três primeiras rodadas e 551 na última (o validador de e-mail ganhou uma checagem
+de tipo), sempre com 0 sem cobertura e 0 timeouts.
 
 ### 4.2 Score final por arquivo
 
@@ -103,8 +105,8 @@ Total de 548 mutantes em todas as rodadas, com 0 sem cobertura e 0 timeouts.
 | `services/utils/baseService.js`  |      42 |             0 |    100,00% |
 | `services/utils/logger.js`       |      23 |             0 |    100,00% |
 | `services/utils/mappers.js`      |       6 |             0 |    100,00% |
-| `services/utils/validators.js`   |     202 |             3 |     98,54% |
-| **Total**                        | **531** |        **17** | **96,90%** |
+| `services/utils/validators.js`   |     206 |             2 |     99,04% |
+| **Total**                        | **535** |        **16** | **97,10%** |
 
 ---
 
@@ -148,24 +150,30 @@ teste precisa comparar a mensagem.
 
 ---
 
-## 6. Mutantes aceitos (17)
+### 5.3 Equivalente que escondia um defeito (96,90% → 97,10%)
 
-Os 17 sobreviventes restantes foram analisados um a um e aceitos. Não são lacunas de teste.
+O mutante `valor.toLowerCase().trim()` → `valor.toLowerCase()` sobrevivia por ser equivalente: a
+regex ancorada não aceita espaços, então o `trim()` nunca tinha o que remover. Mas a análise mostrou
+que a ordem estava errada: `" joao@email.com "` (comum ao colar) era recusado como inválido. O
+validador passou a recusar valores que não são texto, normalizar (`trim` + `toLowerCase`) e só então
+aplicar a regex. Dois testes cobrem a mudança (espaços nas pontas e valor não-texto).
 
-### 6.1 Mutantes equivalentes (3)
+## 6. Mutantes aceitos (16)
+
+Os 16 sobreviventes restantes foram analisados um a um e aceitos. Não são lacunas de teste.
+
+### 6.1 Mutantes equivalentes (2)
 
 Um mutante é **equivalente** quando se comporta igual ao original para qualquer entrada possível.
 Nenhum teste consegue matá-lo.
 
-| Arquivo e linha    | Mutação                                              | Por que é equivalente                                                                                                                                                                         |
-| :----------------- | :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `validators.js:13` | `data.getMonth() !== mes - 1` → `false`              | Redundante com a checagem do dia: um dia inválido sempre desloca também o mês (`2024-02-30` vira 1º de março; `2024-03-00` vira 29 de fevereiro). Mês inválido (`13`, `00`) já desloca o ano. |
-| `validators.js:14` | `data.getDate() !== dia` → `false`                   | Simétrico ao anterior: todo dia fora do mês muda o mês, que a outra checagem detecta.                                                                                                         |
-| `validators.js:86` | `valor.toLowerCase().trim()` → `valor.toLowerCase()` | A regex ancorada (`^...$`) não aceita espaços, então um e-mail com espaços nas pontas é recusado antes do `trim()`. O `trim()` nunca tem o que remover.                                       |
+| Arquivo e linha    | Mutação                                 | Por que é equivalente                                                                                                                                                                         |
+| :----------------- | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validators.js:13` | `data.getMonth() !== mes - 1` → `false` | Redundante com a checagem do dia: um dia inválido sempre desloca também o mês (`2024-02-30` vira 1º de março; `2024-03-00` vira 29 de fevereiro). Mês inválido (`13`, `00`) já desloca o ano. |
+| `validators.js:14` | `data.getDate() !== dia` → `false`      | Simétrico ao anterior: todo dia fora do mês muda o mês, que a outra checagem detecta.                                                                                                         |
 
-Remover a redundância do código mataria esses mutantes, mas mudaria código de produção sem ganho de
-comportamento. No caso do e-mail, mover o `trim()` para antes da regex **mudaria** o comportamento
-(passaria a aceitar `" joao@email.com "`), o que é uma decisão de produto, não de teste.
+Remover uma das duas checagens mataria esses mutantes, mas a redundância é deliberada: cada
+checagem documenta uma regra (mês e dia precisam bater) e o custo é zero.
 
 ### 6.2 Textos de log (14)
 
@@ -187,7 +195,9 @@ a formatação do log, acoplando a suíte a texto sem valor de comportamento.
   vazio.
 - **O ganho veio de asserções, não de mais código coberto:** 20 testes novos (188 → 208) e nenhuma
   linha de produção alterada levaram o score de 87,59% para 96,90%.
-- **Os 17 sobreviventes restantes estão justificados** (3 equivalentes e 14 textos de log).
+- **Analisar um mutante equivalente revelou um defeito:** o `trim()` do e-mail rodava depois da
+  validação. A correção levou o score a 97,10%.
+- **Os 16 sobreviventes restantes estão justificados** (2 equivalentes e 14 textos de log).
 
 ---
 

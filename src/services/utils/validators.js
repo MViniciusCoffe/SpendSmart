@@ -80,10 +80,13 @@ const validators = {
   },
 
   email: valor => {
-    if (!valor || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(valor)) {
+    if (typeof valor !== "string") throw new Error("E-mail inválido")
+    // Normaliza antes de validar: espaço nas pontas (comum ao colar) não torna o e-mail inválido
+    const normalizado = valor.trim().toLowerCase()
+    if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(normalizado)) {
       throw new Error("E-mail inválido")
     }
-    return valor.toLowerCase().trim()
+    return normalizado
   },
 
   senha: valor => {

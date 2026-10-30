@@ -120,7 +120,7 @@ verifica se algum teste falha com cada um.
 | Comando         | `npm run test:mutation`                                                                     |
 | Escopo          | `src/services/**/*.js`, executando só o project `unit` do Jest                              |
 | Meta            | Mutation score ≥ 85% (`break` do `stryker.conf.json`: abaixo disso o comando e o CI falham) |
-| Resultado atual | **96,90%** (531 mortos, 17 sobreviventes aceitos e justificados)                            |
+| Resultado atual | **97,10%** (535 mortos, 16 sobreviventes aceitos e justificados)                            |
 
 Resultados por rodada, mutantes aceitos e justificativas em [mutation-testing.md](mutation-testing.md).
 
@@ -286,7 +286,7 @@ A separação é em dois níveis, porque nem toda verificação precisa de Auth:
 | :------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | Testes unitários     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                         |
 | Transformação        | `babel-jest` com `babel.config.js`                       | Converte ESM e JSX e resolve os aliases `@/...` (`babel-plugin-module-resolver`)                             |
-| Testes de mutação    | Stryker 10 (`npm run test:mutation`)                     | Score 96,90% em `services/` — ver [mutation-testing.md](mutation-testing.md)                                 |
+| Testes de mutação    | Stryker 10 (`npm run test:mutation`)                     | Score 97,10% em `services/` — ver [mutation-testing.md](mutation-testing.md)                                 |
 | Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                        |
 | Testes de integração | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                                |
 | Gestão de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                                                                 |

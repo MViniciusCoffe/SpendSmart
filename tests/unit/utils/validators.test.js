@@ -172,12 +172,22 @@ describe("validators", () => {
   })
 
   describe("email", () => {
-    ;(it("retorna email valido em lowercase", () => {
+    it("retorna email valido em lowercase", () => {
       expect(validators.email("TEST@EXAMPLE.COM")).toBe("test@example.com")
-    }),
-      it("aceita email com ponto", () => {
-        expect(validators.email("user.name@example.com")).toBe("user.name@example.com")
-      }))
+    })
+
+    it("aceita email com ponto", () => {
+      expect(validators.email("user.name@example.com")).toBe("user.name@example.com")
+    })
+
+    it("remove espaços nas pontas antes de validar", () => {
+      expect(validators.email("  Joao@Email.com ")).toBe("joao@email.com")
+    })
+
+    it("lança erro para valor que não é string", () => {
+      expect(() => validators.email(12345)).toThrow("E-mail inválido")
+      expect(() => validators.email(null)).toThrow("E-mail inválido")
+    })
 
     it("aceita email com mais sinal", () => {
       expect(validators.email("user+tag@example.com")).toBe("user+tag@example.com")

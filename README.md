@@ -182,7 +182,7 @@ arquivos abaixo, em Markdown.
 | [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
 | [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
 | [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 96,90%, evolução por rodada e mutantes aceitos         |
+| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,10%, evolução por rodada e mutantes aceitos         |
 | [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
