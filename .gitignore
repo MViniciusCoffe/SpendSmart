@@ -26,9 +26,11 @@ next-env.d.ts
 *.bak
 *.tmp
 
-# Local database files (do not version)
-
 # Contexto local de agente (nao versionado por decisao do projeto)
 AGENTS.md
 CLAUDE.md
 .claude/
+
+# stryker
+/reports
+.stryker-tmp
