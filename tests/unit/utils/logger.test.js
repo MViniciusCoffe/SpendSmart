@@ -46,6 +46,13 @@ describe("logger", () => {
 
       expect(console.error).toHaveBeenCalledWith(expect.not.stringContaining('"code"'))
     })
+
+    it("não quebra quando o erro vem nulo", () => {
+      process.env.NODE_ENV = "development"
+
+      expect(() => logger.error("ctx", null)).not.toThrow()
+      expect(console.error).toHaveBeenCalledWith(JSON.stringify({ ctx: "ctx" }))
+    })
   })
 
   describe("warn", () => {
