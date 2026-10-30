@@ -215,7 +215,7 @@ npm run next:dev
 - **Mutação:** leva alguns minutos. Abra `reports/mutation/mutation.html` no navegador. Resultados e
   mutantes aceitos em [mutation-testing.md](mutation-testing.md).
 - **RLS:** sem o Supabase local, os testes de `tests/integration/supabase/` não têm contra o que
-  rodar. Não teste isolamento contra Postgres puro: dá falso positivo.
+  rodar. No CI, o job `rls` do `test.yml` sobe a stack e os executa. Não teste isolamento contra Postgres puro: dá falso positivo.
 
 ---
 
@@ -239,12 +239,12 @@ Antes de abrir um PR, rode: `npm test`, `npm run test:integration`, `npm run lin
 
 Os workflows de `.github/workflows/` rodam no GitHub Actions, sem configuração local:
 
-| Workflow       | Quando roda                              | O que faz                                            |
-| :------------- | :--------------------------------------- | :--------------------------------------------------- |
-| `test.yml`     | Push e PR                                | `npm run test:coverage` + `npm run test:integration` |
-| `lint.yml`     | Push e PR                                | ESLint + Prettier                                    |
-| `sonar.yml`    | Push na `main` e PR                      | Cobertura + análise no SonarQube do LABENS           |
-| `mutation.yml` | PR que altera services/testes, ou manual | Stryker com mínimo de 85%; relatório como artefato   |
+| Workflow       | Quando roda                              | O que faz                                                                                                                        |
+| :------------- | :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `test.yml`     | Push e PR                                | `npm run test:coverage` + `npm run test:integration`; job `rls` sobe o Supabase local e roda `npm run test:integration:supabase` |
+| `lint.yml`     | Push e PR                                | ESLint + Prettier                                                                                                                |
+| `sonar.yml`    | Push na `main` e PR                      | Cobertura + análise no SonarQube do LABENS                                                                                       |
+| `mutation.yml` | PR que altera services/testes, ou manual | Stryker com mínimo de 85%; relatório como artefato                                                                               |
 
 Painel do SonarQube: <https://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart>. Detalhes em
 [sonarqube.md](sonarqube.md).

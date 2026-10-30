@@ -137,7 +137,7 @@ A separação de responsabilidades adotada:
 | Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                |
 | `npm test`                                  | **Passa** — 188/188                                                                                  |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                 |
-| CI no GitHub Actions                        | **3 workflows** — `test.yml`, `lint.yml`, `sonar.yml`                                                |
+| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`               |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)   |
 | Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)              |
 | Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                               |
