@@ -293,4 +293,44 @@ describe("validators", () => {
       expect(() => validators.cor("#gggggg")).toThrow("Cor inválida: use formato #RRGGBB")
     })
   })
+
+  // Casos de borda apontados pelos testes de mutação (#60)
+  describe("bordas apontadas pelos testes de mutação", () => {
+    it("data e dataNascimento exigem o formato completo, sem texto antes ou depois", () => {
+      expect(() => validators.data("x2024-01-15")).toThrow("Data inválida: use formato YYYY-MM-DD")
+      expect(() => validators.data("2024-01-15x")).toThrow("Data inválida: use formato YYYY-MM-DD")
+    })
+
+    it("recusa ano com menos de 4 dígitos significativos que o Date desloca para 19xx", () => {
+      // new Date(50, 0, 1) vira 1950-01-01: só a checagem do ano detecta
+      expect(() => validators.data("0050-01-01")).toThrow(TypeError)
+    })
+
+    it("usa a mensagem exata de data inexistente", () => {
+      expect(() => validators.data("2024-02-30")).toThrow(new TypeError("Data inválida"))
+      expect(() => validators.dataNascimento("1990-02-30")).toThrow(
+        new TypeError("Data de nascimento inválida")
+      )
+    })
+
+    it("email recusa texto antes ou depois do endereço", () => {
+      expect(() => validators.email("joao silva@email.com")).toThrow("E-mail inválido")
+      expect(() => validators.email("joao@email.com x")).toThrow("E-mail inválido")
+    })
+
+    it("telefone aceita exatamente 10 dígitos (fixo com DDD)", () => {
+      expect(validators.telefone("(84) 3215-3000")).toBe("8432153000")
+    })
+
+    it("dataNascimento aceita as idades limite de 13 e 120 anos", () => {
+      const ano = new Date().getFullYear()
+      expect(validators.dataNascimento(`${ano - 13}-01-01`)).toBe(`${ano - 13}-01-01`)
+      expect(validators.dataNascimento(`${ano - 120}-01-01`)).toBe(`${ano - 120}-01-01`)
+    })
+
+    it("cor recusa texto antes ou depois do #RRGGBB", () => {
+      expect(() => validators.cor("x#FF0000")).toThrow("Cor inválida: use formato #RRGGBB")
+      expect(() => validators.cor("#FF0000x")).toThrow("Cor inválida: use formato #RRGGBB")
+    })
+  })
 })

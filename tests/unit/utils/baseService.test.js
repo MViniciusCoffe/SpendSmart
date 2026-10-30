@@ -7,6 +7,7 @@ jest.mock("@/lib/supabase", () => ({
 }))
 
 import { supabase } from "@/lib/supabase"
+import { logger } from "@/services/utils/logger"
 import {
   obterSessao,
   clearSessionCache,
@@ -126,6 +127,7 @@ describe("baseService", () => {
       const contexto = "createCategory"
 
       expect(() => handleSupabaseError(error, mensagens, contexto)).toThrow("Já existe")
+      expect(logger.error).toHaveBeenCalledWith("createCategory", error)
     })
   })
 
@@ -203,6 +205,43 @@ describe("baseService", () => {
       const session = await obterSessao()
 
       expect(session.user.id).toBe("u2")
+    })
+  })
+
+  // Expiração do cache de sessão (5 min), apontada pelos testes de mutação (#60)
+  describe("expiração do cache de sessão", () => {
+    const CINCO_MINUTOS = 5 * 60 * 1000
+    const inicio = 1_000_000
+
+    beforeEach(() => {
+      supabase.auth.getSession.mockResolvedValue({
+        data: { session: { user: { id: "u1" } } },
+        error: null
+      })
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it("reaproveita a sessão até 1 ms antes de completar 5 minutos", async () => {
+      const agora = jest.spyOn(Date, "now").mockReturnValue(inicio)
+      await obterSessao()
+
+      agora.mockReturnValue(inicio + CINCO_MINUTOS - 1)
+      await obterSessao()
+
+      expect(supabase.auth.getSession).toHaveBeenCalledTimes(1)
+    })
+
+    it("busca a sessão de novo ao completar 5 minutos", async () => {
+      const agora = jest.spyOn(Date, "now").mockReturnValue(inicio)
+      await obterSessao()
+
+      agora.mockReturnValue(inicio + CINCO_MINUTOS)
+      await obterSessao()
+
+      expect(supabase.auth.getSession).toHaveBeenCalledTimes(2)
     })
   })
 })

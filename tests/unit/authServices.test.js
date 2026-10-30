@@ -298,3 +298,50 @@ describe("logoutUser", () => {
     await expect(authService.logoutUser()).rejects.toThrow("Erro ao sair. Tente novamente.")
   })
 })
+
+// Argumentos enviados ao Supabase Auth e ao /api/createProfile (testes de mutação, #60)
+describe("argumentos enviados pelo authService", () => {
+  it("registerUser repassa e-mail e senha ao signUp e envia o corpo como JSON", async () => {
+    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
+
+    await authService.registerUser({ email: "joao@email.com", password: "senha123" })
+
+    expect(supabase.auth.signUp).toHaveBeenCalledWith({
+      email: "joao@email.com",
+      password: "senha123"
+    })
+    const [, opcoes] = global.fetch.mock.calls[0]
+    expect(opcoes.headers["Content-Type"]).toBe("application/json")
+  })
+
+  it("loginUser repassa e-mail e senha ao signInWithPassword", async () => {
+    supabase.auth.signInWithPassword.mockResolvedValue({ data: { user: usuario }, error: null })
+
+    await authService.loginUser({ email: "joao@email.com", password: "senha123" })
+
+    expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: "joao@email.com",
+      password: "senha123"
+    })
+  })
+
+  it("loginUser só registra no console os erros sem mensagem amigável específica", async () => {
+    supabase.auth.signInWithPassword.mockResolvedValue({
+      data: null,
+      error: { message: "Invalid login credentials" }
+    })
+    await expect(
+      authService.loginUser({ email: "joao@email.com", password: "errada" })
+    ).rejects.toThrow()
+    expect(console.error).not.toHaveBeenCalled()
+
+    supabase.auth.signInWithPassword.mockResolvedValue({
+      data: null,
+      error: { message: "connection failure", status: 500 }
+    })
+    await expect(
+      authService.loginUser({ email: "joao@email.com", password: "senha123" })
+    ).rejects.toThrow()
+    expect(console.error).toHaveBeenCalledWith("[Supabase Login Error]:", "connection failure")
+  })
+})

@@ -473,3 +473,60 @@ describe("restoreCategory", () => {
     )
   })
 })
+
+// Argumentos das queries: garantem o filtro por usuário e o soft delete além do RLS (testes de mutação, #60)
+describe("argumentos das queries de categoria", () => {
+  it("getCategories por padrão seleciona campos explícitos e ignora as deletadas", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: [], error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await categoryService.getCategories()
+
+    expect(builder.select).toHaveBeenCalledWith("id,name,type,description,color,deleted_at")
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
+  })
+
+  it("updateCategory atualiza a tabela categories apenas do usuario da sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: linhaCategoria(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await categoryService.updateCategory({
+      id: 1,
+      name: "Alimentacao",
+      type: "expense",
+      description: "Mercado",
+      color: "#FF0000"
+    })
+
+    expect(supabase.from).toHaveBeenCalledWith("categories")
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+  })
+
+  it("deleteCategory faz soft delete só em categoria ativa do usuario da sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await categoryService.deleteCategory(1)
+
+    expect(supabase.from).toHaveBeenCalledWith("categories")
+    expect(builder.delete).not.toHaveBeenCalled()
+    expect(builder.update).toHaveBeenCalledWith({ deleted_at: expect.any(String) })
+    expect(Number.isNaN(Date.parse(builder.update.mock.calls[0][0].deleted_at))).toBe(false)
+    expect(builder.eq).toHaveBeenCalledWith("id", 1)
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
+  })
+
+  it("restoreCategory devolve os campos explícitos da categoria", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    const builder = criarBuilder({ data: linhaCategoria(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await categoryService.restoreCategory(1)
+
+    expect(builder.select).toHaveBeenCalledWith("id,name,type,description,color,deleted_at")
+  })
+})

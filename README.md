@@ -317,6 +317,7 @@ arquivos abaixo, em Markdown.
 | [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
 | [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
 | [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
+| [Testes de mutação](docs/mutation-testing.md)                      | Stryker em `services/`: score 96,90%, evolução por rodada e mutantes aceitos         |
 | [Estado atual dos testes](docs/test-state-report.md)               | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
@@ -359,6 +360,7 @@ arquivos abaixo, em Markdown.
 | `npm run test`             | `jest tests/unit`                  | Testes unitários                           |
 | `npm run test:integration` | `jest integration`                 | Integração pg-mem                          |
 | `npm run test:all`         | unit + pg-mem + regressão + RLS    | Todos os testes                            |
+| `npm run test:mutation`    | `stryker run`                      | Testes de mutação em `services/`           |
 
 ---
 

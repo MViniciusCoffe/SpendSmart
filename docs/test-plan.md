@@ -109,6 +109,21 @@ em `transactionService`.
 apenas `src/services/categoriaService.js`, que é código morto e não é importado por nenhuma página.
 Ver issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26).
 
+### 2.1.1 Testes de mutação
+
+A cobertura de 100% em `services/` mostra que as linhas são executadas, não que os testes detectam
+defeitos. Para medir a eficácia da suíte unitária, o Stryker gera mutantes de `src/services/` e
+verifica se algum teste falha com cada um.
+
+| Item            | Valor                                                                                       |
+| :-------------- | :------------------------------------------------------------------------------------------ |
+| Comando         | `npm run test:mutation`                                                                     |
+| Escopo          | `src/services/**/*.js`, executando só o project `unit` do Jest                              |
+| Meta            | Mutation score ≥ 85% (`break` do `stryker.conf.json`: abaixo disso o comando e o CI falham) |
+| Resultado atual | **96,90%** (531 mortos, 17 sobreviventes aceitos e justificados)                            |
+
+Resultados por rodada, mutantes aceitos e justificativas em [mutation-testing.md](mutation-testing.md).
+
 ### 2.2 Testes de integração
 
 **Alvo:** a fronteira entre rota serverless e banco, e a aplicação do RLS.
@@ -267,19 +282,20 @@ A separação é em dois níveis, porque nem toda verificação precisa de Auth:
 
 ## 8. Ferramentas
 
-| Categoria            | Ferramenta                                               | Uso                                                                                                         |
-| :------------------- | :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| Testes unitários     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                        |
-| Transformação        | `babel-jest` com `preset-env` inline no `jest.config.js` | Converte ESM. Não existe `babel.config.js` no repositório, de propósito                                     |
-| Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                       |
-| Testes de integração | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                               |
-| Gestão de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                                                                |
-| Lint                 | ESLint 9, flat config                                    | `eslint.config.js`. Erro e aviso                                                                            |
-| Formatação           | Prettier 3                                               | Arquivos de staged, via `lint-staged` no `pre-commit`                                                       |
-| Padrão de commit     | Commitlint + Husky                                       | Conventional Commits                                                                                        |
-| Análise estática     | SonarQube Community Build (LABENS), projeto `spendsmart` | Análise, cobertura LCOV e code smells — ver [sonarqube.md](sonarqube.md)                                    |
-| Execução contínua    | GitHub Actions                                           | `install` -> `test` -> `coverage` -> `sonar`. Três workflows separados: `lint.yml`, `test.yml`, `sonar.yml` |
-| Banco                | PostgreSQL 16                                            | Persistência e verificação de constraints                                                                   |
+| Categoria            | Ferramenta                                               | Uso                                                                                                          |
+| :------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| Testes unitários     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                         |
+| Transformação        | `babel-jest` com `babel.config.js`                       | Converte ESM e JSX e resolve os aliases `@/...` (`babel-plugin-module-resolver`)                             |
+| Testes de mutação    | Stryker 10 (`npm run test:mutation`)                     | Score 96,90% em `services/` — ver [mutation-testing.md](mutation-testing.md)                                 |
+| Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                        |
+| Testes de integração | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                                |
+| Gestão de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                                                                 |
+| Lint                 | ESLint 9, flat config                                    | `eslint.config.js`. Erro e aviso                                                                             |
+| Formatação           | Prettier 3                                               | Arquivos de staged, via `lint-staged` no `pre-commit`                                                        |
+| Padrão de commit     | Commitlint + Husky                                       | Conventional Commits                                                                                         |
+| Análise estática     | SonarQube Community Build (LABENS), projeto `spendsmart` | Análise, cobertura LCOV e code smells — ver [sonarqube.md](sonarqube.md)                                     |
+| Execução contínua    | GitHub Actions                                           | `install` -> `test` -> `coverage` -> `sonar`. Workflows `lint.yml`, `test.yml`, `sonar.yml` e `mutation.yml` |
+| Banco                | PostgreSQL 16                                            | Persistência e verificação de constraints                                                                    |
 
 **Por que o ESLint está na série 9 e não na 10.** O `typescript-eslint@8.70.1` que vem no
 `eslint-config-next` não implementa `scopeManager.addGlobals`, exigido pelo ESLint 10. Como o

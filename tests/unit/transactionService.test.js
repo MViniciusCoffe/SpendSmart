@@ -88,6 +88,21 @@ describe("getTransactions", () => {
 
     expect(supabase.from).toHaveBeenCalledWith("transactions")
   })
+
+  it("seleciona campos explícitos, filtra pelo user_id da sessao e ignora as excluidas", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ data: [], error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await transactionService.getTransactions()
+
+    expect(builder.select).toHaveBeenCalledWith(
+      "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+    )
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
+  })
 })
 
 // Testes para o método createTransaction do serviço de transação
@@ -286,6 +301,24 @@ describe("updateTransaction", () => {
     expect(resultado).toEqual(dtoTransacao({ title: "Novo" }))
   })
 
+  it("atualiza a tabela transactions apenas do usuario da sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await transactionService.updateTransaction({
+      id: 1,
+      title: "Aluguel",
+      amount: 1500,
+      type: "expense",
+      category_id: 7
+    })
+
+    expect(supabase.from).toHaveBeenCalledWith("transactions")
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+  })
+
   it("traduz 23503 em categoria inexistente", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
@@ -341,6 +374,22 @@ describe("deleteTransaction", () => {
 
     await expect(transactionService.deleteTransaction(1)).resolves.toBe(true)
     expect(builder.eq).toHaveBeenCalledWith("id", 1)
+  })
+
+  it("faz soft delete: marca deleted_at só em transação ativa do usuario da sessao", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await transactionService.deleteTransaction(1)
+
+    expect(supabase.from).toHaveBeenCalledWith("transactions")
+    expect(builder.delete).not.toHaveBeenCalled()
+    expect(builder.update).toHaveBeenCalledWith({ deleted_at: expect.any(String) })
+    expect(Number.isNaN(Date.parse(builder.update.mock.calls[0][0].deleted_at))).toBe(false)
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
   })
 
   it("traduz erro genérico quando não há branch específico", async () => {
