@@ -109,6 +109,21 @@ em `transactionService`.
 apenas `src/services/categoriaService.js`, que é código morto e não é importado por nenhuma página.
 Ver issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26).
 
+### 2.1.1 Testes de mutação
+
+A cobertura de 100% em `services/` mostra que as linhas são executadas, não que os testes detectam
+defeitos. Para medir a eficácia da suíte unitária, o Stryker gera mutantes de `src/services/` e
+verifica se algum teste falha com cada um.
+
+| Item            | Valor                                                            |
+| :-------------- | :--------------------------------------------------------------- |
+| Comando         | `npm run test:mutation`                                          |
+| Escopo          | `src/services/**/*.js`, executando só o project `unit` do Jest   |
+| Meta            | Mutation score ≥ 80% (limiar `high` do `stryker.conf.json`)      |
+| Resultado atual | **96,90%** (531 mortos, 17 sobreviventes aceitos e justificados) |
+
+Resultados por rodada, mutantes aceitos e justificativas em [mutation-testing.md](mutation-testing.md).
+
 ### 2.2 Testes de integração
 
 **Alvo:** a fronteira entre rota serverless e banco, e a aplicação do RLS.
@@ -270,7 +285,8 @@ A separação é em dois níveis, porque nem toda verificação precisa de Auth:
 | Categoria            | Ferramenta                                               | Uso                                                                                                         |
 | :------------------- | :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
 | Testes unitários     | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                        |
-| Transformação        | `babel-jest` com `preset-env` inline no `jest.config.js` | Converte ESM. Não existe `babel.config.js` no repositório, de propósito                                     |
+| Transformação        | `babel-jest` com `babel.config.js`                       | Converte ESM e JSX e resolve os aliases `@/...` (`babel-plugin-module-resolver`)                            |
+| Testes de mutação    | Stryker 10 (`npm run test:mutation`)                     | Score 96,90% em `services/` — ver [mutation-testing.md](mutation-testing.md)                                |
 | Cobertura            | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                       |
 | Testes de integração | Jest + Postgres 16 e stack local do Supabase             | IT-01 a IT-10                                                                                               |
 | Gestão de casos      | GitHub Issues                                            | Rastreabilidade US / CT / RF                                                                                |
