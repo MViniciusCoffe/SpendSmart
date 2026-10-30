@@ -40,7 +40,7 @@ uma regex, trocar uma condição por `true`/`false`.
 | Escopo mutado     | `src/services/**/*.js` (mesmo escopo da cobertura e do SonarQube)                      |
 | Testes executados | Só o project `unit` do Jest, via [`jest.stryker.config.js`](../jest.stryker.config.js) |
 | Análise           | `coverageAnalysis: "perTest"`: cada mutante roda só os testes que cobrem a linha       |
-| Limiares          | `high: 80`, `low: 60`, `break: null` (não quebra o build)                              |
+| Limiares          | `high: 90`, `low: 85`, `break: 85`: abaixo de 85% o comando falha (local e CI)         |
 | Relatórios        | `reports/mutation/mutation.html` e `reports/mutation/mutation.json` (fora do git)      |
 
 **Por que só o project `unit`.** As suítes de integração dependem de Postgres ou da stack local do
@@ -63,6 +63,20 @@ alguns minutos. Ao final:
 - `reports/mutation/mutation.html` abre no navegador com cada mutante, o diff e os testes que o
   cobrem;
 - `reports/mutation/mutation.json` traz os mesmos dados em formato de máquina.
+
+Se o score ficar abaixo de 85% (`break`), o comando termina com erro.
+
+### 3.1 Integração contínua
+
+O workflow [`mutation.yml`](../.github/workflows/mutation.yml) roda o Stryker no GitHub Actions:
+
+- em todo pull request que altere `src/services/`, `tests/unit/`, `tests/helpers/` ou a configuração
+  do Stryker;
+- manualmente, pela aba **Actions → Testes de Mutação → Run workflow**.
+
+O job falha se o score cair abaixo de 85%. O relatório HTML e JSON fica disponível como artefato
+`relatorio-mutacao` em cada execução ([histórico de execuções](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/mutation.yml)),
+o que permite conferir o score sem rodar nada localmente.
 
 ---
 
