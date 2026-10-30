@@ -30,162 +30,27 @@ Um backend Node.js/Express existiu até o commit `2599ad9` e foi removido; o fro
 
 ## Como executar
 
-### Pré-requisitos
+O passo a passo completo (pré-requisitos e instalação do Docker e do Supabase CLI, variáveis de
+ambiente, todas as suítes de teste, problemas comuns) está no
+**[Manual de execução](docs/execution-manual.md)**.
 
-| Ferramenta       | Versão mínima   | Como instalar                                         |
-| ---------------- | --------------- | ----------------------------------------------------- |
-| **Node.js**      | `>=24.11.0`     | [nodejs.org](https://nodejs.org/) ou `nvm install 24` |
-| **npm**          | Vem com Node.js | `npm --version`                                       |
-| **Docker**       | 24+             | Ver abaixo                                            |
-| **Supabase CLI** | 1.x             | Ver abaixo                                            |
-
-#### Instalando o Docker
-
-**Docker Desktop (macOS / Windows / Linux com GUI):**
-
-```bash
-# macOS (Homebrew)
-brew install --cask docker
-
-# Windows (Chocolatey)
-choco install docker-desktop
-
-# Windows (Scoop)
-scoop install docker
-
-# Linux (.deb/.rpm)
-# Baixe em https://docs.docker.com/desktop/install/linux/
-```
-
-**Docker Engine (Linux servidor, sem GUI):**
-
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y docker.io docker-compose-plugin
-sudo usermod -aG docker $USER
-# Reinicie a sessão ou: newgrp docker
-
-# Fedora/RHEL/CentOS
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-
-# Arch Linux
-sudo pacman -Syu
-sudo pacman -S docker docker-compose
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-```
-
-**Via script oficial (qualquer Linux):**
-
-```bash
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-# Reinicie a sessão
-```
-
-> **Verifique a instalação:**
->
-> ```bash
-> docker --version
-> docker compose version
-> # Exemplo: Docker version 27.0.0, build xxx
-> # Exemplo: Docker Compose version v2.29.0
-> ```
-
-> **Importante:** O usuário precisa estar no grupo `docker` para rodar sem `sudo`. Após instalar, **reinicie o terminal/sessão** ou rode `newgrp docker`.
-
----
-
-#### Instalando o Supabase CLI
-
-**macOS (Homebrew):**
-
-```bash
-brew install supabase/tap/supabase
-```
-
-**Linux (binário standalone):**
-
-```bash
-curl -fsSL https://supabase.com/install.sh | sh
-# ou baixe o .tar.gz de https://github.com/supabase/cli/releases
-```
-
-**Windows (Scoop):**
-
-```bash
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-```
-
-**Windows (Chocolatey):**
-
-```bash
-choco install supabase
-```
-
-**Via npm (qualquer SO com Node.js):**
-
-```bash
-npm install -g supabase
-# ou use npx supabase (sem instalação global)
-```
-
-> **Verifique a instalação:**
->
-> ```bash
-> supabase --version
-> # Exemplo: supabase version 1.187.0
-> ```
-
----
-
-### 🚀 Quickstart — Desenvolvimento local (recomendado)
-
-Com Supabase CLI local (Postgres + Auth + RLS + Studio):
+Resumo, com Node.js 24+, Docker e Supabase CLI instalados:
 
 ```bash
 npm install
-supabase start                    # sobe stack local completa
-cp .env.local.example .env.local  # edite colando as chaves do output do 'supabase status'
-npm run dev                       # verifica saúde do Supabase, sobe se necessário, inicia Next.js
+supabase start                    # sobe Postgres + Auth + RLS + Studio locais
+cp .env.local.example .env.local  # preencha com as chaves de 'npm run infra:status'
+npm run dev                       # aguarda o Supabase ficar saudável e inicia o Next.js
 ```
 
-> **O novo `npm run dev`** verifica se o Supabase já está healthy via `supabase status`/`docker ps`. Se já estiver rodando, pula o `supabase start` e inicia direto o Next.js. Se não estiver, sobe a infra e aguarda health check.
-
-O Next.js responde em `http://localhost:3000` contra o banco local **com RLS real apenas quando se usa o Supabase CLI** (`supabase start`, que inclui Auth). Com Postgres puro (Docker Compose sem Supabase CLI) não há RLS nem Auth.
-
-### 📋 Variáveis de ambiente local
-
-| Arquivo            | Para que serve                         | Precisa preencher?                    |
-| ------------------ | -------------------------------------- | ------------------------------------- |
-| `.env.local`       | Supabase CLI local (padrão)            | **Sim** — chaves do `supabase status` |
-| `.env.development` | Docker Compose Postgres puro (sem RLS) | Só se usar fluxo alternativo          |
-
-> **Prioridade Next.js:** `.env.local` > `.env.development` > `.env`. Se `.env.local` existe, o `.env.development` é ignorado.
-
-### Fluxo alternativo — só Postgres puro (sem RLS, sem Auth)
+A aplicação responde em `http://localhost:3000`. Para os testes:
 
 ```bash
-npm install
-cp .env.development.example .env.development
-# edite .env.development com credenciais do Postgres local
-npm run services:up
-npm run services:wait:database
-npm run migrations:up
-npm run next:dev
+npm test                  # unidade (só Node.js)
+npm run test:coverage     # unidade + cobertura
+npm run test:integration  # integração com pg-mem (só Node.js)
+npm run test:mutation     # testes de mutação (Stryker)
 ```
-
-> **Atenção:** sem Supabase CLI, **não há RLS nem Auth**. Use só para validar constraints/índices.
-
-### Atenção ao `npm run dev` antigo
-
-O comando `npm run dev` **era perigoso** — aplicava migrations no banco remoto. Foi substituído pelo novo `dev` que usa Supabase CLI local. O fluxo antigo foi removido.
-
----
 
 ### Credenciais Supabase
 
@@ -311,14 +176,14 @@ arquivos abaixo, em Markdown.
 
 ### Requisitos e testes
 
-| Documento                                                          | Conteúdo                                                                             |
-| :----------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| [Documento de Visão](docs/vision.md)                               | Escopo, personas, RF01-RF16, RNF01-RNF07, riscos e equipe                            |
-| [User Stories](docs/user-stories.md)                               | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
-| [Plano de testes](docs/test-plan.md)                               | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
-| [Plano de teste das iterações 1 e 2](docs/test-plan-iterations.md) | 17 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Testes de mutação](docs/mutation-testing.md)                      | Stryker em `services/`: score 96,90%, evolução por rodada e mutantes aceitos         |
-| [Estado atual dos testes](docs/test-state-report.md)               | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
+| Documento                                                             | Conteúdo                                                                             |
+| :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| [Documento de Visão](docs/vision.md)                                  | Escopo, personas, RF01-RF16, RNF01-RNF07, riscos e equipe                            |
+| [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
+| [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
+| [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
+| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 96,90%, evolução por rodada e mutantes aceitos         |
+| [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
 
@@ -338,11 +203,12 @@ arquivos abaixo, em Markdown.
 
 ### Operação
 
-| Documento                                           | Conteúdo                                                                     |
-| :-------------------------------------------------- | :--------------------------------------------------------------------------- |
-| [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                  |
-| [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências |
-| [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar    |
+| Documento                                           | Conteúdo                                                                      |
+| :-------------------------------------------------- | :---------------------------------------------------------------------------- |
+| [Manual de execução](docs/execution-manual.md)      | Instalação, configuração, execução da aplicação e de todas as suítes de teste |
+| [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                   |
+| [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
+| [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
 
 ## Scripts principais
 
