@@ -40,7 +40,7 @@ Resumo, com Node.js 24+, Docker e Supabase CLI instalados:
 npm install
 supabase start                    # sobe Postgres + Auth + RLS + Studio locais
 cp .env.local.example .env.local  # preencha com as chaves de 'npm run infra:status'
-npm run dev                       # aguarda o Supabase ficar saudável e inicia o Next.js
+npm run dev                       # verifica/sobe a infra e inicia o Next.js
 ```
 
 A aplicação responde em `http://localhost:3000`. Para os testes:
@@ -131,11 +131,11 @@ A separação de responsabilidades adotada:
 | Dashboard com gráficos                      | Funcionando                                                                                          |
 | Excluir conta                               | Funcionando                                                                                          |
 | Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                  |
-| Testes de unidade                           | **188 testes, 100% de linhas, ramos e funções em `src/services/`**                                   |
+| Testes de unidade                           | **210 testes, 100% de linhas, ramos e funções em `src/services/`**                                   |
 | Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                 |
-| Testes de integração (Supabase/RLS)         | **1 suíte, 17 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários |
+| Testes de integração (Supabase/RLS)         | **1 suíte, 12 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários |
 | Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                |
-| `npm test`                                  | **Passa** — 188/188                                                                                  |
+| `npm test`                                  | **Passa** — 210/210                                                                                  |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                 |
 | CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`               |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)   |
@@ -161,8 +161,9 @@ As políticas só são criadas quando `auth.users` existe
 (`supabase/migrations/1790304277000_create_financial_schema.sql:58`). No
 PostgreSQL local (Docker Compose) essa tabela não existe, portanto **o RLS não é aplicado ali**.
 Com **Supabase CLI** (`supabase start`), o RLS é real e o isolamento entre dois usuários **é testado**
-em `tests/integration/supabase/rls.test.js` (17 testes cobrindo leitura/escrita cross-user).
-O teste requer `.env.local` preenchido e `supabase start` rodando — não roda no CI GitHub Actions.
+em `tests/integration/supabase/rls.test.js` (12 testes cobrindo leitura/escrita cross-user).
+O teste requer `.env.local` preenchido e `supabase start` rodando; no CI, o job `rls` do `test.yml`
+executa a suíte contra o Supabase local.
 
 ---
 
@@ -212,21 +213,21 @@ arquivos abaixo, em Markdown.
 
 ## Scripts principais
 
-| Script                     | Comando                            | Quando usar                                |
-| -------------------------- | ---------------------------------- | ------------------------------------------ |
-| `npm run dev`              | `concurrently infra:up + next:dev` | **Padrão** — desenvolvimento diário        |
-| `npm run infra:up`         | `supabase start`                   | Só sobe infra (já tem `.env.local`)        |
-| `npm run next:dev`         | `next dev`                         | Next.js só (infra já rodando)              |
-| `npm run infra:down`       | `supabase stop`                    | Para infra                                 |
-| `npm run infra:reset`      | `supabase db reset`                | Recria banco + migrations                  |
-| `npm run infra:studio`     | `supabase studio`                  | Abre dashboard local                       |
-| `npm run infra:status`     | `supabase status`                  | Mostra URLs e chaves                       |
-| `npm run services:up`      | `docker compose up -d`             | Postgres puro (sem RLS)                    |
-| `npm run migrations:up`    | `node-pg-migrate up`               | Aplica migrations (usa `.env.development`) |
-| `npm run test`             | `jest tests/unit`                  | Testes unitários                           |
-| `npm run test:integration` | `jest integration`                 | Integração pg-mem                          |
-| `npm run test:all`         | unit + pg-mem + regressão + RLS    | Todos os testes                            |
-| `npm run test:mutation`    | `stryker run`                      | Testes de mutação em `services/`           |
+| Script                     | Comando                                       | Quando usar                                          |
+| -------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| `npm run dev`              | `node scripts/dev.js`                         | **Padrão** — sobe a infra se preciso e inicia o Next |
+| `npm run infra:up`         | `supabase start`                              | Só sobe infra (já tem `.env.local`)                  |
+| `npm run next:dev`         | `next dev`                                    | Next.js só (infra já rodando)                        |
+| `npm run infra:down`       | `supabase stop`                               | Para infra                                           |
+| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations                            |
+| `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                 |
+| `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                 |
+| `npm run services:up`      | `docker compose up -d`                        | Postgres puro (sem RLS)                              |
+| `npm run migrations:up`    | `node-pg-migrate up`                          | Aplica migrations (usa `.env.development`)           |
+| `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
+| `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
+| `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
+| `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                     |
 
 ---
 
@@ -234,14 +235,13 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                          | Bloqueia |
-| :------------------------------------------------------------ | :------------------------------- | :------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers   | —        |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes                | —        |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end           | —        |
-| [#30](https://github.com/MViniciusCoffe/SpendSmart/issues/30) | Isolamento por RLS (teste em CI) | #20      |
+| #                                                             | Assunto                        | Bloqueia |
+| :------------------------------------------------------------ | :----------------------------- | :------- |
+| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
+| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
 
-Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #31.
+Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.
 Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.
 
 ---
