@@ -600,6 +600,8 @@ risco de corrupção, Preview deployments com acesso de serviço ao banco real.
 
 ## 22. Scripts de desenvolvimento reorganizados
 
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
+
 **Decisão.** Scripts `npm` organizados em dois mundos separados, com `dev` como comando principal.
 
 | Mundo               | Scripts                                                                        | Variáveis          | Uso             |
@@ -651,6 +653,8 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 
 ## 24. `.env.local` como padrão de desenvolvimento
 
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
+
 **Decisão.** `.env.local` (Supabase CLI) tem prioridade sobre `.env.development` (Docker Compose) no Next.js.
 
 **Por que.** Next.js carrega `.env.local` com prioridade máxima. Permite:
@@ -671,6 +675,8 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 ---
 
 ## 25. Migrations em SQL para Supabase CLI
+
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
 
 **Decisão.** Migrations novas usam formato `.sql` (padrão Supabase CLI) em vez de `.js` (node-pg-migrate).
 
@@ -747,7 +753,7 @@ services/
 scripts/
 ├── check-agents.js       # Validador de regras do AGENTS.md (CI + pre-commit)
 ├── dev.js                # Orquestrador principal: npm run dev
-└── wait-for-postgres.js  # Helper: npm run services:wait:database
+└── wait-for-postgres.js  # Helper: npm run services:wait:database (removido na entrada 28)
 ```
 
 **Por que.**
@@ -760,7 +766,7 @@ scripts/
 
 3. **Descoberta:** `npm run` lista tudo que está em `scripts/` implicitamente. `infra/scripts/` não aparece.
 
-**O que aconteceu com `wait-for-postgres.js`:**
+**O que aconteceu com `wait-for-postgres.js`** (removido na entrada 28: `services:up` passou a usar `docker compose up --wait`):
 
 - **Mantido** em `scripts/wait-for-postgres.js`
 - **Ainda útil:** É o health check do fluxo **Docker Compose fallback** (`services:wait:database` → `npm run migrations:up`)
@@ -800,3 +806,58 @@ código de aplicação, e os aliases `@/services/...` do `jsconfig.json` já apo
 
 **Condição para rever.** Se o front-end entrar no escopo do Sonar (issue #33), acrescentar
 `src/app` e `src/components` em `sonar.sources` num commit próprio, como descrito na entrada 19.
+
+---
+
+## 28. Ambientes separados e Supabase CLI como única ferramenta de migration
+
+**Decisão.** Três bancos — Supabase CLI local, projeto Supabase de Preview, projeto Supabase de
+Produção — e o Supabase CLI aplicando as migrations `.sql` em todos eles, por meio de
+`scripts/db-migrations.js` (`npm run migrations:list|push -- --target production|preview|docker`).
+Credenciais remotas ficam em `.env.production.remote` e `.env.preview.remote`, nomes que o Next.js
+não carrega. Não existe mais `.env.development`, `node-pg-migrate`, migration `.js` nem
+`scripts/wait-for-postgres.js`. Esta entrada substitui as entradas 22, 24 e 25. Detalhes em
+[environments.md](environments.md).
+
+**Por que.** Três defeitos verificados em 2026-11-04:
+
+- **A entrada 25 estava errada.** Ela dizia que o `node-pg-migrate` ignora `.sql`. A versão 8 executa
+  `.sql` (`dist/bundle/index.js`, `sqlMigration`). Com as duas versões de cada migration na mesma
+  pasta, `npm run migrations:up` rodava `001_create_financial_schema.js` (colunas em português) e em
+  seguida `1790304277000_create_financial_schema.sql`, que falhava com `relation "profiles" already
+exists` (42P07) e desfazia tudo. Verificado num banco descartável: **o fluxo node-pg-migrate não
+  aplicava nada.**
+- **`migrations:supabase:up` era idêntico a `migrations:up`**, e os dois liam `.env.development`. Quando
+  esse arquivo apontava para o Supabase remoto, todos os scripts de migration — inclusive
+  `migrations:down`, que revogaria os `GRANT`s — atingiam produção. Quando apontava para o Docker,
+  nenhum script atingia o remoto. Não havia caminho seguro e correto ao mesmo tempo.
+- **Um único projeto Supabase servia desenvolvimento, Preview e Produção** (issue #20), com a
+  `SUPABASE_SERVICE_ROLE_KEY` no escopo de Preview da Vercel: qualquer branch deste repositório
+  público gerava um endpoint com acesso de serviço ao banco real.
+
+O histórico de migrations do banco remoto antigo confirmava a deriva: a tabela `pgmigrations`
+registrava `001_...`, `rbac.js` e um `rename-profiles-columns-to-english.js` que nem existia mais no
+repositório, e o soft delete tinha sido aplicado sem registro em lugar nenhum.
+
+**Por que o Supabase CLI e não o node-pg-migrate.** O CLI já era quem aplicava as migrations no
+ambiente local (`supabase start`/`db reset`), e aceita `--db-url` para qualquer Postgres. Testado num
+PostgreSQL 16 puro descartável: as três migrations aplicam, o guard `to_regclass('auth.users')` pula
+RLS e `GRANT`s, e o histórico fica em `supabase_migrations.schema_migrations` — a mesma tabela em
+todos os ambientes. Manter o `node-pg-migrate` só para o Docker significaria uma segunda ferramenta
+executando os mesmos arquivos.
+
+**O que se perde.** O `down`. Migrations `.sql` do Supabase CLI não têm seção de reversão, e uma
+seção `-- Down Migration` seria executada como SQL comum pelo CLI. Desfazer uma mudança passa a ser
+uma migration nova.
+
+**Salvaguardas.** `--target` é obrigatório; `push` é dry-run sem `--apply`; o CLI ainda confirma
+`Y/n`; o `scripts/dev.js` recusa iniciar sem `.env.local` local ou com um `.env.development`
+presente.
+
+**Alternativa rejeitada.** Manter `node-pg-migrate` com um `.env` separado para o remoto (proposta
+original da issue #20). Resolveria o alvo errado, mas não a duplicação `.js`/`.sql`, e manteria duas
+tabelas de histórico divergindo. Também rejeitado: `supabase link` + `--linked`, que exige
+`supabase login` de cada pessoa que aplica migration; `--db-url` funciona só com o arquivo `.remote`.
+
+**Reavaliar quando.** O Supabase CLI ganhar suporte a migrations reversíveis, ou o projeto passar a
+precisar de um terceiro ambiente remoto (basta um novo `--target` e um novo `.env.<alvo>.remote`).

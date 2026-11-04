@@ -3,10 +3,14 @@
 Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
 As migrações correspondentes estão em `supabase/migrations/`:
 
-| Migration                               | O que faz                                                                                                                       |
-| :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `001_create_financial_schema.js`        | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS. |
-| `1790304277043_add-rbac-permissions.js` | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                               |
+| Migration                                                  | O que faz                                                                                                                       |
+| :--------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| `1790304277000_create_financial_schema.sql`                | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS. |
+| `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                               |
+| `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.         |
+
+Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
+[environments.md §5](environments.md#5-migrations).
 
 > A segunda migração só tem efeito no Supabase: como `auth.users` não existe no PostgreSQL
 > local, todo o seu corpo fica dentro de um `IF` que não é satisfeito. Ver §7.
@@ -222,7 +226,7 @@ create index transactions_category_idx on public.transactions (category_id);
 
 RLS significa _Row Level Security_ (Segurança em Nível de Linha). Com RLS, o banco aplica regras por linha e impede que um usuário leia ou altere registros de outro usuário.
 
-Políticas criadas em `001_create_financial_schema.js:118-120`:
+Políticas criadas em `1790304277000_create_financial_schema.sql`, dentro do bloco guardado por `auth.users`:
 
 ```sql
 profiles:     USING      (id = auth.uid()) WITH CHECK (id = auth.uid())
@@ -263,7 +267,7 @@ As pendências acima têm script pronto em [Future Migrations](future-migrations
 
 ## Ambiente local e Supabase
 
-O PostgreSQL local valida tabelas, restrições (_constraints_), índices e migrações. O Supabase adiciona `auth.users`, `auth.uid()`, RLS e os `GRANT` de `service_role` e `authenticated`. Por isso, as duas migrações verificam se `auth.users` existe antes de criar essas referências, usando o _guard_ `IF to_regclass('auth.users') IS NOT NULL` (`001_create_financial_schema.js:101`, `1790304277043_add-rbac-permissions.js:7`).
+O PostgreSQL local valida tabelas, restrições (_constraints_), índices e migrações. O Supabase adiciona `auth.users`, `auth.uid()`, RLS e os `GRANT` de `service_role` e `authenticated`. Por isso, as duas migrações verificam se `auth.users` existe antes de criar essas referências, usando o _guard_ `IF to_regclass('auth.users') IS NOT NULL` (`1790304277000_create_financial_schema.sql` e `1790304277043_add-rbac-permissions.sql`).
 
 O efeito colateral do _guard_ é que **o banco local não tem RLS nem FK para `auth.users`**. Isso é
 aceito como consequência de rodar a mesma migração em dois motores, e está registrado na issue

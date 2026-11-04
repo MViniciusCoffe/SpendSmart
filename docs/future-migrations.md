@@ -3,19 +3,20 @@
 Propostas de mudança de schema que **não foram aplicadas**. Este arquivo é uma especificação
 escrita, não uma migration executável: nada aqui roda sozinho.
 
-> **Por que não criar os arquivos ainda.** `npm run dev` encadeia `migrations:up` de forma
-> automática e esse script lê `DATABASE_URL` de `.env.development`, que aponta para o Supabase
-> remoto. Um arquivo novo em `supabase/migrations/` seria aplicado no banco real no próximo
-> `npm run dev` de quem clonar o repositório. Ver [environments.md](environments.md#4-o-problema-do-npm-run-dev)
-> e issue [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20).
+> **Estado em 2026-11-04.** As Propostas 1 e 2 já foram aplicadas (ver cada seção); só a
+> Proposta 3 continua em aberto. O bloqueio que impedia criar migrations — `npm run dev` aplicava
+> tudo no banco de produção — deixou de existir com a separação de ambientes (issue
+> [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20)). Uma proposta vira migration pelo
+> fluxo de [environments.md §5.2](environments.md#52-fluxo-de-uma-mudança-de-schema).
 >
-> As migrations já aplicadas também não devem ser reescritas. `001_create_financial_schema.js` e
-> `1790304277043_add-rbac-permissions.js` estão registradas na tabela `pgmigrations`; alterar o
-> arquivo faz o estado real do banco divergir do código versionado.
+> Migrations já aplicadas não devem ser reescritas: o Supabase CLI compara só a versão, então a
+> mudança nunca chegaria aos bancos remotos.
 
 ---
 
-## Estado atual do schema
+## Estado do schema quando este documento foi escrito
+
+> Registro histórico. O schema atual está em [database-schema.md](database-schema.md).
 
 | Tabela         | Idioma das colunas de domínio                                                      | Observação         |
 | -------------- | ---------------------------------------------------------------------------------- | ------------------ |
@@ -35,6 +36,10 @@ As colunas de negócio estão documentadas em [database-schema.md](database-sche
 ---
 
 ## Proposta 1 — Padronizar `profiles` para inglês
+
+> **Aplicada.** As colunas `full_name`, `birth_date` e `phone` estão na migration inicial
+> `1790304277000_create_financial_schema.sql`. A migration `.js` que ainda usava os nomes em
+> português foi removida em 2026-11-04 (issue #8).
 
 Rastreabilidade: issue
 [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8) (padronização de nomenclatura e colunas).
@@ -96,6 +101,9 @@ COMMIT;
 
 ## Proposta 2 — Trigger de `updated_at`
 
+> **Aplicada** em `1791833057050_add_soft_delete_and_updated_at_trigger.sql`, junto com o soft
+> delete (`deleted_at`).
+
 Rastreabilidade: risco "updated_at nunca atualizado" em
 [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
@@ -142,7 +150,7 @@ Rastreabilidade: RF12 do plano de testes (IT-07) e o registro em
 [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
 Hoje as duas colunas aceitam `income` ou `expense` de forma independente, e o comentário em
-`001_create_financial_schema.js` apenas informa que "a aplicação deve garantir" a coerência.
+`1790304277000_create_financial_schema.sql` apenas informa que "a aplicação deve garantir" a coerência.
 Nenhum código faz essa verificação. O resultado possível é um lançamento de despesa apontando
 para uma categoria de receita, o que corrompe a agregação do dashboard.
 
@@ -209,19 +217,21 @@ Se a consulta devolver linhas, a migration falha até que elas sejam corrigidas.
 
 ## Ordem sugerida
 
-1. **Proposta 3** primeiro: bloqueia dado corrompido e tem reversível simples.
-2. **Proposta 2**: sem impacto de código, resolve dado histórico.
-3. **Proposta 1** por último: é a única que quebra a API e exige mudar `profileService.js`,
-   `createProfile.js` e `accountConfig.js` juntos.
+Só a **Proposta 3** continua pendente. Ela bloqueia dado corrompido e tem reversível simples.
+Atenção: desde a CA-008.03, mudar o tipo de uma categoria propaga o tipo às transações
+(`categoryService.updateCategory` com `updateTransactionsType`), o que precisa ser coerente com o
+trigger proposto.
 
 ---
 
-## Como aplicar quando a separação de ambientes existir
+## Como aplicar
 
 1. Issue aberta com o SQL e o critério de verificação.
-2. Rodar o script de verificação de dados incoerentes (Proposta 3).
-3. Aplicar em ambiente de teste.
-4. Executar o checklist de verificação da proposta.
-5. Aplicar em produção com backup antes.
-6. **Só então** mover o arquivo para `supabase/migrations/` com timestamp via
-   `node-pg-migrate create`, e ajustar o encadeamento de `npm run dev` para exigir flag.
+2. `npm run migrations:new -- <nome>` e copiar o SQL da proposta para o arquivo criado.
+3. Rodar o script de verificação de dados incoerentes (Proposta 3) em Preview e em Produção.
+4. Aplicar localmente (`npm run infra:reset`) e em Preview
+   (`npm run migrations:push -- --target preview --apply`), executando o checklist da proposta.
+5. Aplicar em Produção (`--target production --apply`) depois do merge em `main`.
+
+Não há `down`: o "script reversível" de cada proposta vira uma migration nova, se for preciso
+desfazer. Fluxo completo em [environments.md §5.2](environments.md#52-fluxo-de-uma-mudança-de-schema).

@@ -81,7 +81,7 @@ SpendSmart/
     services/       camada de negócio: validação, tradução de domínio, mapeamento de erros
     lib/            cliente Supabase (supabase.js), formatadores (utils/format.js), config
     styles/         globals.css e design-tokens.css (variáveis de cor, espaço, raio, sombra...)
-  supabase/migrations/   schema do banco (node-pg-migrate)
+  supabase/migrations/   schema do banco (.sql aplicados pelo Supabase CLI)
   infra/          Docker Compose do Postgres puro
   tests/          suíte Jest — ver o estado real abaixo
   docs/           documentação
@@ -123,31 +123,30 @@ A separação de responsabilidades adotada:
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                               |
-| :------------------------------------------ | :--------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                          |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                     |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                   |
-| Dashboard com gráficos                      | Funcionando                                                                                          |
-| Excluir conta                               | Funcionando                                                                                          |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                  |
-| Testes de unidade                           | **210 testes, 100% de linhas, ramos e funções em `src/services/`**                                   |
-| Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                 |
-| Testes de integração (Supabase/RLS)         | **1 suíte, 12 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários |
-| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                |
-| `npm test`                                  | **Passa** — 210/210                                                                                  |
-| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                 |
-| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`               |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)   |
-| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)              |
-| Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                               |
+| Item                                        | Estado                                                                                                       |
+| :------------------------------------------ | :----------------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                  |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                             |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                           |
+| Dashboard com gráficos                      | Funcionando                                                                                                  |
+| Excluir conta                               | Funcionando                                                                                                  |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                          |
+| Testes de unidade                           | **210 testes, 100% de linhas, ramos e funções em `src/services/`**                                           |
+| Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                         |
+| Testes de integração (Supabase/RLS)         | **1 suíte, 12 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários         |
+| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                        |
+| `npm test`                                  | **Passa** — 210/210                                                                                          |
+| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                         |
+| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                       |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)           |
+| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                      |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md)) |
 
 ### Defeitos conhecidos
 
 | #                                                             | Problema                                                                             |
 | :------------------------------------------------------------ | :----------------------------------------------------------------------------------- |
 | [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Rotas privadas sem proteção no servidor e sem headers de segurança                   |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Desenvolvimento, Preview e Produção usam o mesmo projeto Supabase                    |
 | —                                                             | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços |
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
@@ -222,8 +221,10 @@ arquivos abaixo, em Markdown.
 | `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations                            |
 | `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                 |
 | `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                 |
-| `npm run services:up`      | `docker compose up -d`                        | Postgres puro (sem RLS)                              |
-| `npm run migrations:up`    | `node-pg-migrate up`                          | Aplica migrations (usa `.env.development`)           |
+| `npm run services:up`      | `docker compose up -d --wait`                 | Postgres puro (sem RLS)                              |
+| `npm run migrations:new`   | `supabase migration new`                      | Cria migration `.sql` com timestamp                  |
+| `npm run migrations:list`  | `scripts/db-migrations.js list --target ...`  | Histórico de migrations num banco remoto/compose     |
+| `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)            |
 | `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
 | `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
 | `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
@@ -238,7 +239,6 @@ Issues abertas, em ordem de dependência:
 | #                                                             | Assunto                        | Bloqueia |
 | :------------------------------------------------------------ | :----------------------------- | :------- |
 | [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
 | [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.

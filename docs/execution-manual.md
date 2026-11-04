@@ -153,11 +153,14 @@ Preencha o `.env.local` com a saída do `npm run infra:status`:
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave `anon`/`publishable` do `supabase status` | Não (vai para o navegador)        |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Chave `service_role` do `supabase status`       | **Sim**. Nunca com `NEXT_PUBLIC_` |
 
-> **Prioridade do Next.js:** `.env.local` > `.env.development` > `.env`. Se o `.env.local` existe,
-> o `.env.development` é ignorado. Arquivos `.env*` reais nunca são commitados; só os `.example`.
+> **Só o `.env.local`.** Não crie `.env.development`: o Next.js o carregaria como fallback, e o
+> `npm run dev` se recusa a iniciar se ele existir. Arquivos `.env*` reais nunca são commitados; só os
+> `.example`. Não defina `TEST_DATABASE_URL` no `.env.local` (ver
+> [environments.md §6](environments.md#6-testes)).
 
 As migrations de `supabase/migrations/` são aplicadas automaticamente no `supabase start`. Para
-recriar o banco do zero: `npm run infra:reset`.
+recriar o banco do zero: `npm run infra:reset`. Bancos remotos (Preview e Produção) e o fluxo de
+migrations estão em [environments.md](environments.md).
 
 ---
 
@@ -169,10 +172,12 @@ npm run dev
 
 O `npm run dev` (`scripts/dev.js`):
 
-1. sobe o Supabase local (`supabase start`) se ele ainda não estiver rodando;
-2. aguarda o health check do gateway (porta 54321), com limite de 2 minutos;
-3. só então inicia o Next.js;
-4. ao receber `Ctrl+C`, encerra o Next.js e o Supabase juntos.
+1. recusa iniciar se o `.env.local` faltar, se o `NEXT_PUBLIC_SUPABASE_URL` dele não for local, ou
+   se existir um `.env.development`;
+2. sobe o Supabase local (`supabase start`) se ele ainda não estiver rodando;
+3. aguarda os containers ficarem saudáveis (`supabase status`), com limite de 3 minutos;
+4. só então inicia o Next.js;
+5. ao receber `Ctrl+C`, encerra o Next.js e o Supabase juntos.
 
 | Endereço                           | O que é                                  |
 | :--------------------------------- | :--------------------------------------- |
@@ -190,12 +195,12 @@ Para encerrar só o Supabase: `npm run infra:down`.
 Serve apenas para validar constraints e índices. Sem Supabase Auth não é possível fazer login.
 
 ```bash
-cp .env.development.example .env.development
-npm run services:up                # Postgres em Docker (infra/compose.yaml)
-npm run services:wait:database
-npm run migrations:up
-npm run next:dev
+npm run services:up                                  # Postgres em Docker (infra/compose.yaml)
+npm run migrations:push -- --target docker --apply   # aplica supabase/migrations/*.sql
 ```
+
+Não há como abrir a aplicação contra ele (falta o Auth). Detalhes em
+[local-infrastructure.md](local-infrastructure.md#2-docker-compose-postgres-puro-opcional).
 
 ---
 
