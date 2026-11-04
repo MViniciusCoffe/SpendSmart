@@ -1,3 +1,5 @@
+import fs from "fs"
+import path from "path"
 import { newDb } from "pg-mem"
 import pg from "pg"
 
@@ -5,74 +7,71 @@ import pg from "pg"
 //
 // Dois modos, escolhidos pela variável TEST_DATABASE_URL:
 //
-// 1. Sem TEST_DATABASE_URL (padrão, inclusive CI): sobe um Postgres em memória
-//    com pg-mem, sem Docker. O DDL abaixo espelha exatamente as constraints que
-//    a migration 001_create_financial_schema.js cria num Postgres puro — ou
-//    seja, SEM o bloco RLS, que depende de auth.users e só existe no Supabase
-//    (mesmo comportamento do Postgres local do compose). A migration 002 só
-//    contém GRANTs de roles do Supabase, também inaplicáveis aqui.
-//    Justificativa: a máquina de desenvolvimento atual não tem Docker, e um
-//    teste de integração que ninguém consegue executar não verifica nada.
+// 1. Sem TEST_DATABASE_URL (padrão, inclusive CI): Postgres em memória com pg-mem, sem Docker.
+//    O schema vem das próprias migrations de supabase/migrations/*.sql — não existe cópia do DDL
+//    aqui, então os testes não podem divergir do banco real. O pg-mem não tem plpgsql nem RLS,
+//    por isso o adaptador abaixo:
+//      - desembrulha o bloco `IF to_regclass('auth.users') IS NOT NULL THEN ... END IF` (o stub de
+//        auth.users existe aqui), para as FKs com ON DELETE CASCADE virem da migration;
+//      - descarta RLS, políticas, GRANT/REVOKE, triggers e funções (o RLS real é testado em
+//        tests/integration/supabase/rls.test.js; o trigger de updated_at não é testado aqui);
+//      - falha se sobrar qualquer outro bloco plpgsql, para nenhuma migration nova ser ignorada
+//        em silêncio.
 //
-// 2. Com TEST_DATABASE_URL: conecta num Postgres real (ex.: o container de
-//    infra/compose.yaml). O schema precisa já ter sido aplicado pelas
-//    migrations: npm run services:up && npm run migrations:up.
+// 2. Com TEST_DATABASE_URL: conecta num Postgres real cujo schema já foi aplicado
+//    (`supabase db reset` no Supabase CLI local, ou `npm run migrations:push -- --target docker
+//    --apply` no Postgres do infra/compose.yaml).
+//    ATENÇÃO: os testes apagam auth.users, categories e transactions no beforeEach. Nunca aponte
+//    TEST_DATABASE_URL para um banco com dados que importam.
 //
-// Nos dois modos o contrato é o mesmo: um client com query() e end(), e as
-// mesmas asserções de código de erro do PostgreSQL (23505, 23503).
+// Nos dois modos o contrato é o mesmo: um client com query() e end(), e as mesmas asserções de
+// código de erro do PostgreSQL (23505, 23503).
 
-const DDL = `
+const MIGRATIONS_DIR = path.resolve(__dirname, "../../supabase/migrations")
+
+// Mesmo padrão de nome que o Supabase CLI aceita: os outros arquivos ele ignora, e aqui também
+const MIGRATION_FILE = /^\d{13,}_.+\.sql$/
+
+// Só existe no Supabase; no pg-mem basta a coluna que as FKs referenciam
+const AUTH_STUB = `
   CREATE SCHEMA IF NOT EXISTS auth;
-  
   CREATE TABLE auth.users (
     id uuid PRIMARY KEY,
     email text,
-    encrypted_password text,
-    email_confirmed_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp
-  );
-
-  CREATE TABLE profiles (
-    id uuid PRIMARY KEY REFERENCES auth.users(id),
-    full_name text NOT NULL,
-    birth_date date,
-    phone text,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp
-  );
-
-  CREATE TABLE categories (
-    id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id),
-    name text NOT NULL,
-    type text NOT NULL,
-    description text,
-    color text NOT NULL DEFAULT '#FFFFFF',
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-    CONSTRAINT categories_type_check CHECK (type IN ('income', 'expense')),
-    CONSTRAINT categories_user_name_type_unique UNIQUE (user_id, name, type)
-  );
-
-  CREATE TABLE transactions (
-    id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id),
-    category_id bigint NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
-    type text NOT NULL,
-    amount numeric(12,2) NOT NULL,
-    title text NOT NULL,
-    occurred_on date NOT NULL,
-    description text,
-    payment_method text,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-    CONSTRAINT transactions_type_check CHECK (type IN ('income', 'expense')),
-    CONSTRAINT transactions_amount_positive CHECK (amount > 0),
-    CONSTRAINT transactions_category_fk FOREIGN KEY (category_id)
-      REFERENCES categories(id) ON DELETE RESTRICT
+    created_at timestamptz NOT NULL DEFAULT current_timestamp
   );
 `
+
+const AUTH_GUARDED_BLOCK =
+  /DO \$\$\s*BEGIN\s*IF to_regclass\('auth\.users'\) IS NOT NULL THEN([\s\S]*?)END IF;\s*END\s*\$\$;/gi
+const FUNCTION_BLOCK = /CREATE (OR REPLACE )?FUNCTION[\s\S]*?\$\$;/gi
+const UNSUPPORTED_BY_PG_MEM = /ENABLE ROW LEVEL SECURITY|CREATE POLICY|^GRANT\b|^REVOKE\b|TRIGGER/i
+
+export function migrationStatements() {
+  const files = fs
+    .readdirSync(MIGRATIONS_DIR)
+    .filter(file => MIGRATION_FILE.test(file))
+    .sort()
+
+  return files.flatMap(file => {
+    const sql = fs
+      .readFileSync(path.join(MIGRATIONS_DIR, file), "utf8")
+      .replace(/--.*$/gm, "")
+      .replace(FUNCTION_BLOCK, "")
+      .replace(AUTH_GUARDED_BLOCK, (_, body) => body)
+
+    if (sql.includes("$$")) {
+      throw new Error(
+        `${file}: bloco plpgsql que o pg-mem não executa. Adapte tests/integration/db.js.`
+      )
+    }
+
+    return sql
+      .split(";")
+      .map(statement => statement.trim())
+      .filter(statement => statement && !UNSUPPORTED_BY_PG_MEM.test(statement))
+  })
+}
 
 export async function createTestDb() {
   if (process.env.TEST_DATABASE_URL) {
@@ -82,8 +81,10 @@ export async function createTestDb() {
   }
 
   const mem = newDb()
+  mem.public.none(AUTH_STUB)
+  for (const statement of migrationStatements()) mem.public.none(statement)
+
   const client = new (mem.adapters.createPg().Client)()
   await client.connect()
-  await client.query(DDL)
   return { client, modo: "pg-mem" }
 }
