@@ -3,6 +3,8 @@
  * Script de desenvolvimento robusto para SpendSmart
  *
  * Fluxo (baseado na documentação oficial do Supabase):
+ * 0. Recusa iniciar se o .env.local faltar, apontar para um Supabase remoto, ou se existir um
+ *    .env.development (que o Next.js carregaria como fallback)
  * 1. Verifica se Supabase JÁ está saudável via `supabase status`
  * 2. Se NÃO: sobe infraestrutura (supabase start) + aguarda containers healthy
  * 3. Se JÁ: pula 'supabase start' e vai direto pro Next.js
@@ -15,7 +17,13 @@
  * - Kong (porta 54321) NÃO expõe /health público - health é via Docker API
  */
 
+const fs = require("fs")
+const path = require("path")
+const dotenv = require("dotenv")
 const { spawn, execSync } = require("child_process")
+
+const ROOT = path.resolve(__dirname, "..")
+const LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
 const MAX_RETRIES = 180 // 180 tentativas (3 minutos)
 const RETRY_INTERVAL_MS = 1000 // 1 segundo entre tentativas
@@ -43,6 +51,43 @@ function runCommand(cmd, args, options = {}) {
   } catch (err) {
     return null
   }
+}
+
+// Garante que o Next.js vai subir contra o Supabase local, e nunca contra um banco remoto.
+// O Next.js carrega .env.local e depois .env.development: se o .env.local faltar, um
+// .env.development antigo com credenciais remotas seria usado sem nenhum aviso.
+function assertLocalEnv() {
+  const legacyFile = path.join(ROOT, ".env.development")
+  if (fs.existsSync(legacyFile)) {
+    throw new Error(
+      ".env.development encontrado. Ele é carregado pelo Next.js em desenvolvimento e já guardou\n" +
+        "   credenciais de produção. Mova o DATABASE_URL remoto para .env.production.remote ou\n" +
+        "   .env.preview.remote (ver .env.remote.example) e apague o .env.development."
+    )
+  }
+
+  const localFile = path.join(ROOT, ".env.local")
+  if (!fs.existsSync(localFile)) {
+    throw new Error(
+      ".env.local não encontrado.\n" +
+        "   Execute: cp .env.local.example .env.local e preencha com 'npm run infra:status'."
+    )
+  }
+
+  const { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl } = dotenv.parse(fs.readFileSync(localFile))
+  let hostname = null
+  try {
+    hostname = new URL(supabaseUrl).hostname
+  } catch {
+    // URL ausente ou malformada: cai na mensagem abaixo
+  }
+  if (!LOCAL_HOSTS.includes(hostname)) {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL do .env.local não é local (${hostname ?? "vazia ou inválida"}).\n` +
+        "   O desenvolvimento usa só o Supabase CLI: http://127.0.0.1:54321."
+    )
+  }
+  log("DEV", "✅ .env.local aponta para o Supabase local")
 }
 
 // Verifica se Docker está acessível
@@ -279,6 +324,9 @@ async function main() {
   log("DEV", "=== Iniciando ambiente de desenvolvimento SpendSmart ===")
 
   try {
+    // 0. Recusa iniciar contra qualquer banco que não seja o local
+    assertLocalEnv()
+
     // 1. Verifica se Supabase JÁ está healthy
     log("DEV", "🔍 Verificando se Supabase já está rodando...")
     const alreadyHealthy = await performHealthCheck()
