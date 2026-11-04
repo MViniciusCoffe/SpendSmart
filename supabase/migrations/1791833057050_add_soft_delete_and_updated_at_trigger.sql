@@ -1,5 +1,5 @@
 -- Soft delete + updated_at trigger
--- Run after 1791833057000_create_financial_schema.sql
+-- Run after 1790304277000_create_financial_schema.sql
 
 -- 1. Add deleted_at columns
 ALTER TABLE public.profiles ADD COLUMN deleted_at timestamptz;
