@@ -229,7 +229,7 @@ trigger proposto.
 1. Issue aberta com o SQL e o critério de verificação.
 2. `npm run migrations:new -- <nome>` e copiar o SQL da proposta para o arquivo criado.
 3. Rodar o script de verificação de dados incoerentes (Proposta 3) em Preview e em Produção.
-4. Aplicar localmente (`npm run infra:reset`) e em Preview
+4. Aplicar localmente (`npm run migrations:up`; `npm run infra:reset` para conferir do zero) e em Preview
    (`npm run migrations:push -- --target preview --apply`), executando o checklist da proposta.
 5. Aplicar em Produção (`--target production --apply`) depois do merge em `main`.
 

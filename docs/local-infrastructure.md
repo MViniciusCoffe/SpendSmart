@@ -26,14 +26,15 @@ supabase/
 
 ### 1.2 Comandos
 
-| Comando                | Equivale a          | Efeito                                                            |
-| ---------------------- | ------------------- | ----------------------------------------------------------------- |
-| `npm run dev`          | `scripts/dev.js`    | Confere o `.env.local`, sobe o Supabase se preciso, inicia o Next |
-| `npm run infra:up`     | `supabase start`    | Sobe a stack e aplica as migrations na criação                    |
-| `npm run infra:status` | `supabase status`   | URLs, chaves e estado dos containers                              |
-| `npm run infra:reset`  | `supabase db reset` | Recria o banco e aplica todas as migrations                       |
-| `npm run infra:studio` | `supabase studio`   | Studio local (porta 54323)                                        |
-| `npm run infra:down`   | `supabase stop`     | Para os containers, preserva os volumes                           |
+| Comando                 | Equivale a                      | Efeito                                                            |
+| ----------------------- | ------------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`           | `scripts/dev.js`                | Confere o `.env.local`, sobe o Supabase se preciso, inicia o Next |
+| `npm run infra:up`      | `supabase start`                | Sobe a stack e aplica as migrations na criação                    |
+| `npm run infra:status`  | `supabase status`               | URLs, chaves e estado dos containers                              |
+| `npm run infra:reset`   | `supabase db reset`             | **Apaga os dados**, recria o banco e aplica todas as migrations   |
+| `npm run migrations:up` | `supabase migration up --local` | Aplica só as migrations pendentes, preservando os dados           |
+| `npm run infra:studio`  | `supabase studio`               | Studio local (porta 54323)                                        |
+| `npm run infra:down`    | `supabase stop`                 | Para os containers, preserva os volumes                           |
 
 ### 1.3 Variáveis (`.env.local`)
 
@@ -93,7 +94,8 @@ isolamento.** RLS só se testa com o Supabase CLI (`npm run test:integration:sup
 | Objetivo                         | Comando                                                                      |
 | -------------------------------- | ---------------------------------------------------------------------------- |
 | Desenvolvimento diário           | `npm run dev`                                                                |
-| Recriar o banco local            | `npm run infra:reset`                                                        |
+| Aplicar uma migration nova       | `npm run migrations:up`                                                      |
+| Recriar o banco local (apaga)    | `npm run infra:reset`                                                        |
 | Criar uma migration              | `npm run migrations:new -- <nome>` (ver environments.md §5.2)                |
 | Testar RLS real                  | `supabase start` → `npm run test:integration:supabase`                       |
 | Conferir migrations sem Supabase | `npm run services:up` → `npm run migrations:push -- --target docker --apply` |

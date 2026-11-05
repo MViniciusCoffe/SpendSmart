@@ -159,7 +159,7 @@ Preencha o `.env.local` com a saída do `npm run infra:status`:
 > [environments.md §6](environments.md#6-testes)).
 
 As migrations de `supabase/migrations/` são aplicadas automaticamente no `supabase start`. Para
-recriar o banco do zero: `npm run infra:reset`. Bancos remotos (Preview e Produção) e o fluxo de
+recriar o banco do zero (apaga os dados locais): `npm run infra:reset`. Bancos remotos (Preview e Produção) e o fluxo de
 migrations estão em [environments.md](environments.md).
 
 ---

@@ -218,11 +218,12 @@ arquivos abaixo, em Markdown.
 | `npm run infra:up`         | `supabase start`                              | Só sobe infra (já tem `.env.local`)                  |
 | `npm run next:dev`         | `next dev`                                    | Next.js só (infra já rodando)                        |
 | `npm run infra:down`       | `supabase stop`                               | Para infra                                           |
-| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations                            |
+| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations (**apaga os dados**)       |
 | `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                 |
 | `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                 |
 | `npm run services:up`      | `docker compose up -d --wait`                 | Postgres puro (sem RLS)                              |
 | `npm run migrations:new`   | `supabase migration new`                      | Cria migration `.sql` com timestamp                  |
+| `npm run migrations:up`    | `supabase migration up --local`               | Aplica as migrations pendentes no banco local        |
 | `npm run migrations:list`  | `scripts/db-migrations.js list --target ...`  | Histórico de migrations num banco remoto/compose     |
 | `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)            |
 | `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |

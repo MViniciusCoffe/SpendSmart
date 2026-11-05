@@ -101,13 +101,13 @@ O `scripts/dev.js` recusa iniciar se: o `.env.local` não existe; o `NEXT_PUBLIC
 não é `127.0.0.1`/`localhost`; ou existe um `.env.development`. Assim o desenvolvimento não aponta
 para um banco remoto por engano.
 
-| Comando                | Efeito                                                      |
-| ---------------------- | ----------------------------------------------------------- |
-| `npm run infra:up`     | `supabase start` — as migrations são aplicadas na criação   |
-| `npm run infra:reset`  | `supabase db reset` — recria o banco e aplica as migrations |
-| `npm run infra:status` | URLs e chaves locais                                        |
-| `npm run infra:studio` | Studio local (porta 54323)                                  |
-| `npm run infra:down`   | `supabase stop` (preserva os volumes)                       |
+| Comando                | Efeito                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `npm run infra:up`     | `supabase start` — as migrations são aplicadas na criação                       |
+| `npm run infra:reset`  | `supabase db reset` — **apaga os dados**, recria o banco e aplica as migrations |
+| `npm run infra:status` | URLs e chaves locais                                                            |
+| `npm run infra:studio` | Studio local (porta 54323)                                                      |
+| `npm run infra:down`   | `supabase stop` (preserva os volumes)                                           |
 
 ---
 
@@ -120,27 +120,39 @@ pelo **Supabase CLI** em todos os alvos. Cada banco guarda o próprio histórico
 `supabase_migrations.schema_migrations`. O `node-pg-migrate` e as migrations `.js` foram removidos
 em 2026-11-04 (ver [tooling-decisions.md](tooling-decisions.md), entrada 28).
 
-| Alvo                    | Comando                                                    |
-| ----------------------- | ---------------------------------------------------------- |
-| Supabase local          | `npm run infra:reset`                                      |
-| Preview                 | `npm run migrations:push -- --target preview [--apply]`    |
-| Produção                | `npm run migrations:push -- --target production [--apply]` |
-| Postgres puro (compose) | `npm run migrations:push -- --target docker [--apply]`     |
-| Ver histórico           | `npm run migrations:list -- --target <alvo>`               |
-| Criar migration         | `npm run migrations:new -- <nome>`                         |
+| Alvo                    | Comando                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Supabase local          | `npm run migrations:up` (pendentes) ou `npm run infra:reset` (do zero) |
+| Preview                 | `npm run migrations:push -- --target preview [--apply]`                |
+| Produção                | `npm run migrations:push -- --target production [--apply]`             |
+| Postgres puro (compose) | `npm run migrations:push -- --target docker [--apply]`                 |
+| Ver histórico           | `npm run migrations:list -- --target <alvo>`                           |
+| Criar migration         | `npm run migrations:new -- <nome>`                                     |
 
 O `scripts/db-migrations.js` exige `--target` (não há alvo padrão), faz **dry-run** a menos que
 receba `--apply`, e mesmo com `--apply` o CLI ainda pede confirmação `Y/n`.
+
+**O dry-run não testa a migration.** Ele só compara os timestamps de `supabase/migrations/` com a
+tabela de histórico do banco e lista as versões que faltam; o SQL não é executado. Uma migration com
+erro de sintaxe ou constraint quebrada passa no dry-run. O SQL se testa assim:
+
+| Verificação                         | O que pega                                                                   | Dados locais |
+| ----------------------------------- | ---------------------------------------------------------------------------- | ------------ |
+| `npm run test:integration` (pg-mem) | O que o pg-mem aceita: tabelas, constraints, FKs (monta o schema dos `.sql`) | Não toca     |
+| `npm run migrations:up`             | O SQL real, com RLS, grants e triggers, aplicando só as migrations pendentes | Preserva     |
+| `npm run infra:reset`               | A sequência inteira do zero, como num ambiente novo                          | **Apaga**    |
+| `migrations:push` (dry-run)         | Quais versões faltam na Preview/Produção (somente leitura)                   | Não toca     |
 
 ### 5.2 Fluxo de uma mudança de schema
 
 ```bash
 npm run migrations:new -- add_algo              # cria supabase/migrations/<timestamp>_add_algo.sql
 # escreva o SQL; tudo que referencia auth.users vai dentro de IF to_regclass('auth.users') IS NOT NULL
-npm run infra:reset                              # aplica do zero no banco local
+npm run migrations:up                            # aplica só as pendentes no banco local (preserva dados)
 npm run test:integration                         # pg-mem monta o schema a partir dos .sql
 npm run test:integration:supabase                # RLS real no Supabase local
-npm run migrations:push -- --target preview      # dry-run: confere o que será aplicado
+npm run infra:reset                              # antes do PR: aplica tudo do zero (APAGA os dados locais)
+npm run migrations:push -- --target preview      # dry-run: lista as versões que serão aplicadas
 npm run migrations:push -- --target preview --apply
 # teste a Preview da branch; depois do merge em main:
 npm run migrations:push -- --target production --apply
@@ -152,6 +164,8 @@ Regras:
   versão (o timestamp), então a mudança nunca chegaria aos bancos remotos. Crie uma nova.
 - **Não existe `down`.** O Supabase CLI executaria uma seção `-- Down Migration` como SQL comum. Para
   desfazer, escreva uma migration nova que reverte.
+- Enquanto a migration ainda não saiu da sua máquina, dá para corrigir o SQL e rodar
+  `npm run infra:reset`: o `migrations:up` não reaplica uma versão que já está no histórico local.
 - Toda migration precisa rodar também num Postgres sem `auth.users` (o alvo `docker` e o pg-mem
   dos testes): por isso o guard `to_regclass`.
 
