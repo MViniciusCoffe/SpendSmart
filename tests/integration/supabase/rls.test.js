@@ -22,6 +22,16 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
   )
 }
 
+// A suíte cria e apaga usuários com a chave secreta: só pode rodar contra o Supabase CLI local.
+// O tests/setup.js lê o .env.local, mas uma variável já exportada no shell tem precedência sobre ele.
+const LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+if (!LOCAL_HOSTS.includes(new URL(SUPABASE_URL).hostname)) {
+  throw new Error(
+    `NEXT_PUBLIC_SUPABASE_URL não é local (${new URL(SUPABASE_URL).hostname}). ` +
+      "Os testes de RLS só rodam contra o Supabase CLI local (supabase start)."
+  )
+}
+
 const TEST_RUN_ID = Date.now().toString(36)
 const TEST_USER_1 = { email: `rls-user1-${TEST_RUN_ID}@test.local`, password: "123456" }
 const TEST_USER_2 = { email: `rls-user2-${TEST_RUN_ID}@test.local`, password: "123456" }

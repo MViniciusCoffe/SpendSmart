@@ -18,11 +18,11 @@ import pg from "pg"
 //      - falha se sobrar qualquer outro bloco plpgsql, para nenhuma migration nova ser ignorada
 //        em silêncio.
 //
-// 2. Com TEST_DATABASE_URL: conecta num Postgres real cujo schema já foi aplicado
-//    (`supabase db reset` no Supabase CLI local, ou `npm run migrations:push -- --target docker
-//    --apply` no Postgres do infra/compose.yaml).
-//    ATENÇÃO: os testes apagam auth.users, categories e transactions no beforeEach. Nunca aponte
-//    TEST_DATABASE_URL para um banco com dados que importam.
+// 2. Com TEST_DATABASE_URL: conecta num Postgres real com o schema já aplicado. Precisa ser um
+//    Supabase (os testes inserem em auth.users, que o Postgres puro do infra/compose.yaml não tem).
+//    ATENÇÃO: os testes apagam auth.users, categories e transactions no beforeEach. Por isso
+//    assertDisposableDb recusa o banco se auth.users tiver alguma conta com e-mail. Passe a
+//    variável só na linha de comando, nunca no .env.local.
 //
 // Nos dois modos o contrato é o mesmo: um client com query() e end(), e as mesmas asserções de
 // código de erro do PostgreSQL (23505, 23503).
@@ -73,10 +73,34 @@ export function migrationStatements() {
   })
 }
 
+// Os testes apagam auth.users inteira no beforeEach. Os usuários que eles criam têm só id; conta com
+// e-mail significa cadastro de verdade (pelo app ou pelo Studio), então o banco não é descartável.
+// Em 2026-11-04 um TEST_DATABASE_URL no .env.local apontou os testes para o Supabase local e apagou
+// os dados dele.
+async function assertDisposableDb(client) {
+  const {
+    rows: [{ existe }]
+  } = await client.query("select to_regclass('auth.users') is not null as existe")
+  if (!existe) return
+
+  const {
+    rows: [{ contas }]
+  } = await client.query("select count(*)::int as contas from auth.users where email is not null")
+  if (contas > 0) {
+    await client.end()
+    throw new Error(
+      `TEST_DATABASE_URL aponta para um banco com ${contas} conta(s) com e-mail em auth.users. ` +
+        "Os testes de integração apagariam esses dados. Use pg-mem (sem TEST_DATABASE_URL) ou um " +
+        "banco descartável."
+    )
+  }
+}
+
 export async function createTestDb() {
   if (process.env.TEST_DATABASE_URL) {
     const client = new pg.Client({ connectionString: process.env.TEST_DATABASE_URL })
     await client.connect()
+    await assertDisposableDb(client)
     return { client, modo: "postgres-real" }
   }
 

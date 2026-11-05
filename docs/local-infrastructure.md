@@ -52,15 +52,18 @@ local (ver [environments.md §6](environments.md#6-testes)).
 ## 2. Docker Compose (Postgres puro, opcional)
 
 > Sem Auth, sem RLS, sem Studio: não dá para usar a aplicação contra ele. Serve para conferir que
-> as migrations rodam num Postgres sem `auth.users` e para testar constraints com
-> `TEST_DATABASE_URL`.
+> as migrations rodam num Postgres sem `auth.users`.
 
 ```bash
 npm run services:up                                   # sobe e espera o healthcheck (--wait)
 npm run migrations:push -- --target docker --apply    # aplica supabase/migrations/*.sql
-TEST_DATABASE_URL=postgresql://local_user:local@127.0.0.1:5432/local_db npm run test:integration
 npm run services:down                                 # remove container e rede
 ```
+
+Os testes de integração **não** rodam contra este banco: eles inserem em `auth.users`, que só existe
+no Supabase. Com `TEST_DATABASE_URL`, eles rodam contra um Supabase local, que precisa ser descartável
+(os testes apagam `auth.users`, `categories` e `transactions`). O `tests/integration/db.js` recusa o
+banco se `auth.users` tiver alguma conta com e-mail.
 
 As credenciais (`local_user` / `local` / `local_db`, porta 5432) são os valores padrão do
 `infra/compose.yaml`; não há arquivo `.env` para este modo. O alvo `docker` do
