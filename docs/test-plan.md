@@ -73,13 +73,13 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 
 | Nível                            | Pasta / artefato                        | Comando                             | Situação        |
 | :------------------------------- | :-------------------------------------- | :---------------------------------- | :-------------- |
-| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 210 testes      |
+| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 211 testes      |
 | Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,10%          |
 | Unidade de lógica do front-end   | `tests/unit/` (Jest)                    | `npm test`                          | Planejado       |
 | Componentes (#33)                | a definir                               | a definir                           | Adiado          |
 | Integração do front-end          | `tests/e2e/` (Playwright, rede mockada) | a definir na implementação          | Planejado       |
-| Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 28 testes       |
-| Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 12 testes       |
+| Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
+| Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 17 testes       |
 | Regressão                        | `tests/regression/`                     | `npx jest tests/regression`         | 27 testes       |
 | Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | a definir na implementação          | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
@@ -139,7 +139,7 @@ supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1"
 
 O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam direto.
 
-**Estado atual:** 210 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
+**Estado atual:** 211 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
 `src/services/`. A suíte antiga, que cobria só o código morto `categoriaService.js`, foi substituída
 (issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26)).
 
@@ -203,7 +203,7 @@ Consequências da organização:
 
 | #     | Caso                                                 | Por que só a integração                                                         | Situação                                                                                         |
 | :---- | :--------------------------------------------------- | :------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------- |
-| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`; asserções de leitura vacuamente verdadeiras (#66)                                 |
+| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`: conjunto exato de linhas; falha com o RLS desligado (verificado em 2026-11-05)    |
 | IT-02 | Isolamento de escrita entre dois usuários            | Depende do `WITH CHECK` das políticas.                                          | `rls.test.js`                                                                                    |
 | IT-03 | Deleção de conta remove tudo em cascata              | Depende das chaves estrangeiras para `auth.users`.                              | **Sem teste**                                                                                    |
 | IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                           |
@@ -395,31 +395,31 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 (§2.3.1), "Aceit." = aceitação manual. O detalhamento por critério de aceitação está em
 [user-stories.md](user-stories.md).
 
-| US                       | Un. | Int.            | E2E   | Aceit. | Observação                                                                      |
-| :----------------------- | :-- | :-------------- | :---- | :----- | :------------------------------------------------------------------------------ |
-| US-001 Criar conta       | x   | pg-mem (perfil) | ST-01 | x      | Rollback resolvido (#25, PR #47); IT-08 sem teste                               |
-| US-002 Entrar            | x   |                 | ST-01 | x      | Mapeamento de erro é 100% cliente                                               |
-| US-003 Perfil            | x   |                 |       |        | Senha idêntica sem tratamento (#11)                                             |
-| US-004 Excluir conta     | x   | IT-03, IT-09    | ST-03 |        | IT-03 e IT-09 sem teste                                                         |
-| US-005 Privacidade       |     | IT-01, IT-02    | ST-04 |        | Leitura com asserção vacuamente verdadeira (#66)                                |
-| US-006 Criar categoria   | x   | IT-05           | ST-03 |        |                                                                                 |
-| US-007 Listar categorias | x   | IT-01, pg-mem   | ST-03 | ?      | Estado vazio coberto (CA-007.02); sem relatório de aceitação próprio em `docs/` |
-| US-008 Alterar categoria | x   |                 |       |        | CA-008.03 atendido (diálogo e propagação do tipo)                               |
-| US-009 Excluir categoria | x   | IT-04           | ST-05 |        | Soft delete; CA-009.03 com contagem real                                        |
-| US-010 Registrar receita | x   | IT-06           | ST-03 | x      | #10 e #21 resolvidos (PR #42)                                                   |
-| US-011 Listar receitas   | x   | IT-01           | ST-03 |        |                                                                                 |
-| US-012 Excluir receita   | x   |                 |       |        |                                                                                 |
-| US-013 Registrar despesa | x   | IT-06           | ST-02 | x      | #21 resolvido (PR #42)                                                          |
-| US-014 Listar despesas   | x   | IT-01           | ST-02 |        |                                                                                 |
-| US-015 Excluir despesa   | x   |                 |       |        |                                                                                 |
-| US-016 Dashboard         |     | IT-07           | ST-03 | x      | Agregação no cliente; IT-07 sem constraint nem teste                            |
+| US                       | Un. | Int.            | E2E   | Aceit. | Observação                                                                                                            |
+| :----------------------- | :-- | :-------------- | :---- | :----- | :-------------------------------------------------------------------------------------------------------------------- |
+| US-001 Criar conta       | x   | pg-mem (perfil) | ST-01 | x      | Rollback resolvido (#25, PR #47); IT-08 sem teste                                                                     |
+| US-002 Entrar            | x   |                 | ST-01 | x      | Mapeamento de erro é 100% cliente                                                                                     |
+| US-003 Perfil            | x   |                 |       |        | Senha idêntica sem tratamento (#11)                                                                                   |
+| US-004 Excluir conta     | x   | IT-03, IT-09    | ST-03 |        | IT-03 e IT-09 sem teste                                                                                               |
+| US-005 Privacidade       |     | IT-01, IT-02    | ST-04 |        | IT-01/IT-02 comparam o conjunto exato (#66)                                                                           |
+| US-006 Criar categoria   | x   | IT-05           | ST-03 |        |                                                                                                                       |
+| US-007 Listar categorias | x   | IT-01, service  | ST-03 | ?      | `categoryService` real no Supabase local, com estado vazio (CA-007.02); sem relatório de aceitação próprio em `docs/` |
+| US-008 Alterar categoria | x   |                 |       |        | CA-008.03 atendido (diálogo e propagação do tipo)                                                                     |
+| US-009 Excluir categoria | x   | IT-04           | ST-05 |        | Soft delete; CA-009.03 com contagem real                                                                              |
+| US-010 Registrar receita | x   | IT-06           | ST-03 | x      | #10 e #21 resolvidos (PR #42)                                                                                         |
+| US-011 Listar receitas   | x   | IT-01           | ST-03 |        |                                                                                                                       |
+| US-012 Excluir receita   | x   |                 |       |        |                                                                                                                       |
+| US-013 Registrar despesa | x   | IT-06           | ST-02 | x      | #21 resolvido (PR #42)                                                                                                |
+| US-014 Listar despesas   | x   | IT-01           | ST-02 |        |                                                                                                                       |
+| US-015 Excluir despesa   | x   |                 |       |        |                                                                                                                       |
+| US-016 Dashboard         |     | IT-07           | ST-03 | x      | Agregação no cliente; IT-07 sem constraint nem teste                                                                  |
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 277 testes automatizados (210 unidade + 28 pg-mem + 12 RLS + 27 regressão),
+**Cobertura atual: 279 testes automatizados (211 unidade + 24 pg-mem + 17 Supabase local + 27 regressão),
 conferidos em 2026-11-05.** Os testes E2E da P3 entram nesta conta quando forem implementados.
 
-Lacunas conhecidas, em ordem de prioridade: asserções vacuamente verdadeiras do RLS (#66), IT-03,
+Lacunas conhecidas, em ordem de prioridade: IT-03,
 IT-08 e IT-09 sem teste, IT-07 sem constraint, US-003/US-012/US-015 sem integração nem E2E.
 
 ---
@@ -455,7 +455,6 @@ A separação por nível:
 | Risco                                              | Impacto no teste                                                                                                              | Mitigação                                                                                                            |
 | :------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
 | **RLS só é criado se `auth.users` existir**        | Alto. Em Postgres puro o RLS nunca é aplicado, e o teste pode passar vazando dados sem acusar erro.                           | RLS só se testa na stack local do Supabase. Nunca só com Postgres puro. Ver IT-01 e IT-02.                           |
-| **Asserções vacuamente verdadeiras no RLS (#66)**  | Alto. `data.every(...)` passa com lista vazia: se o RLS escondesse tudo ou o cenário não fosse criado, o teste passaria.      | Afirmar também que a lista não está vazia e que contém as linhas esperadas. Issue #66.                               |
 | **Teste destrutivo apontado para banco com dados** | Alto. Em 2026-11-04 o `beforeEach` da integração apagou o Supabase local por causa de um `TEST_DATABASE_URL` no `.env.local`. | `db.js` recusa banco com contas com e-mail; a suíte RLS recusa URL não local; o E2E segue a mesma regra.             |
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
@@ -465,7 +464,8 @@ A separação por nível:
 | **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Testar as rotas, ou eliminar a `service_role` da aplicação (AGENTS.md §14.3).                                        |
 | **Front-end fora da cobertura medida (#33)**       | Baixo para a P3. A cobertura de 100% vale só para `src/services/`.                                                            | E2E cobre o comportamento da interface; testes de componente depois da P3.                                           |
 
-Riscos da versão 1.0 já mitigados: suíte sobre código morto (#26), ausência de ambiente de teste
+Riscos já mitigados: asserções vacuamente verdadeiras no RLS (#66, as leituras comparam o conjunto
+exato e a suíte falha com o RLS desligado); suíte sobre código morto (#26), ausência de ambiente de teste
 dedicado (#20), contrato de DTO inconsistente (#10, #21), `updated_at` sem trigger e estado vazio
 inexistente (#13).
 

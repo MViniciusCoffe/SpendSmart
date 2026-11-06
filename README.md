@@ -123,24 +123,24 @@ A separação de responsabilidades adotada:
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                                       |
-| :------------------------------------------ | :----------------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                                  |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                             |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                           |
-| Dashboard com gráficos                      | Funcionando                                                                                                  |
-| Excluir conta                               | Funcionando                                                                                                  |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                          |
-| Testes de unidade                           | **210 testes, 100% de linhas, ramos e funções em `src/services/`**                                           |
-| Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                         |
-| Testes de integração (Supabase/RLS)         | **1 suíte, 12 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários         |
-| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                        |
-| `npm test`                                  | **Passa** — 210/210                                                                                          |
-| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                         |
-| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                       |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)           |
-| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                      |
-| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md)) |
+| Item                                        | Estado                                                                                                                           |
+| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                                      |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                 |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                               |
+| Dashboard com gráficos                      | Funcionando                                                                                                                      |
+| Excluir conta                               | Funcionando                                                                                                                      |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                              |
+| Testes de unidade                           | **211 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
+| Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
+| Testes de integração (Supabase/RLS)         | **2 suítes, 17 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
+| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                                            |
+| `npm test`                                  | **Passa** — 210/210                                                                                                              |
+| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                             |
+| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                                           |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                               |
+| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                                          |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                     |
 
 ### Defeitos conhecidos
 
