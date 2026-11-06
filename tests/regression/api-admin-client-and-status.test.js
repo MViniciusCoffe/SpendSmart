@@ -199,3 +199,17 @@ describe("Regressão — /api/status", () => {
     expect(body.page.url).toBe("https://app.test/status")
   })
 })
+
+describe("/api/health (#56)", () => {
+  it("responde ok com a versão do package.json, sem cache", async () => {
+    const { GET } = loadRoute("health")
+    const { version } = require("../../package.json")
+
+    const response = await GET()
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toMatchObject({ status: "ok", version })
+    expect(response.headers.get("Cache-Control")).toBe("no-store, max-age=0")
+  })
+})
