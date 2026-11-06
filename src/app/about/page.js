@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/config/siteConfig"
 import styles from "./about.module.css"
 
 export const metadata = {
-  title: "Sobre o SpendSmart — Controle Financeiro Pessoal",
+  title: "Sobre",
   description:
     "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN)."
 }

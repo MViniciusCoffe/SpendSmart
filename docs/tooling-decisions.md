@@ -193,12 +193,12 @@ comentário citando a issue que trata a causa.
 
 **Por que.** O baseline apurado com o ESLint funcionando é de **1 erro e 21 avisos**:
 
-| Regra                         | Ocorrências | Issue                                          |
-| :---------------------------- | :---------- | :--------------------------------------------- |
-| `no-alert`                    | 12          | #13, trocar `alert` por toast                  |
-| `@next/next/no-img-element`   | 8           | sem issue ainda                                |
-| `react-hooks/exhaustive-deps` | 1           | #24, `withAuth` não escuta `onAuthStateChange` |
-| `react/display-name`          | 1 erro      | `components/utils/withAuth.js:6`               |
+| Regra                         | Ocorrências | Issue                                                      |
+| :---------------------------- | :---------- | :--------------------------------------------------------- |
+| `no-alert`                    | 12          | #13, trocar `alert` por toast                              |
+| `@next/next/no-img-element`   | 8           | sem issue ainda                                            |
+| `react-hooks/exhaustive-deps` | 1           | #67 (antes #24), `withAuth` não escuta `onAuthStateChange` |
+| `react/display-name`          | 1 erro      | `components/utils/withAuth.js:6`                           |
 
 Os 21 avisos são defeitos reais já conhecidos e rastreados. Rebaixar é melhor do que desligar: o
 aviso continua aparecendo na saída e no relatório, então o número não some. Desligar a regra
@@ -209,9 +209,9 @@ o job. Ele fica para decisão: a correção natural é nomear o componente inter
 mudança de código, não de configuração.
 
 **Alternativa rejeitada.** `eslint . --quiet`, que só mostraria erros. Esconderia os 21 avisos que
-são a rastreabilidade de #13 e #24.
+são a rastreabilidade de #13 e #67 (a parte de sessão da antiga #24).
 
-**Reavaliar quando.** #13 e #24 forem fechadas, e a regra volta a `error`.
+**Reavaliar quando.** #13 e #67 forem fechadas, e a regra volta a `error`.
 
 ---
 

@@ -144,10 +144,10 @@ A separação de responsabilidades adotada:
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                             |
-| :------------------------------------------------------------ | :----------------------------------------------------------------------------------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Rotas privadas sem proteção no servidor e sem headers de segurança                   |
-| —                                                             | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços |
+| #                                                             | Problema                                                                              |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------------------ |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`) |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços  |
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
 componentizadas), #13 (toasts no lugar de `alert`), #22
@@ -237,10 +237,10 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                        | Bloqueia |
-| :------------------------------------------------------------ | :----------------------------- | :------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
+| #                                                             | Assunto                       | Bloqueia |
+| :------------------------------------------------------------ | :---------------------------- | :------- |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Proteção server-side e sessão | —        |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end        | —        |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.
 Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.

@@ -6,7 +6,7 @@ export const siteConfig = {
   tagline: "Organize suas finanças, realize seus sonhos",
   description:
     "Dashboard financeiro com receitas, despesas, categorias e status de sistema. Open source, Next.js + Supabase.",
-  url: "https://spendsmart.vercel.app",
+  url: "https://spend-smart-lilac.vercel.app",
   author: "SpendSmart Team",
   links: {
     github: "https://github.com/MViniciusCoffe/SpendSmart",

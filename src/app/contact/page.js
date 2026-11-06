@@ -6,7 +6,7 @@ import { ContactForm } from "./ContactForm"
 import styles from "./contact.module.css"
 
 export const metadata = {
-  title: "Contato — SpendSmart",
+  title: "Contato",
   description: "Entre em contato com a equipe SpendSmart para dúvidas, sugestões ou suporte."
 }
 

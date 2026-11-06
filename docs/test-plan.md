@@ -61,7 +61,9 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
   critérios verificáveis (WCAG, heurísticas), não aparência.
 - Desempenho, carga e estresse, e testes de segurança da informação (varredura, pentest, headers).
   A P3 deixa esses testes para uma tarefa posterior da disciplina. Até lá, as falhas de segurança já
-  conhecidas seguem registradas em issue (#24, #50, #51, #54).
+  conhecidas seguem registradas em issue (#50, #51, #54, #67). Os headers de segurança (CSP com
+  nonce, `nosniff`, `frame-ancestors`, `Referrer-Policy`, `Permissions-Policy`) são verificados pelo
+  teste de regressão da #24.
 - Compatibilidade entre navegadores: o E2E roda no Chromium do Playwright (ver §2.3.1).
 - Infraestrutura externa do Supabase que não esteja sob controle da equipe.
 - Serviços de terceiros não simulados.

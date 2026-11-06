@@ -5,7 +5,7 @@ import { Button, Card, Badge, Icon, Section } from "@/components/ui"
 import styles from "./page.module.css"
 
 export const metadata = {
-  title: "SpendSmart — Organize suas finanças, realize seus sonhos",
+  title: { absolute: "SpendSmart — Organize suas finanças, realize seus sonhos" },
   description:
     "Controle receitas, despesas e categorias com dashboard em tempo real, gráficos interativos e página de status pública."
 }

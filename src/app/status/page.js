@@ -12,8 +12,8 @@ import { StatusPageContent } from "./components/StatusPageContent"
 
 /** @type {Metadata} */
 export const metadata = {
-  title: "System Status | SpendSmart",
-  description: "Real-time system health monitoring for SpendSmart",
+  title: "Status do sistema",
+  description: "Monitoramento em tempo real da saúde dos serviços do SpendSmart",
   robots: "noindex, nofollow"
 }
 
