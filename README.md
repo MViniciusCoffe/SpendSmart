@@ -131,24 +131,24 @@ As demais convenções de código, com o motivo de cada uma, estão em
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                                                           |
-| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                                                      |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                 |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                               |
-| Dashboard com gráficos                      | Funcionando                                                                                                                      |
-| Excluir conta                               | Funcionando                                                                                                                      |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                              |
-| Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
-| Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
-| Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
-| Testes de regressão                         | **9 suítes, 66 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
-| `npm test`                                  | **Passa** — 210/210                                                                                                              |
-| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                             |
-| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                                           |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                               |
-| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                                          |
-| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                     |
+| Item                                        | Estado                                                                                                                                                                                                                          |
+| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                     |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                              |
+| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                     |
+| Excluir conta                               | Funcionando                                                                                                                                                                                                                     |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                             |
+| Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                              |
+| Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                                                                                                                            |
+| Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado)                                                                                                |
+| Testes de regressão                         | **9 suítes, 67 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                                                                                                                   |
+| `npm test`                                  | **Passa** — 210/210                                                                                                                                                                                                             |
+| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                            |
+| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit`, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                              |
+| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                                                                                                                                         |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                    |
 
 ### Defeitos conhecidos
 
@@ -225,6 +225,7 @@ arquivos abaixo, em Markdown.
 | [Manual de execução](docs/execution-manual.md)      | Instalação, configuração, execução da aplicação e de todas as suítes de teste |
 | [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                   |
 | [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
+| [Política de segurança](SECURITY.md)                | Como reportar vulnerabilidade (reporte privado do GitHub) e o escopo          |
 | [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
 
 ## Scripts principais
@@ -245,7 +246,9 @@ arquivos abaixo, em Markdown.
 | `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)            |
 | `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
 | `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
+| `npm run test:regression`  | `jest tests/regression`                       | Testes de regressão (também no CI)                   |
 | `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
+| `npm run build`            | `next build`                                  | Build de produção (o mesmo que a Vercel roda)        |
 | `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                     |
 
 ---

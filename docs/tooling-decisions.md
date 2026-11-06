@@ -873,3 +873,41 @@ tabelas de histórico divergindo. Também rejeitado: `supabase link` + `--linked
 
 **Reavaliar quando.** O Supabase CLI ganhar suporte a migrations reversíveis, ou o projeto passar a
 precisar de um terceiro ambiente remoto (basta um novo `--target` e um novo `.env.<alvo>.remote`).
+
+## 29. Automação no GitHub: auditoria, Dependabot, CodeQL, deploy com aprovação e release-please
+
+**Decisão (2026-11-06, issues #48-#53).**
+
+- `test.yml` ganhou `npm run test:regression` e um job `audit` com `npm audit --audit-level=high`;
+  `lint.yml` ganhou `npm run check:agents`. A regressão já não precisava de `.env.local` (mocks), e
+  um commit com teste mas sem o código passou despercebido em 2026-11-06 justamente por ela não
+  rodar no CI.
+- **`--audit-level=high` e não `moderate`:** as vulnerabilidades moderadas de hoje (`deepmerge`,
+  `glob`, `minimatch`) estão só nas ferramentas de desenvolvimento do Jest/cobertura, e a correção
+  exige atualização major. Bloquear o CI por elas pararia todo PR sem ganho de segurança para a
+  produção (`npm audit --omit=dev`: 0).
+- **Dependabot** semanal, minor/patch agrupados (produção e desenvolvimento separados). Ignora
+  major do `eslint` (§2 do AGENTS: o 10 quebra o `eslint-config-next`), da
+  `sonarqube-scan-action` e do `actions/checkout` (§20).
+- **CodeQL** em workflow próprio (`security-extended`), não no _default setup_: a configuração fica
+  versionada e revisável.
+- **Deploy de produção** (`deploy.yml` + `vercel.json`): ver `environments.md` §10. Aprovação
+  humana pelo environment `production` do GitHub, migration antes do deploy, `vercel deploy --prod`
+  com build na Vercel. Rejeitado: deixar o deploy automático da Vercel em paralelo (corrida entre
+  migration e código novo) e aplicar migration sem aprovação (contraria o `--apply` manual).
+  `vercel@65.2.0` fixado (versão de mais de duas semanas).
+- **release-please** e não `semantic-release` (#53): é uma Action, sem dependência npm nova, e abre
+  um PR de release revisável em vez de publicar direto a cada push. Começa no commit `9a5c275`
+  (main antes da `chore/tech-debt`), em `0.1.0`, com `bump-minor-pre-major`.
+
+**Configurações fora do repositório** (feitas no GitHub pelo mantenedor): environment `production`
+com aprovadores e os secrets de `environments.md` §10.1; _Settings → Actions → General → Allow
+GitHub Actions to create and approve pull requests_ (o release-please abre PR com o `GITHUB_TOKEN`);
+_private vulnerability reporting_ ligado em 2026-11-06 (`SECURITY.md`).
+
+**Limite conhecido.** PR aberto pelo `GITHUB_TOKEN` (o de release, o do Dependabot não) não dispara
+outros workflows: o PR de release não roda CI. Ele só muda `CHANGELOG.md`, `package.json` e o
+manifesto.
+
+**Reavaliar quando.** As moderadas ganharem correção sem major (subir o nível para `moderate`), ou
+o projeto passar a ter mais de um aprovador disponível para o environment.
