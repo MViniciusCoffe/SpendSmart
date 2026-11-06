@@ -526,3 +526,32 @@ describe("argumentos das queries de categoria", () => {
     expect(builder.select).toHaveBeenCalledWith("id,name,type,description,color,deleted_at")
   })
 })
+
+// .select() sem argumento depois de insert/update devolve todas as colunas (AGENTS.md §4.3, regra 10)
+describe("colunas devolvidas na escrita de categoria", () => {
+  const COLUNAS = "id,name,type,description,color,deleted_at"
+  const categoria = {
+    name: "Alimentacao",
+    type: "expense",
+    description: "Mercado",
+    color: "#FF0000"
+  }
+
+  beforeEach(() => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+  })
+
+  it.each([
+    ["createCategory", () => categoryService.createCategory(categoria)],
+    ["updateCategory", () => categoryService.updateCategory({ id: 1, ...categoria })],
+    ["restoreCategory", () => categoryService.restoreCategory(1)]
+  ])("%s pede só as colunas do mapper", async (_metodo, chamar) => {
+    const builder = criarBuilder({ data: linhaCategoria(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await chamar()
+
+    expect(builder.select).toHaveBeenCalledWith(COLUNAS)
+    expect(builder.select).not.toHaveBeenCalledWith()
+  })
+})

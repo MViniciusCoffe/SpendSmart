@@ -70,6 +70,14 @@ function checkFile(file) {
     if (/\.select\(\s*["']\*["']\s*\)/.test(line) && file.includes("services/")) {
       violations.push(`${file}:${lineNum}: select("*") em service - use campos explícitos`)
     }
+
+    // 6. No bare .select() in services: after insert/update it also returns every column
+    const isComment = /^\s*(\/\/|\*|\/\*)/.test(line)
+    if (/\.select\(\s*\)/.test(line) && file.includes("services/") && !isComment) {
+      violations.push(
+        `${file}:${lineNum}: .select() sem colunas em service - use CATEGORY_COLUMNS/TRANSACTION_COLUMNS (mappers.js)`
+      )
+    }
   })
 
   return violations

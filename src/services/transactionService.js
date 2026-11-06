@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase"
 import { withSession, withErrorHandling } from "@/services/utils/baseService"
-import { transactionTypeMap } from "@/services/utils/mappers"
+import { transactionTypeMap, TRANSACTION_COLUMNS } from "@/services/utils/mappers"
 import validators from "@/services/utils/validators"
 
 export const transactionService = {
@@ -10,9 +10,7 @@ export const transactionService = {
         async () => {
           const { data, error } = await supabase
             .from("transactions")
-            .select(
-              "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
-            )
+            .select(TRANSACTION_COLUMNS)
             .eq("user_id", session.user.id)
             .is("deleted_at", null)
             .order("occurred_on", { ascending: false })
@@ -59,7 +57,7 @@ export const transactionService = {
                 user_id: session.user.id
               }
             ])
-            .select()
+            .select(TRANSACTION_COLUMNS)
             .single()
           if (error) throw error
           return transactionTypeMap(newTransaction)
@@ -107,7 +105,7 @@ export const transactionService = {
             })
             .eq("id", id)
             .eq("user_id", session.user.id)
-            .select()
+            .select(TRANSACTION_COLUMNS)
             .single()
           if (error) throw error
           return transactionTypeMap(updatedTransaction)

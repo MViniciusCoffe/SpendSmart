@@ -402,3 +402,27 @@ describe("deleteTransaction", () => {
     )
   })
 })
+
+// .select() sem argumento depois de insert/update devolve todas as colunas (AGENTS.md §4.3, regra 10)
+describe("colunas devolvidas na escrita de transação", () => {
+  const COLUNAS =
+    "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+  const transacao = { title: "Mercado", amount: 80, type: "expense", category_id: 7 }
+
+  beforeEach(() => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+  })
+
+  it.each([
+    ["createTransaction", () => transactionService.createTransaction(transacao)],
+    ["updateTransaction", () => transactionService.updateTransaction({ id: 1, ...transacao })]
+  ])("%s pede só as colunas do mapper", async (_metodo, chamar) => {
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await chamar()
+
+    expect(builder.select).toHaveBeenCalledWith(COLUNAS)
+    expect(builder.select).not.toHaveBeenCalledWith()
+  })
+})
