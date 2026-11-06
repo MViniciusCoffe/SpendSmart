@@ -1,0 +1,35 @@
+name: Funcionalidade
+description: Funcionalidade nova ou melhoria
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: historia
+    attributes:
+      label: História
+      description: Quem precisa, o que precisa e por quê.
+      placeholder: Como usuário, quero ... para ...
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceitação
+      description: Verificáveis, um por linha (ver docs/user-stories.md).
+      placeholder: |
+        - [ ] Dado ..., quando ..., então ...
+    validations:
+      required: true
+  - type: input
+    id: rastreio
+    attributes:
+      label: Requisito ou US relacionados
+      placeholder: RF05, US-007
+  - type: checkboxes
+    id: impacto
+    attributes:
+      label: O que a mudança toca
+      options:
+        - label: Banco (migration nova)
+        - label: Rotas de `src/app/api/` ou chave de serviço
+        - label: Novo serviço chamado do navegador (`connect-src` da CSP)
