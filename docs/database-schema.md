@@ -3,11 +3,12 @@
 Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
 As migrações correspondentes estão em `supabase/migrations/`:
 
-| Migration                                                  | O que faz                                                                                                                       |
-| :--------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `1790304277000_create_financial_schema.sql`                | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS. |
-| `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                               |
-| `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.         |
+| Migration                                                  | O que faz                                                                                                                         |
+| :--------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `1790304277000_create_financial_schema.sql`                | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS.   |
+| `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                                 |
+| `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.           |
+| `20261106031517_restrict_table_grants.sql`                 | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
 
 Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
 [environments.md §5](environments.md#5-migrations).
@@ -238,6 +239,20 @@ As três são `FOR ALL`. O `USING` filtra a leitura e o `WITH CHECK` valida a es
 `UPDATE` não consegue mover um registro para fora do próprio `user_id`.
 
 As políticas usam a identidade da sessão do Supabase Auth. Elas não confiam em um `user_id` enviado pelo _frontend_.
+
+### Privilégios por papel
+
+Definidos de forma explícita em `20261106031517_restrict_table_grants.sql`, iguais em todos os
+ambientes (antes dependiam dos privilégios padrão de cada projeto Supabase):
+
+| Papel           | `profiles`, `categories`, `transactions` | Quem usa                                              |
+| :-------------- | :--------------------------------------- | :---------------------------------------------------- |
+| `anon`          | nenhum (`42501 permission denied`)       | Visitante sem sessão; nenhuma página pública consulta |
+| `authenticated` | `SELECT, INSERT, UPDATE, DELETE` + RLS   | O app, com a sessão do usuário                        |
+| `service_role`  | `SELECT, INSERT, UPDATE, DELETE`         | Rotas de `src/app/api/` (ignora RLS)                  |
+
+O privilégio decide se o papel pode tocar na tabela; o RLS decide quais linhas. O `anon` é barrado
+pelos dois. O teste "Anon (sem sessão)" de `tests/integration/supabase/rls.test.js` cobre isso.
 
 O RLS é a última barreira, não a única. Os _services_ filtram por `user_id` explicitamente em toda
 leitura e escrita, conforme os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e

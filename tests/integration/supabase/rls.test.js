@@ -221,6 +221,22 @@ describe("RLS - Isolation between users (Supabase real)", () => {
     })
   })
 
+  // Migration 20261106031517_restrict_table_grants: o anon não tem privilégio nenhum. Sem ela, o
+  // RLS seria a única barreira e a consulta passaria, devolvendo lista vazia.
+  describe("Anon (sem sessão)", () => {
+    it.each([["profiles"], ["categories"], ["transactions"]])(
+      "não tem permissão na tabela %s",
+      async tabela => {
+        const anon = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+
+        const { data, error } = await anon.from(tabela).select("id").limit(1)
+
+        expect(data).toBeNull()
+        expect(error.code).toBe("42501")
+      }
+    )
+  })
+
   describe("Profiles", () => {
     it("user1 sees exactly one profile, their own, without filtering", async () => {
       const { data, error } = await supabase1.from("profiles").select("id, full_name")
