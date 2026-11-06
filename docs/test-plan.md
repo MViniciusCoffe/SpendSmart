@@ -75,14 +75,14 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 
 | Nível                            | Pasta / artefato                        | Comando                             | Situação        |
 | :------------------------------- | :-------------------------------------- | :---------------------------------- | :-------------- |
-| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 221 testes      |
-| Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,10%          |
+| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 237 testes      |
+| Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,12%          |
 | Unidade de lógica do front-end   | `tests/unit/` (Jest)                    | `npm test`                          | Planejado       |
 | Componentes (#33)                | a definir                               | a definir                           | Adiado          |
 | Integração do front-end          | `tests/e2e/` (Playwright, rede mockada) | a definir na implementação          | Planejado       |
 | Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
-| Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 17 testes       |
-| Regressão                        | `tests/regression/`                     | `npx jest tests/regression`         | 27 testes       |
+| Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 20 testes       |
+| Regressão                        | `tests/regression/`                     | `npx jest tests/regression`         | 53 testes       |
 | Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | a definir na implementação          | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
 | Aceitação (manual)               | `docs/acceptance-test-report-*.md`      | —                                   | Iterações 1 a 3 |
@@ -142,7 +142,7 @@ supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1"
 
 O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam direto.
 
-**Estado atual:** 221 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
+**Estado atual:** 237 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
 `src/services/`. A suíte antiga, que cobria só o código morto `categoriaService.js`, foi substituída
 (issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26)).
 
@@ -157,7 +157,7 @@ verifica se algum teste falha com cada um.
 | Comando         | `npm run test:mutation`                                                                     |
 | Escopo          | `src/services/**/*.js`, executando só o project `unit` do Jest                              |
 | Meta            | Mutation score ≥ 85% (`break` do `stryker.conf.json`: abaixo disso o comando e o CI falham) |
-| Resultado atual | **97,10%** (535 mortos, 16 sobreviventes aceitos e justificados)                            |
+| Resultado atual | **97,12%** (540 mortos, 16 sobreviventes aceitos e justificados)                            |
 
 Resultados por rodada, mutantes aceitos e justificativas em [mutation-testing.md](mutation-testing.md).
 
@@ -325,7 +325,7 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 27 testes, cobrindo #10/#21, #32, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 53 testes, cobrindo #10/#21, #11, #24, #32, as rotas de `src/app/api/`, fuso horário em
 `formatDate`, nome de categoria deletada e propagação do tipo da categoria. Eles rodam só localmente
 (`npx jest tests/regression` ou `npm run test:all`): **nenhum workflow do CI os executa**, o que está
 registrado como risco em §6.
@@ -419,8 +419,8 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 289 testes automatizados (221 unidade + 24 pg-mem + 17 Supabase local + 27 regressão),
-conferidos em 2026-11-05.** Os testes E2E da P3 entram nesta conta quando forem implementados.
+**Cobertura atual: 334 testes automatizados (237 unidade + 24 pg-mem + 20 Supabase local + 53 regressão),
+conferidos em 2026-11-06.** Os testes E2E da P3 entram nesta conta quando forem implementados.
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,
 IT-08 e IT-09 sem teste, IT-07 sem constraint, US-003/US-012/US-015 sem integração nem E2E.
@@ -461,7 +461,7 @@ A separação por nível:
 | **Teste destrutivo apontado para banco com dados** | Alto. Em 2026-11-04 o `beforeEach` da integração apagou o Supabase local por causa de um `TEST_DATABASE_URL` no `.env.local`. | `db.js` recusa banco com contas com e-mail; a suíte RLS recusa URL não local; o E2E segue a mesma regra.             |
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
-| **Regressão fora do CI**                           | Médio. Os 27 testes de `tests/regression/` só rodam localmente.                                                               | Incluir `tests/regression` no `test.yml`.                                                                            |
+| **Regressão fora do CI**                           | Médio. Os 53 testes de `tests/regression/` só rodam localmente.                                                               | Incluir `tests/regression` no `test.yml`.                                                                            |
 | **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo e `AuthContext` sem `onAuthStateChange` (AGENTS.md §14.3).                                 | ST-04 os exercita; correção junto com os testes de front-end.                                                        |
 | **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | Constraint ou trigger (IT-07). Registrado no plano; issue própria a criar.                                           |
 | **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Testar as rotas, ou eliminar a `service_role` da aplicação (AGENTS.md §14.3).                                        |
@@ -505,7 +505,7 @@ inexistente (#13).
 | :-------------------------- | :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
 | Testes unitários            | Jest 30                                                  | Testes de `services/` com o cliente Supabase mockado                                                  |
 | Transformação               | `babel-jest` com `jest.babel.config.js`                  | Converte ESM e JSX; os aliases `@/...` vêm do `moduleNameMapper` do `jest.config.js`                  |
-| Testes de mutação           | Stryker 10 (`npm run test:mutation`)                     | Score 97,10% em `services/` — ver [mutation-testing.md](mutation-testing.md)                          |
+| Testes de mutação           | Stryker 10 (`npm run test:mutation`)                     | Score 97,12% em `services/` — ver [mutation-testing.md](mutation-testing.md)                          |
 | Cobertura                   | Jest `--coverage`, formato `lcov`                        | Relatório consumido pelo SonarQube — ver [sonarqube.md](sonarqube.md)                                 |
 | Testes de integração        | Jest + pg-mem e Supabase CLI local                       | IT-01 a IT-10                                                                                         |
 | Testes de sistema (E2E)     | Playwright                                               | ST-01 a ST-05 e integração do front-end com rede interceptada (§2.1.2)                                |

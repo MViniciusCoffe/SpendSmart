@@ -131,10 +131,10 @@ A separação de responsabilidades adotada:
 | Dashboard com gráficos                      | Funcionando                                                                                                                      |
 | Excluir conta                               | Funcionando                                                                                                                      |
 | Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                              |
-| Testes de unidade                           | **221 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
+| Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
 | Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
-| Testes de integração (Supabase/RLS)         | **2 suítes, 17 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
-| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                                            |
+| Testes de integração (Supabase/RLS)         | **2 suítes, 20 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
+| Testes de regressão                         | **8 suítes, 53 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
 | `npm test`                                  | **Passa** — 210/210                                                                                                              |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                             |
 | CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                                           |
@@ -182,7 +182,7 @@ arquivos abaixo, em Markdown.
 | [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
 | [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
 | [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,10%, evolução por rodada e mutantes aceitos         |
+| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,12%, evolução por rodada e mutantes aceitos         |
 | [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
