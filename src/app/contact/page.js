@@ -2,13 +2,15 @@ import React from "react"
 import { Footer } from "@/components/layout"
 import { Card, Icon, Section, Accordion } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
+import { pageMetadata } from "@/lib/config/pageMetadata"
 import { ContactForm } from "./ContactForm"
 import styles from "./contact.module.css"
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Contato",
-  description: "Entre em contato com a equipe SpendSmart para dúvidas, sugestões ou suporte."
-}
+  description: "Entre em contato com a equipe SpendSmart para dúvidas, sugestões ou suporte.",
+  path: "/contact"
+})
 
 export default function ContactPage() {
   const faqItems = [

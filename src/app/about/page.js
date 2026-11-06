@@ -2,13 +2,15 @@ import React from "react"
 import { Footer } from "@/components/layout"
 import { Button, Card, Badge, Icon, Section } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
+import { pageMetadata } from "@/lib/config/pageMetadata"
 import styles from "./about.module.css"
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Sobre",
   description:
-    "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN)."
-}
+    "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN).",
+  path: "/about"
+})
 
 export default function AboutPage() {
   return (

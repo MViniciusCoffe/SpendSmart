@@ -3,6 +3,7 @@ import { Providers } from "./providers"
 import "@/styles/globals.css"
 import { Header } from "@/components/layout/Header"
 import { siteConfig } from "@/lib/config/siteConfig"
+import { baseOpenGraph, OG_IMAGE } from "@/lib/config/pageMetadata"
 
 /**
  * @typedef {Object} RootLayoutProps
@@ -30,26 +31,13 @@ export const metadata = {
   icons: {
     icon: [{ url: "/images/favicon.svg", type: "image/svg+xml" }, { url: "/images/favicon.ico" }]
   },
-  openGraph: {
-    title: TITLE,
-    description: siteConfig.description,
-    type: "website",
-    locale: "pt_BR",
-    siteName: siteConfig.name,
-    images: [
-      {
-        url: "/images/og-default.jpg",
-        width: 1200,
-        height: 630,
-        alt: "SpendSmart Dashboard"
-      }
-    ]
-  },
+  // Padrão das páginas privadas e de /status. As públicas indexáveis usam pageMetadata().
+  openGraph: { ...baseOpenGraph, title: TITLE, description: siteConfig.description },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: siteConfig.description,
-    images: ["/images/og-default.jpg"]
+    images: [OG_IMAGE.url]
   }
 }
 
