@@ -232,11 +232,13 @@ estava completo); a `DATABASE_URL` saiu da Vercel; as credenciais remotas foram 
 `.env.*.remote` que o Next.js não lê. Nenhum segredo esteve no histórico do git (verificado em
 2026-11-04 em todos os commits).
 
+Em 2026-11-05 o drift da Preview foi removido pelo SQL Editor: três políticas `SELECT` criadas à mão
+no painel (`Permitir leitura ...`, redundantes com as `*_owner_policy`) e a tabela
+`public.pgmigrations` do node-pg-migrate. Verificado com uma consulta somente leitura nos dois
+projetos remotos: Preview e Produção têm as mesmas 3 tabelas e as mesmas 3 políticas.
+
 ### Pendências conhecidas
 
-- **Preview: drift** — três políticas `SELECT` criadas à mão no painel
-  (`Permitir leitura ...`, redundantes com as `*_owner_policy`) e a tabela `public.pgmigrations`
-  do node-pg-migrate. Não existem no local nem em Produção; remover.
 - **Chave secreta só para duas rotas** — `createProfile` e `deleteAccount` poderiam virar trigger em
   `auth.users` e RPC `SECURITY DEFINER`, eliminando a `SUPABASE_SERVICE_ROLE_KEY` da Vercel (ver
   AGENTS.md §14.3).
