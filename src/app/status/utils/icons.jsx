@@ -47,49 +47,6 @@ export function AuthIcon({ width = 20, height = 20, ...props }) {
   )
 }
 
-export function RealtimeIcon({ width = 20, height = 20, ...props }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-      <path d="M8 16s1.5-2 4-2 4 2 4 2" />
-    </svg>
-  )
-}
-
-export function StorageIcon({ width = 20, height = 20, ...props }) {
-  return (
-    <svg
-      width={width}
-      height={height}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...props}
-    >
-      <path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3" />
-      <circle cx="9" cy="16" r="1" />
-      <circle cx="15" cy="16" r="1" />
-      <rect x="3" y="8" width="18" height="12" rx="2" />
-    </svg>
-  )
-}
-
 export function APIIcon({ width = 20, height = 20, ...props }) {
   return (
     <svg
@@ -421,8 +378,6 @@ export function SuccessEmptyIcon({ width = 40, height = 40, ...props }) {
 export const serviceIconMap = {
   database: DatabaseIcon,
   auth: AuthIcon,
-  realtime: RealtimeIcon,
-  storage: StorageIcon,
   api: APIIcon,
   cdn: CDNIcon
 }

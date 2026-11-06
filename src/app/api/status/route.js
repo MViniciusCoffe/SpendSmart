@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import { getSimulatedFailures } from "../../status/utils/failParam"
-import { getSupabaseAdmin } from "../_lib/supabaseAdmin"
 import {
   serviceMetadata,
   getOverallStatus,
@@ -11,7 +11,12 @@ import {
 /**
  * System Status API Endpoint
  * Performs real health checks on all services
- * Supports ?fail=database,auth to simulate failures for testing
+ * Supports ?fail=database,auth to simulate failures for testing (fora de Produção)
+ *
+ * Só usa a chave pública. A rota é aberta, sem login: com o cliente admin (service_role, ignora RLS),
+ * qualquer descuido futuro (logar um resultado, devolver um erro) viraria vazamento. O banco é
+ * checado pela RPC health_check() (20261106150417_add_health_check.sql), que não lê linha nenhuma, e
+ * o Auth pelo endpoint público /auth/v1/health. Realtime e Storage não são checados: o app não usa.
  */
 
 // Each check gives up after this long, so an unreachable project shows up as "critical"
@@ -36,62 +41,46 @@ function service(id, status, latency = 0) {
   return { id, name, description, status, latency }
 }
 
-// Serviços que dependem do cliente admin aparecem como "critical" quando a chave falta: sem ela não
-// há como verificar, e o build não pode depender dela (ver ../_lib/supabaseAdmin.js)
-async function checkDatabase(admin) {
-  if (!admin) return service("database", "critical")
+function supabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  return url && key ? { url, key } : null
+}
+
+function getPublicClient(config) {
+  if (!config) return null
+  return createClient(config.url, config.key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: fetchWithTimeout }
+  })
+}
+
+async function checkDatabase(client) {
+  if (!client) return service("database", "critical")
   const start = Date.now()
   try {
-    const { error } = await withDeadline(admin.from("profiles").select("id").limit(1))
-    return service("database", error ? "critical" : "operational", Date.now() - start)
+    const { data, error } = await withDeadline(client.rpc("health_check"))
+    return service(
+      "database",
+      !error && data === true ? "operational" : "critical",
+      Date.now() - start
+    )
   } catch {
     return service("database", "critical", Date.now() - start)
   }
 }
 
-async function checkAuth(admin) {
-  if (!admin) return service("auth", "critical")
+async function checkAuth(config) {
+  if (!config) return service("auth", "critical")
   const start = Date.now()
   try {
-    const { error } = await withDeadline(admin.auth.admin.listUsers({ perPage: 1 }))
-    return service("auth", error ? "degraded" : "operational", Date.now() - start)
+    const response = await fetchWithTimeout(`${config.url}/auth/v1/health`, {
+      headers: { apikey: config.key },
+      cache: "no-store"
+    })
+    return service("auth", response.ok ? "operational" : "degraded", Date.now() - start)
   } catch {
     return service("auth", "critical", Date.now() - start)
-  }
-}
-
-async function checkRealtime(admin) {
-  if (!admin) return service("realtime", "critical")
-  const start = Date.now()
-  try {
-    const channel = admin.channel("health-check", { config: { broadcast: { self: false } } })
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Realtime timeout")), CHECK_TIMEOUT_MS)
-      channel.subscribe(status => {
-        if (status === "SUBSCRIBED") {
-          clearTimeout(timeout)
-          admin.removeChannel(channel)
-          resolve()
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          clearTimeout(timeout)
-          reject(new Error(`Realtime: ${status}`))
-        }
-      })
-    })
-    return service("realtime", "operational", Date.now() - start)
-  } catch {
-    return service("realtime", "degraded", Date.now() - start)
-  }
-}
-
-async function checkStorage(admin) {
-  if (!admin) return service("storage", "critical")
-  const start = Date.now()
-  try {
-    const { error } = await withDeadline(admin.storage.listBuckets())
-    return service("storage", error ? "degraded" : "operational", Date.now() - start)
-  } catch {
-    return service("storage", "critical", Date.now() - start)
   }
 }
 
@@ -126,31 +115,32 @@ async function checkCDN() {
   }
 }
 
-// ?fail=database,auth simula falhas (testes da página de status); cada serviço aceita dois nomes
+// ?fail=database,auth simula falhas (testes da página de status); cada serviço aceita dois nomes.
+// Desligado em Produção (VERCEL_ENV): ferramenta de teste não fica aberta ao público. O Preview e o
+// local continuam aceitando, para os testes de sistema.
 const FAIL_ALIASES = {
   database: ["database", "db"],
   auth: ["auth", "authentication"],
-  realtime: ["realtime", "realtime-engine"],
-  storage: ["storage", "file-storage"],
   api: ["api", "api-gateway"],
   cdn: ["cdn", "edge"]
 }
+
+const failSimulationEnabled = () => process.env.VERCEL_ENV !== "production"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 60
 
 export async function GET(request) {
   try {
-    const admin = getSupabaseAdmin({ global: { fetch: fetchWithTimeout } })
-    const failures = getSimulatedFailures(request)
+    const config = supabaseConfig()
+    const client = getPublicClient(config)
+    const failures = failSimulationEnabled() ? getSimulatedFailures(request) : new Set()
     const simulated = id => FAIL_ALIASES[id].some(alias => failures.has(alias))
     const run = (id, check) => (simulated(id) ? service(id, "critical") : check())
 
     const services = await Promise.all([
-      run("database", () => checkDatabase(admin)),
-      run("auth", () => checkAuth(admin)),
-      run("realtime", () => checkRealtime(admin)),
-      run("storage", () => checkStorage(admin)),
+      run("database", () => checkDatabase(client)),
+      run("auth", () => checkAuth(config)),
       run("api", () => checkAPI(request)),
       run("cdn", () => checkCDN())
     ])
@@ -162,11 +152,14 @@ export async function GET(request) {
 
     const overallStatus = getOverallStatus(services)
 
+    // A tabela incidents ainda não existe (página inspirada na de status do GitHub). Quando for
+    // criada, a migration precisa de GRANT SELECT ao anon e política de leitura pública: o histórico
+    // de incidentes é público, e esta rota só usa a chave pública.
     let incidents = []
     try {
-      if (!admin) throw new Error("sem cliente admin")
+      if (!client) throw new Error("sem cliente Supabase")
       const { data: incidentData } = await withDeadline(
-        admin
+        client
           .from("incidents")
           .select("id,title,description,severity,created_at,affected_services,resolved,resolved_at")
           .order("created_at", { ascending: false })
