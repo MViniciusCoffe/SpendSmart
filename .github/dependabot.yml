@@ -1,0 +1,49 @@
+# Atualização automática de dependências (issue #49). Decisões em docs/tooling-decisions.md.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Fortaleza
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    labels:
+      - dependencies
+    # Minor e patch num PR só por semana, separados entre produção e desenvolvimento. Major continua
+    # em PR próprio: costuma exigir mudança de código.
+    groups:
+      producao:
+        dependency-type: production
+        update-types: [minor, patch]
+      desenvolvimento:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # ESLint 10 é incompatível com o eslint-config-next (AGENTS.md §2, tooling-decisions.md)
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Fortaleza
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+    groups:
+      actions:
+        patterns: ["*"]
+    ignore:
+      # Versões escolhidas de propósito (tooling-decisions.md §20): a v6 da ação do Sonar muda o
+      # parse de `args`, e o checkout@v6 não traz ganho para estes jobs
+      - dependency-name: sonarsource/sonarqube-scan-action
+        update-types: [version-update:semver-major]
+      - dependency-name: actions/checkout
+        update-types: [version-update:semver-major]
