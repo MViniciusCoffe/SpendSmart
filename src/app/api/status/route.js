@@ -128,7 +128,6 @@ const FAIL_ALIASES = {
 const failSimulationEnabled = () => process.env.VERCEL_ENV !== "production"
 
 export const dynamic = "force-dynamic"
-export const revalidate = 60
 
 export async function GET(request) {
   try {
