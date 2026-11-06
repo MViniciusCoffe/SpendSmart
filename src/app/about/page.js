@@ -5,12 +5,17 @@ import { siteConfig } from "@/lib/config/siteConfig"
 import { pageMetadata } from "@/lib/config/pageMetadata"
 import styles from "./about.module.css"
 
-export const metadata = pageMetadata({
-  title: "Sobre",
-  description:
-    "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN).",
-  path: "/about"
-})
+export async function generateMetadata(_props, parent) {
+  return pageMetadata(
+    {
+      title: "Sobre",
+      description:
+        "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN).",
+      path: "/about"
+    },
+    await parent
+  )
+}
 
 export default function AboutPage() {
   return (

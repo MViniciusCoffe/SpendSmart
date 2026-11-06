@@ -34,7 +34,8 @@ export const config = {
     {
       // Só páginas: rotas de API devolvem JSON, e arquivos estáticos não executam nada que a CSP
       // controle. Prefetch do next/link também fica de fora (não renderiza HTML).
-      source: "/((?!api|_next/static|_next/image|images/|favicon.ico|robots.txt|sitemap.xml).*)",
+      source:
+        "/((?!api|_next/static|_next/image|images/|favicon.ico|robots.txt|sitemap.xml|opengraph-image|twitter-image).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" }

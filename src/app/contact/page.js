@@ -6,11 +6,16 @@ import { pageMetadata } from "@/lib/config/pageMetadata"
 import { ContactForm } from "./ContactForm"
 import styles from "./contact.module.css"
 
-export const metadata = pageMetadata({
-  title: "Contato",
-  description: "Entre em contato com a equipe SpendSmart para dúvidas, sugestões ou suporte.",
-  path: "/contact"
-})
+export async function generateMetadata(_props, parent) {
+  return pageMetadata(
+    {
+      title: "Contato",
+      description: "Entre em contato com a equipe SpendSmart para dúvidas, sugestões ou suporte.",
+      path: "/contact"
+    },
+    await parent
+  )
+}
 
 export default function ContactPage() {
   const faqItems = [

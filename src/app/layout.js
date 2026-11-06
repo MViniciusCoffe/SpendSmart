@@ -3,7 +3,7 @@ import { Providers } from "./providers"
 import "@/styles/globals.css"
 import { Header } from "@/components/layout/Header"
 import { siteConfig } from "@/lib/config/siteConfig"
-import { baseOpenGraph, OG_IMAGE } from "@/lib/config/pageMetadata"
+import { baseOpenGraph } from "@/lib/config/pageMetadata"
 
 /**
  * @typedef {Object} RootLayoutProps
@@ -33,12 +33,7 @@ export const metadata = {
   },
   // Padrão das páginas privadas e de /status. As públicas indexáveis usam pageMetadata().
   openGraph: { ...baseOpenGraph, title: TITLE, description: siteConfig.description },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: siteConfig.description,
-    images: [OG_IMAGE.url]
-  }
+  twitter: { card: "summary_large_image", title: TITLE, description: siteConfig.description }
 }
 
 // O meta viewport (width=device-width, initial-scale=1) o Next.js já adiciona sozinho

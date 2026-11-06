@@ -1,4 +1,4 @@
-import { pageMetadata, OG_IMAGE } from "@/lib/config/pageMetadata"
+import { pageMetadata } from "@/lib/config/pageMetadata"
 
 describe("pageMetadata", () => {
   const sobre = pageMetadata({ title: "Sobre", description: "Conheça o projeto", path: "/about" })
@@ -19,14 +19,34 @@ describe("pageMetadata", () => {
     )
   })
 
-  it("mantém a imagem compartilhada no Open Graph e no Twitter", () => {
-    expect(sobre.openGraph.images).toEqual([OG_IMAGE])
-    expect(sobre.twitter).toEqual({
-      card: "summary_large_image",
-      title: "Sobre | SpendSmart",
-      description: "Conheça o projeto",
-      images: [OG_IMAGE.url]
-    })
+  it("monta o card do Twitter da própria página", () => {
+    expect(sobre.twitter).toEqual(
+      expect.objectContaining({
+        card: "summary_large_image",
+        title: "Sobre | SpendSmart",
+        description: "Conheça o projeto"
+      })
+    )
+  })
+
+  it("copia as imagens do pai, geradas por opengraph-image.js e twitter-image.js", () => {
+    // Formato do metadata resolvido que o Next.js passa em generateMetadata(props, parent)
+    const parent = {
+      openGraph: {
+        images: [{ url: new URL("https://exemplo.dev/opengraph-image?abc"), width: 1200 }]
+      },
+      twitter: { images: [{ url: new URL("https://exemplo.dev/twitter-image?abc") }] }
+    }
+
+    const comPai = pageMetadata({ title: "Sobre", description: "d", path: "/about" }, parent)
+
+    expect(comPai.openGraph.images).toBe(parent.openGraph.images)
+    expect(comPai.twitter.images).toBe(parent.twitter.images)
+  })
+
+  it("sem pai, não inventa imagem", () => {
+    expect(sobre.openGraph.images).toEqual([])
+    expect(sobre.twitter.images).toEqual([])
   })
 
   it("define a URL canônica da página", () => {
