@@ -1,8 +1,8 @@
 # Opções de arquitetura
 
 > **Registro de decisão (ADR).** Documento de 2026-09-22, preservado como registro do que foi
-> avaliado e do que foi decidido. Não descreve a estrutura de pastas atual — essa está no
-> `README.md`.
+> avaliado e do que foi decidido. As mudanças posteriores estão em [Revisões](#revisões), no fim.
+> Não descreve a estrutura de pastas atual — essa está no `README.md`.
 
 ## Contexto
 
@@ -63,7 +63,8 @@ Next.js na Vercel
 
 ### Riscos e cuidados
 
-- Exige migrar o Pages Router atual ou adicionar endpoints de forma compatível.
+- Exige migrar o Pages Router atual ou adicionar endpoints de forma compatível (a migração para o
+  App Router aconteceu em 2026-10-22; ver [Revisões](#revisões)).
 - Route Handlers na Vercel são serverless; não devem depender de estado em memória.
 - Ainda é necessário configurar corretamente a sessão do Supabase no servidor.
 
@@ -100,11 +101,13 @@ Não adotada. Somente se houver necessidade concreta de API independente, jobs, 
 
 1. Adotar Supabase Auth como única autenticação.
 2. Adotar Supabase PostgreSQL com RLS.
-3. Usar o monolito fullstack Next.js com Pages Router.
+3. Usar o monolito fullstack Next.js com Pages Router. _(Revisto: App Router.)_
 4. Preferir acesso direto ao Supabase para operações simples.
-5. Usar `pages/api/` para regras server-side, integrações e operações que não devem ocorrer no navegador.
+5. Usar `pages/api/` para regras server-side, integrações e operações que não devem ocorrer no
+   navegador. _(Revisto: `src/app/api/`.)_
 6. Não manter backend separado. **Feito no commit `2599ad9`.**
-7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistência.
+7. Usar PostgreSQL local via Docker para desenvolvimento e testes de persistência. _(Revisto:
+   Supabase CLI local.)_
 8. Usar Preview Deployments da Vercel para homologação e o de Production para a branch `main`.
 
 Essa decisão foi registrada em 2026-09-22. O uso de `pages/api/` não significa que todas as operações precisam passar por uma API própria.
@@ -113,21 +116,32 @@ Essa decisão foi registrada em 2026-09-22. O uso de `pages/api/` não significa
 
 Além da opção adotada, foram avaliadas duas estruturas de pastas alternativas em 2026-09-22 —
 separar o frontend em `frontend/` com um `backend/` dedicado, e criar `pages/lib/` para
-`supabase/`, `services/` e `validation/`. **Nenhuma foi adotada.**
+`supabase/`, `services/` e `validation/`. **Nenhuma foi adotada.** Não há `backend/`, e nunca houve
+`pages/lib/`.
 
-A estrutura real é a seguinte:
+A estrutura atual (tudo em `src/`) está no `README.md` e no `AGENTS.md` §3.
 
-```text
-SpendSmart/
-  pages/            interface React
-    api/            createProfile, deleteAccount
-  components/       Navbar, estilos globais, guarda de sessão
-  services/         camada de negócio
-  infra/            cliente Supabase, Docker Compose, scripts
-  supabase/migrations/   schema
-  tests/            suíte Jest
-  docs/             documentação
-```
+## Revisões
 
-Não há `backend/`, e nunca houve `pages/lib/`. Não mover o frontend para `frontend/`: a
-infraestrutura deve entrar em commits pequenos e verificáveis.
+A decisão central continua valendo: monolito Next.js na Vercel, Supabase Auth como única
+autenticação, RLS no banco e nenhum backend separado. O que mudou desde 2026-09-22:
+
+| Data       | Mudança                                                                                                                                                                                                                                                         | Item da decisão |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| 2026-10-22 | Pages Router trocado pelo App Router (`1f237ed`, `0c5c70b`); páginas em `src/app/`, rotas privilegiadas em `src/app/api/*/route.js`. Na prática, uma parte pequena da Opção B: só o que precisa da chave de serviço passa por rota própria                      | 3 e 5           |
+| 2026-11-04 | Desenvolvimento contra o Supabase CLI local (Postgres + Auth + RLS) em vez de Postgres puro, e três bancos separados: local, Preview (`spsm-preview`) e Produção (`spsm-prod`). O Postgres puro do `infra/compose.yaml` ficou só para validar constraints (#20) | 7 e 8           |
+| 2026-11-04 | Migrations só em `.sql`, aplicadas pelo Supabase CLI; `node-pg-migrate` removido (#8)                                                                                                                                                                           | —               |
+| 2026-11-05 | CSP com nonce por requisição em `src/proxy.js` (o antigo middleware), o que torna todas as páginas dinâmicas (#24)                                                                                                                                              | —               |
+| 2026-11-06 | Cliente admin criado na requisição (`src/app/api/_lib/supabaseAdmin.js`): o build não depende mais de `SUPABASE_SERVICE_ROLE_KEY`                                                                                                                               | 5               |
+| 2026-11-06 | Privilégios das tabelas restritos: `anon` sem acesso, `authenticated`/`service_role` sem `TRUNCATE` (`20261106031517_restrict_table_grants.sql`)                                                                                                                | 2               |
+
+### Próximo passo previsto
+
+Eliminar as rotas privilegiadas: um trigger `SECURITY DEFINER` em `auth.users` cria o perfil no
+cadastro, e uma RPC `delete_own_account()` exclui a conta. O `/api/status` passaria a usar uma RPC
+`health_check()` com `GRANT EXECUTE` ao `anon`, já que o `anon` não lê mais as tabelas. Feito isso,
+a aplicação volta a ser a Opção A pura, e `SUPABASE_SERVICE_ROLE_KEY` sai da Vercel.
+
+A sessão ainda vive no `localStorage` do navegador, sem proteção das rotas privadas no servidor
+(#67). Corrigir isso exige o cliente Supabase com cookies (`@supabase/ssr`) e a checagem no
+`src/proxy.js`, sem trocar de opção.
