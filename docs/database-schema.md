@@ -260,6 +260,13 @@ usada pelo `/api/status`. Ela confirma pelo catálogo (`to_regclass`) que as tr�
 ler nenhuma linha, e roda como `SECURITY INVOKER`: não precisa de privilégio em tabela, então não
 abre nada além de "o banco responde e o schema está lá".
 
+**Tabela nova:** a migration traz `REVOKE ALL ... FROM anon` e o `GRANT` explícito para
+`authenticated`/`service_role` (dentro da guarda de `auth.users`). O padrão do schema `public` no
+Supabase CLI dá todos os privilégios ao `anon`, e foi assim que o banco local ficou diferente da
+Produção até 2026-11-06. Exceção prevista: a tabela `incidents` da página `/status` (inspirada na
+página de status do GitHub, ainda não criada) é pública por natureza e o `/api/status` só usa a chave
+pública, então ela precisa de `GRANT SELECT` ao `anon` e de uma política de leitura `USING (true)`.
+
 O RLS é a última barreira, não a única. Os _services_ filtram por `user_id` explicitamente em toda
 leitura e escrita, conforme os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e
 `src/services/transactionService.js`.

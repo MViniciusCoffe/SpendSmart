@@ -118,6 +118,14 @@ A separação de responsabilidades adotada:
    e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação
    e propaga o tipo às transações (CA-008.03).
 8. **Sem `alert`/`confirm`.** Feedback por toast e confirmações pelo `ConfirmDialog`.
+9. **`SUPABASE_SERVICE_ROLE_KEY` só no servidor**, sem prefixo `NEXT_PUBLIC_`, lida apenas por
+   `src/app/api/_lib/supabaseAdmin.js` e na requisição. Rota de API valida o token antes e nunca
+   devolve a mensagem de erro interna ao cliente.
+10. **Colunas explícitas nos services** (nem `select("*")` nem `.select()` vazio) e nada carregado de
+    outra origem no navegador (a CSP com nonce bloqueia).
+
+As demais convenções de código, com o motivo de cada uma, estão em
+[Convenções de código](docs/code-conventions.md).
 
 ---
 
@@ -134,7 +142,7 @@ A separação de responsabilidades adotada:
 | Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
 | Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
 | Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
-| Testes de regressão                         | **8 suítes, 61 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
+| Testes de regressão                         | **9 suítes, 66 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
 | `npm test`                                  | **Passa** — 210/210                                                                                                              |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                             |
 | CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                                           |
@@ -144,15 +152,23 @@ A separação de responsabilidades adotada:
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                              |
-| :------------------------------------------------------------ | :------------------------------------------------------------------------------------ |
-| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`) |
-| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços  |
+| #                                                             | Problema                                                                                                                                              |
+| :------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`)                                                                 |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços                                                                  |
+| sem issue                                                     | Cache de sessão (`baseService.js`) nunca é limpo: logout e login de outro usuário na mesma aba em até 5 min deixam os services com o `user_id` antigo |
+| sem issue                                                     | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                                               |
+| sem issue                                                     | `profileService` fora do padrão: sem `withSession`/`withErrorHandling`, sem filtro de `deleted_at`, sem `profileTypeMap`                              |
+| sem issue                                                     | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                                        |
+
+Os defeitos sem issue foram encontrados por leitura de código (2026-11-03) e ficam para a frente de
+testes de front-end e sistema (P3), corrigidos junto com os testes que os cobrem. Os dois últimos
+somem com a remoção das rotas privilegiadas (perfil criado por trigger no banco e exclusão por RPC).
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
 componentizadas), #13 (toasts no lugar de `alert`), #22
 (navbar duplicada), #23 (rotas públicas), #32 (valor com vírgula e separador de milhar) e #43
-(senha mínima no cadastro).
+(senha mínima no cadastro). Na branch `chore/tech-debt`: #8, #11, #20, #24 e #66.
 
 ### Sobre o RLS
 
@@ -196,7 +212,8 @@ arquivos abaixo, em Markdown.
 
 | Documento                                             | Conteúdo                                                                       |
 | :---------------------------------------------------- | :----------------------------------------------------------------------------- |
-| [Esquema do banco](docs/database-schema.md)           | Tabelas, constraints, índices, 3FN, RLS, limites conhecidos                    |
+| [Convenções de código](docs/code-conventions.md)      | Services, páginas, CSP, rotas de API e o que o `check:agents` bloqueia         |
+| [Esquema do banco](docs/database-schema.md)           | Tabelas, constraints, índices, 3FN, RLS, privilégios, limites conhecidos       |
 | [Opções de arquitetura](docs/architecture-options.md) | ADR de 2026-09-22: as opções avaliadas e a adotada                             |
 | [Migrações futuras](docs/future-migrations.md)        | Propostas em SQL para `profiles` em inglês, `updated_at` e coerência de `type` |
 | [Infraestrutura local](docs/local-infrastructure.md)  | Docker Compose, comandos e o que o Postgres local não valida                   |
