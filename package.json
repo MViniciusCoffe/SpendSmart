@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node scripts/dev.js",
     "next:dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "infra:up": "supabase start",
     "infra:down": "supabase stop",
     "infra:reset": "supabase db reset",
@@ -26,6 +28,7 @@
     "test:integration:watch": "jest tests/integration/postgres --runInBand --watch",
     "test:integration:local": "jest tests/integration/postgres --runInBand",
     "test:all": "jest tests/unit tests/integration/postgres tests/regression tests/integration/supabase --runInBand",
+    "test:regression": "jest tests/regression",
     "test:mutation": "stryker run",
     "check:agents": "node scripts/check-agents.js",
     "lint:prettier:check": "prettier --check .",

@@ -129,6 +129,6 @@ Resumo; os detalhes estão em [database-schema.md](database-schema.md) e o fluxo
 
 `npm run check:agents` (`scripts/check-agents.js`) bloqueia: chave `sb_secret_` ou JWT no código,
 `console.error` com dado sensível, `dangerouslySetInnerHTML`/`innerHTML`/`eval`, `alert`/`confirm`,
-e `select("*")` ou `.select()` vazio em `src/services/`. Ele **não roda no CI nem nos hooks**: rodar
+e `select("*")` ou `.select()` vazio em `src/services/`. Roda no `lint.yml`, mas não nos hooks: rodar
 antes de commitar, junto com `npm test`, `npm run test:integration`, `npm run lint:eslint:check` e
 `npm run lint:prettier:check`.

@@ -82,7 +82,7 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 | Integração do front-end          | `tests/e2e/` (Playwright, rede mockada) | a definir na implementação          | Planejado       |
 | Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
 | Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 21 testes       |
-| Regressão                        | `tests/regression/`                     | `npx jest tests/regression`         | 66 testes       |
+| Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 67 testes       |
 | Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | a definir na implementação          | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
 | Aceitação (manual)               | `docs/acceptance-test-report-*.md`      | —                                   | Iterações 1 a 3 |
@@ -325,10 +325,10 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 66 testes, cobrindo #10/#21, #11, #24, #32, as rotas de `src/app/api/`, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 67 testes, cobrindo #10/#21, #11, #24, #32, as rotas de `src/app/api/`, fuso horário em
 `formatDate`, nome de categoria deletada e propagação do tipo da categoria. Eles rodam só localmente
-(`npx jest tests/regression` ou `npm run test:all`): **nenhum workflow do CI os executa**, o que está
-registrado como risco em §6.
+(`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
+antes rodavam só localmente.
 
 Os fluxos E2E de §2.3.1 também cumprem papel de regressão para os defeitos de interface já corrigidos
 (#10, #21, #22, #23, #43).
@@ -419,7 +419,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 348 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 66 regressão),
+**Cobertura atual: 349 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 67 regressão),
 conferidos em 2026-11-06.** Os testes E2E da P3 entram nesta conta quando forem implementados.
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,
@@ -461,7 +461,6 @@ A separação por nível:
 | **Teste destrutivo apontado para banco com dados** | Alto. Em 2026-11-04 o `beforeEach` da integração apagou o Supabase local por causa de um `TEST_DATABASE_URL` no `.env.local`. | `db.js` recusa banco com contas com e-mail; a suíte RLS recusa URL não local; o E2E segue a mesma regra.             |
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
-| **Regressão fora do CI**                           | Médio. Os 66 testes de `tests/regression/` só rodam localmente.                                                               | Incluir `tests/regression` no `test.yml`.                                                                            |
 | **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo e `AuthContext` sem `onAuthStateChange` (AGENTS.md §14.3).                                 | ST-04 os exercita; correção junto com os testes de front-end.                                                        |
 | **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | Constraint ou trigger (IT-07). Registrado no plano; issue própria a criar.                                           |
 | **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Testar as rotas, ou eliminar a `service_role` da aplicação (AGENTS.md §14.3).                                        |

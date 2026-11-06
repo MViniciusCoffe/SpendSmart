@@ -27,6 +27,27 @@ jobs:
       - name: Executar testes de integração (pg-mem)
         run: npm run test:integration
 
+      # Não precisam de .env.local nem de Supabase: mockam o cliente ou carregam as rotas sem chave
+      - name: Executar testes de regressão
+        run: npm run test:regression
+
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v5
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      # Falha só com vulnerabilidade high ou critical (issue #51). Hoje há moderadas, todas em
+      # ferramentas de desenvolvimento (Jest/cobertura), cuja correção exige atualização major.
+      - name: Auditar dependências
+        run: npm audit --audit-level=high
+
   rls:
     runs-on: ubuntu-latest
 

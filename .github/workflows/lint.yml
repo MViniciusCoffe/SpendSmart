@@ -26,3 +26,6 @@ jobs:
 
       - name: Verificar formatação
         run: npm run lint:prettier:check
+
+      - name: Verificar regras do AGENTS.md
+        run: npm run check:agents
