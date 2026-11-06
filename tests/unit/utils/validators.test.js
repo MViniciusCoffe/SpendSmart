@@ -1,5 +1,13 @@
 import validators from "@/services/utils/validators"
 
+// A idade é calculada a partir de new Date(): sem relógio fixo, o resultado mudaria com o dia em que
+// a suíte roda (issue #66). "Hoje" nestes testes é 2026-06-15.
+const usarHojeFixo = () => jest.useFakeTimers({ now: new Date(2026, 5, 15, 12) })
+
+afterEach(() => {
+  jest.useRealTimers()
+})
+
 describe("validators", () => {
   describe("titulo", () => {
     it("retorna titulo valido com trim", () => {
@@ -271,17 +279,17 @@ describe("validators", () => {
     })
 
     it("lança erro para menor de 13 anos", () => {
-      const futuro = new Date()
-      futuro.setFullYear(futuro.getFullYear() - 10)
-      const data = futuro.toISOString().split("T")[0]
-      expect(() => validators.dataNascimento(data)).toThrow("Idade deve ser entre 13 e 120 anos")
+      usarHojeFixo()
+      expect(() => validators.dataNascimento("2016-06-15")).toThrow(
+        "Idade deve ser entre 13 e 120 anos"
+      )
     })
 
     it("lança erro para maior de 120 anos", () => {
-      const passado = new Date()
-      passado.setFullYear(passado.getFullYear() - 121)
-      const data = passado.toISOString().split("T")[0]
-      expect(() => validators.dataNascimento(data)).toThrow("Idade deve ser entre 13 e 120 anos")
+      usarHojeFixo()
+      expect(() => validators.dataNascimento("1905-06-15")).toThrow(
+        "Idade deve ser entre 13 e 120 anos"
+      )
     })
   })
 
@@ -333,9 +341,9 @@ describe("validators", () => {
     })
 
     it("dataNascimento aceita as idades limite de 13 e 120 anos", () => {
-      const ano = new Date().getFullYear()
-      expect(validators.dataNascimento(`${ano - 13}-01-01`)).toBe(`${ano - 13}-01-01`)
-      expect(validators.dataNascimento(`${ano - 120}-01-01`)).toBe(`${ano - 120}-01-01`)
+      usarHojeFixo()
+      expect(validators.dataNascimento("2013-01-01")).toBe("2013-01-01")
+      expect(validators.dataNascimento("1906-01-01")).toBe("1906-01-01")
     })
 
     it("cor recusa texto antes ou depois do #RRGGBB", () => {

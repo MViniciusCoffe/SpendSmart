@@ -98,7 +98,16 @@ async function assertDisposableDb(client) {
 
 export async function createTestDb() {
   if (process.env.TEST_DATABASE_URL) {
-    const client = new pg.Client({ connectionString: process.env.TEST_DATABASE_URL })
+    // `date` como texto: o parser padrão cria um Date à meia-noite local, que vira o dia anterior
+    // em toISOString() nos fusos a leste de UTC
+    const DATE_OID = 1082
+    const client = new pg.Client({
+      connectionString: process.env.TEST_DATABASE_URL,
+      types: {
+        getTypeParser: (oid, format) =>
+          oid === DATE_OID ? value => value : pg.types.getTypeParser(oid, format)
+      }
+    })
     await client.connect()
     await assertDisposableDb(client)
     return { client, modo: "postgres-real" }

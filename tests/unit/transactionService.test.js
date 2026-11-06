@@ -136,7 +136,7 @@ describe("createTransaction", () => {
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linhaTransacao, error: null })
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({
@@ -165,7 +165,7 @@ describe("createTransaction", () => {
 
   it("converte despesa em expense na escrita", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linhaTransacao, error: null })
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({

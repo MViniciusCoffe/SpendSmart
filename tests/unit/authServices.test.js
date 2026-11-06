@@ -325,7 +325,7 @@ describe("argumentos enviados pelo authService", () => {
     })
   })
 
-  it("loginUser só registra no console os erros sem mensagem amigável específica", async () => {
+  it("loginUser não registra no console o erro que tem mensagem amigável", async () => {
     supabase.auth.signInWithPassword.mockResolvedValue({
       data: null,
       error: { message: "Invalid login credentials" }
@@ -334,7 +334,9 @@ describe("argumentos enviados pelo authService", () => {
       authService.loginUser({ email: "joao@email.com", password: "errada" })
     ).rejects.toThrow()
     expect(console.error).not.toHaveBeenCalled()
+  })
 
+  it("loginUser registra no console o erro sem mensagem amigável específica", async () => {
     supabase.auth.signInWithPassword.mockResolvedValue({
       data: null,
       error: { message: "connection failure", status: 500 }

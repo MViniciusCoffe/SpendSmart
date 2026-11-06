@@ -1,4 +1,5 @@
 import { createTestDb } from "../db"
+import { capturarErro, esperarCodigoPg } from "@/tests/helpers/db"
 
 // Testes de integração de persistência do cadastro (US-001, Iteração 1): o que
 // o banco garante na fronteira do POST /api/createProfile, que é a segunda
@@ -28,14 +29,6 @@ const inserirPerfil = ({ id = USUARIO_NOVO, full_name = "Usuário de Teste" } = 
 // Mesmo padrão do categoryConstraints: o pg-mem não preenche `code` em todas
 // as violações, então a asserção primária é a mensagem padrão do PostgreSQL,
 // idêntica nos dois backends; quando o código existe, ele também é conferido.
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
 
 beforeAll(async () => {
   db = await createTestDb()
@@ -67,7 +60,7 @@ describe("US-001 — gravação do perfil no cadastro", () => {
     const erro = await capturarErro(inserirPerfil({ full_name: null }))
 
     expect(erro.message).toMatch(/violates not-null constraint/i)
-    if (erro.code) expect(erro.code).toBe("23502")
+    esperarCodigoPg(erro, "23502", db.modo)
   })
 
   it("rejeita perfil com id já cadastrado (23505) — reenvio não duplica nem sobrescreve", async () => {

@@ -1,4 +1,5 @@
 import { createTestDb } from "../db"
+import { capturarErro, esperarCodigoPg, dataISO } from "@/tests/helpers/db"
 
 // Testes de integração de persistência do registro de receita (US-010, Iteração 1):
 // CT10.01 — Cadastro com dados válidos
@@ -38,15 +39,6 @@ const inserirReceita = ({
     [userId, categoryId, amount, title, occurredOn, description, paymentMethod]
   )
 
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
-
 beforeAll(async () => {
   db = await createTestDb()
 })
@@ -62,7 +54,7 @@ afterAll(async () => {
 })
 
 describe("CT10.01 — Cadastro de receita com dados válidos", () => {
-  it("persiste a receita e devolve os dados corretos [pg-mem]", async () => {
+  it("persiste a receita e devolve os dados corretos", async () => {
     const { rows: catRows } = await inserirCategoria()
     const categoryId = catRows[0].id
 
@@ -73,11 +65,7 @@ describe("CT10.01 — Cadastro de receita com dados válidos", () => {
     expect(Number(rows[0].amount)).toBe(5000.0)
     expect(rows[0].type).toBe("income")
     expect(rows[0].category_id).toBe(categoryId)
-    const occurredOn =
-      rows[0].occurred_on instanceof Date
-        ? rows[0].occurred_on.toISOString().split("T")[0]
-        : rows[0].occurred_on
-    expect(occurredOn).toBe("2026-10-01")
+    expect(dataISO(rows[0].occurred_on)).toBe("2026-10-01")
     expect(rows[0].description).toBe("Salário do mês")
     expect(rows[0].payment_method).toBe("pix")
   })
@@ -144,6 +132,6 @@ describe("Limites de schema — campos obrigatórios e chaves estrangeiras", () 
     const erro = await capturarErro(inserirReceita({ categoryId: 999999 }))
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
   })
 })

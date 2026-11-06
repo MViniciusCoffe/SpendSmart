@@ -1,4 +1,5 @@
 import { createTestDb } from "../db"
+import { capturarErro, esperarCodigoPg } from "@/tests/helpers/db"
 
 // Testes de integração de persistência das categorias: IT-04 e IT-05 do plano
 // de testes (docs/test-plan.md). São os casos que nenhum mock em JS consegue
@@ -40,14 +41,6 @@ const inserirTransacao = categoriaId =>
 // preenche `code` em violações de chave estrangeira (o 23503 só aparece no
 // Postgres real), então FK é verificada pela mensagem padrão do PostgreSQL,
 // idêntica nos dois backends; quando o código existe, ele também é conferido.
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
 
 beforeAll(async () => {
   db = await createTestDb()
@@ -99,7 +92,7 @@ describe("IT-04 — exclusão de categoria em uso é rejeitada", () => {
     )
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
 
     const { rowCount } = await db.client.query("SELECT 1 FROM categories WHERE id = $1", [
       rows[0].id
@@ -130,6 +123,6 @@ describe("IT-04 — exclusão de categoria em uso é rejeitada", () => {
     const erro = await capturarErro(inserirTransacao(999999))
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
   })
 })
