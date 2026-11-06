@@ -109,6 +109,12 @@ integração.
 **Reavaliar quando.** Houver código JavaScript exercitado apenas por teste de integração. Até lá,
 aumentar a base sem aumentar a medição só produz número menor, não informação nova.
 
+**Escopo do relatório (2026-11-05).** `collectCoverageFrom: ["src/services/**/*.js"]` fica no nível
+global do `jest.config.js`. Até essa data ele estava dentro do project `unit`, onde o Jest o ignora
+(opções de cobertura são globais num config com `projects`); sem filtro, o relatório listava todo
+arquivo carregado pelos testes, inclusive o helper `tests/helpers/supabase.js` (70%), e o total
+aparecia como 97%.
+
 ---
 
 ## 5. Sem `coverageThreshold`

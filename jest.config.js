@@ -8,8 +8,6 @@ module.exports = {
       transform: {
         "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
-      collectCoverageFrom: ["src/**/*.js"],
-      coverageDirectory: "coverage/unit",
       testTimeout: 10000,
       setupFiles: ["<rootDir>/tests/setupEnv.js"],
       moduleNameMapper: {
@@ -62,6 +60,10 @@ module.exports = {
       }
     }
   ],
+  // Opções de cobertura são globais: dentro de um project o Jest as ignora (estavam no "unit" e
+  // nenhuma valia). O escopo é o mesmo do Sonar (sonar.sources=src/services); o front-end é medido
+  // por fluxos E2E, não por linhas (docs/test-plan.md §2.1.2)
+  collectCoverageFrom: ["src/services/**/*.js"],
   coverageReporters: ["text", "html", "json-summary", "lcov"],
   coverageDirectory: "coverage"
 }
