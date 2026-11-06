@@ -59,8 +59,8 @@ banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca
 - **A chave secreta só é exigida em runtime.** Até 2026-11-06 as três rotas criavam o cliente admin
   no topo do módulo, e o `next build` falhava sem a variável (`supabaseKey is required`, Preview em
   2026-11-04). Hoje o cliente nasce na requisição (`src/app/api/_lib/supabaseAdmin.js`): sem a chave
-  o build passa, `createProfile`/`deleteAccount` respondem 503 e o `/api/status` marca como
-  `critical` os serviços que dependem dela. Na Vercel ela continua necessária para o cadastro e a
+  o build passa e `createProfile`/`deleteAccount` respondem 503. O `/api/status` não usa a chave
+  (só a pública, com a RPC `health_check()`). Na Vercel ela continua necessária para o cadastro e a
   exclusão de conta funcionarem.
 - **`DATABASE_URL` não vai para a Vercel.** Nenhum código da aplicação a lê; mantê-la no painel só
   guardaria uma senha de banco (que ignora o RLS) num lugar que não precisa dela.

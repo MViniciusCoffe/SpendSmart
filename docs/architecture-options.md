@@ -134,13 +134,13 @@ autenticação, RLS no banco e nenhum backend separado. O que mudou desde 2026-0
 | 2026-11-05 | CSP com nonce por requisição em `src/proxy.js` (o antigo middleware), o que torna todas as páginas dinâmicas (#24)                                                                                                                                              | —               |
 | 2026-11-06 | Cliente admin criado na requisição (`src/app/api/_lib/supabaseAdmin.js`): o build não depende mais de `SUPABASE_SERVICE_ROLE_KEY`                                                                                                                               | 5               |
 | 2026-11-06 | Privilégios das tabelas restritos: `anon` sem acesso, `authenticated`/`service_role` sem `TRUNCATE` (`20261106031517_restrict_table_grants.sql`)                                                                                                                | 2               |
+| 2026-11-06 | `/api/status` (rota pública) sem o cliente admin: banco pela RPC `health_check()` com a chave pública, Auth pelo endpoint público; Realtime e Storage fora da página (`20261106150417_add_health_check.sql`)                                                    | 5               |
 
 ### Próximo passo previsto
 
 Eliminar as rotas privilegiadas: um trigger `SECURITY DEFINER` em `auth.users` cria o perfil no
-cadastro, e uma RPC `delete_own_account()` exclui a conta. O `/api/status` passaria a usar uma RPC
-`health_check()` com `GRANT EXECUTE` ao `anon`, já que o `anon` não lê mais as tabelas. Feito isso,
-a aplicação volta a ser a Opção A pura, e `SUPABASE_SERVICE_ROLE_KEY` sai da Vercel.
+cadastro, e uma RPC `delete_own_account()` exclui a conta. O `/api/status` já não usa a chave.
+Feito isso, a aplicação volta a ser a Opção A pura, e `SUPABASE_SERVICE_ROLE_KEY` sai da Vercel.
 
 A sessão ainda vive no `localStorage` do navegador, sem proteção das rotas privadas no servidor
 (#67). Corrigir isso exige o cliente Supabase com cookies (`@supabase/ssr`) e a checagem no
