@@ -1,13 +1,12 @@
 import { createClient } from "@supabase/supabase-js"
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { adminUnavailableResponse, getSupabaseAdmin } from "../_lib/supabaseAdmin"
 
 export async function POST(request) {
   const token = request.headers.get("authorization")?.split(" ")[1]
   if (!token) return Response.json({ message: "Não autorizado" }, { status: 401 })
+
+  const supabaseAdmin = getSupabaseAdmin()
+  if (!supabaseAdmin) return adminUnavailableResponse()
 
   const { full_name, birth_date, phone } = await request.json()
 

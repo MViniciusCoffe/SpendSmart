@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { getSimulatedFailures } from "../../status/utils/failParam"
+import { getSupabaseAdmin } from "../_lib/supabaseAdmin"
 import {
   serviceMetadata,
   getOverallStatus,
   calculateUptime,
-  calculateLatencies,
-  getSeverityConfig
+  calculateLatencies
 } from "../../status/utils/statusConfig"
 
 /**
@@ -31,102 +30,47 @@ function withDeadline(promise, ms = CHECK_TIMEOUT_MS) {
   return Promise.race([promise, deadline]).finally(() => clearTimeout(timer))
 }
 
-// Create admin client for health checks
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { persistSession: false },
-  global: { fetch: fetchWithTimeout }
-})
+// Nome e descrição de cada serviço vêm de serviceMetadata (o mesmo texto que a página usa)
+function service(id, status, latency = 0) {
+  const { name, description } = serviceMetadata[id]
+  return { id, name, description, status, latency }
+}
 
-async function checkDatabase(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("database") || failures.has("db")) {
-    return {
-      id: "database",
-      name: "PostgreSQL Database",
-      status: "critical",
-      latency: 0,
-      description: "Primary database (Supabase Postgres)"
-    }
-  }
+// Serviços que dependem do cliente admin aparecem como "critical" quando a chave falta: sem ela não
+// há como verificar, e o build não pode depender dela (ver ../_lib/supabaseAdmin.js)
+async function checkDatabase(admin) {
+  if (!admin) return service("database", "critical")
   const start = Date.now()
   try {
-    const { error } = await withDeadline(supabaseAdmin.from("profiles").select("id").limit(1))
-    const latency = Date.now() - start
-    return {
-      id: "database",
-      name: "PostgreSQL Database",
-      status: error ? "critical" : "operational",
-      latency,
-      description: "Primary database (Supabase Postgres)"
-    }
-  } catch (e) {
-    return {
-      id: "database",
-      name: "PostgreSQL Database",
-      status: "critical",
-      latency: Date.now() - start,
-      description: "Primary database (Supabase Postgres)"
-    }
+    const { error } = await withDeadline(admin.from("profiles").select("id").limit(1))
+    return service("database", error ? "critical" : "operational", Date.now() - start)
+  } catch {
+    return service("database", "critical", Date.now() - start)
   }
 }
 
-async function checkAuth(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("auth") || failures.has("authentication")) {
-    return {
-      id: "auth",
-      name: "Authentication",
-      status: "critical",
-      latency: 0,
-      description: "Supabase Auth (GoTrue)"
-    }
-  }
+async function checkAuth(admin) {
+  if (!admin) return service("auth", "critical")
   const start = Date.now()
   try {
-    const { error } = await withDeadline(supabaseAdmin.auth.admin.listUsers({ perPage: 1 }))
-    const latency = Date.now() - start
-    return {
-      id: "auth",
-      name: "Authentication",
-      status: error ? "degraded" : "operational",
-      latency,
-      description: "Supabase Auth (GoTrue)"
-    }
-  } catch (e) {
-    return {
-      id: "auth",
-      name: "Authentication",
-      status: "critical",
-      latency: Date.now() - start,
-      description: "Supabase Auth (GoTrue)"
-    }
+    const { error } = await withDeadline(admin.auth.admin.listUsers({ perPage: 1 }))
+    return service("auth", error ? "degraded" : "operational", Date.now() - start)
+  } catch {
+    return service("auth", "critical", Date.now() - start)
   }
 }
 
-async function checkRealtime(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("realtime") || failures.has("realtime-engine")) {
-    return {
-      id: "realtime",
-      name: "Realtime Engine",
-      status: "critical",
-      latency: 0,
-      description: "Supabase Realtime (Postgres Changes)"
-    }
-  }
+async function checkRealtime(admin) {
+  if (!admin) return service("realtime", "critical")
   const start = Date.now()
   try {
-    const channel = supabaseAdmin.channel("health-check", {
-      config: { broadcast: { self: false } }
-    })
+    const channel = admin.channel("health-check", { config: { broadcast: { self: false } } })
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("Realtime timeout")), CHECK_TIMEOUT_MS)
       channel.subscribe(status => {
         if (status === "SUBSCRIBED") {
           clearTimeout(timeout)
-          supabaseAdmin.removeChannel(channel)
+          admin.removeChannel(channel)
           resolve()
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           clearTimeout(timeout)
@@ -134,132 +78,62 @@ async function checkRealtime(request) {
         }
       })
     })
-    const latency = Date.now() - start
-    return {
-      id: "realtime",
-      name: "Realtime Engine",
-      status: "operational",
-      latency,
-      description: "Supabase Realtime (Postgres Changes)"
-    }
-  } catch (e) {
-    return {
-      id: "realtime",
-      name: "Realtime Engine",
-      status: "degraded",
-      latency: Date.now() - start,
-      description: "Supabase Realtime (Postgres Changes)"
-    }
+    return service("realtime", "operational", Date.now() - start)
+  } catch {
+    return service("realtime", "degraded", Date.now() - start)
   }
 }
 
-async function checkStorage(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("storage") || failures.has("file-storage")) {
-    return {
-      id: "storage",
-      name: "File Storage",
-      status: "critical",
-      latency: 0,
-      description: "Supabase Storage (S3-compatible)"
-    }
-  }
+async function checkStorage(admin) {
+  if (!admin) return service("storage", "critical")
   const start = Date.now()
   try {
-    const { error } = await withDeadline(supabaseAdmin.storage.listBuckets())
-    const latency = Date.now() - start
-    return {
-      id: "storage",
-      name: "File Storage",
-      status: error ? "degraded" : "operational",
-      latency,
-      description: "Supabase Storage (S3-compatible)"
-    }
-  } catch (e) {
-    return {
-      id: "storage",
-      name: "File Storage",
-      status: "critical",
-      latency: Date.now() - start,
-      description: "Supabase Storage (S3-compatible)"
-    }
+    const { error } = await withDeadline(admin.storage.listBuckets())
+    return service("storage", error ? "degraded" : "operational", Date.now() - start)
+  } catch {
+    return service("storage", "critical", Date.now() - start)
   }
 }
 
+// URL absoluta a partir da própria requisição. Antes era `${NEXT_PUBLIC_APP_URL}/api/health`, variável
+// que não existe em nenhum ambiente: o fetch recebia uma URL relativa, lançava no servidor, e o catch
+// marcava "degraded" em produção e "operational" em desenvolvimento, escondendo a falha.
 async function checkAPI(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("api") || failures.has("api-gateway")) {
-    return {
-      id: "api",
-      name: "API Gateway",
-      status: "critical",
-      latency: 0,
-      description: "Next.js API Routes"
-    }
-  }
   const start = Date.now()
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.NODE_ENV === "development" ? "http://localhost:3000" : "")
-    const response = await fetch(`${baseUrl}/api/health`, {
+    const response = await fetch(new URL("/api/health", request.url), {
       signal: AbortSignal.timeout(5000),
       cache: "no-store"
     })
-    const latency = Date.now() - start
-    return {
-      id: "api",
-      name: "API Gateway",
-      status: response.ok ? "operational" : "degraded",
-      latency,
-      description: "Next.js API Routes"
-    }
-  } catch (e) {
-    return {
-      id: "api",
-      name: "API Gateway",
-      status: process.env.NODE_ENV === "development" ? "operational" : "degraded",
-      latency: Date.now() - start,
-      description: "Next.js API Routes"
-    }
+    return service("api", response.ok ? "operational" : "degraded", Date.now() - start)
+  } catch {
+    return service("api", "degraded", Date.now() - start)
   }
 }
 
-async function checkCDN(request) {
-  const failures = getSimulatedFailures(request)
-  if (failures.has("cdn") || failures.has("edge")) {
-    return {
-      id: "cdn",
-      name: "CDN / Edge Network",
-      status: "critical",
-      latency: 0,
-      description: "Vercel Edge Network"
-    }
-  }
+async function checkCDN() {
   const start = Date.now()
   try {
     const response = await fetch("https://vercel.com", {
       method: "HEAD",
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
       cache: "no-store"
     })
-    const latency = Date.now() - start
-    return {
-      id: "cdn",
-      name: "CDN / Edge Network",
-      status: response.ok ? "operational" : "degraded",
-      latency,
-      description: "Vercel Edge Network"
-    }
-  } catch (e) {
-    return {
-      id: "cdn",
-      name: "CDN / Edge Network",
-      status: "operational",
-      latency: Date.now() - start,
-      description: "Vercel Edge Network"
-    }
+    return service("cdn", response.ok ? "operational" : "degraded", Date.now() - start)
+  } catch {
+    // Antes devolvia "operational" mesmo sem resposta
+    return service("cdn", "degraded", Date.now() - start)
   }
+}
+
+// ?fail=database,auth simula falhas (testes da página de status); cada serviço aceita dois nomes
+const FAIL_ALIASES = {
+  database: ["database", "db"],
+  auth: ["auth", "authentication"],
+  realtime: ["realtime", "realtime-engine"],
+  storage: ["storage", "file-storage"],
+  api: ["api", "api-gateway"],
+  cdn: ["cdn", "edge"]
 }
 
 export const dynamic = "force-dynamic"
@@ -267,23 +141,19 @@ export const revalidate = 60
 
 export async function GET(request) {
   try {
-    const [database, auth, realtime, storage, api, cdn] = await Promise.allSettled([
-      checkDatabase(request),
-      checkAuth(request),
-      checkRealtime(request),
-      checkStorage(request),
-      checkAPI(request),
-      checkCDN(request)
-    ])
+    const admin = getSupabaseAdmin({ global: { fetch: fetchWithTimeout } })
+    const failures = getSimulatedFailures(request)
+    const simulated = id => FAIL_ALIASES[id].some(alias => failures.has(alias))
+    const run = (id, check) => (simulated(id) ? service(id, "critical") : check())
 
-    const services = [
-      database.status === "fulfilled" ? database.value : { ...database.reason, status: "critical" },
-      auth.status === "fulfilled" ? auth.value : { ...auth.reason, status: "critical" },
-      realtime.status === "fulfilled" ? realtime.value : { ...realtime.reason, status: "degraded" },
-      storage.status === "fulfilled" ? storage.value : { ...storage.reason, status: "degraded" },
-      api.status === "fulfilled" ? api.value : { ...api.reason, status: "degraded" },
-      cdn.status === "fulfilled" ? cdn.value : { ...cdn.reason, status: "operational" }
-    ]
+    const services = await Promise.all([
+      run("database", () => checkDatabase(admin)),
+      run("auth", () => checkAuth(admin)),
+      run("realtime", () => checkRealtime(admin)),
+      run("storage", () => checkStorage(admin)),
+      run("api", () => checkAPI(request)),
+      run("cdn", () => checkCDN())
+    ])
 
     const { avg: avgLatency, p95: p95Latency, p99: p99Latency } = calculateLatencies(services)
 
@@ -294,10 +164,11 @@ export async function GET(request) {
 
     let incidents = []
     try {
+      if (!admin) throw new Error("sem cliente admin")
       const { data: incidentData } = await withDeadline(
-        supabaseAdmin
+        admin
           .from("incidents")
-          .select("*")
+          .select("id,title,description,severity,created_at,affected_services,resolved,resolved_at")
           .order("created_at", { ascending: false })
           .limit(10)
       )
@@ -315,10 +186,6 @@ export async function GET(request) {
       }
     } catch (e) {
       // Incidents table doesn't exist yet - that's fine
-    }
-
-    if (incidents.length === 0) {
-      incidents = []
     }
 
     const metrics = {
@@ -352,7 +219,7 @@ export async function GET(request) {
       incidents,
       page: {
         name: "SpendSmart Status",
-        url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/status"
+        url: new URL("/status", request.url).href
       }
     }
 

@@ -56,10 +56,12 @@ banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca
   `anon` para `publishable` (troca no commit `e70e163`); `ANON_KEY` não é lido.
 - **Chave secreta:** `SUPABASE_SERVICE_ROLE_KEY` **nunca** leva prefixo `NEXT_PUBLIC_` — com ele, ela
   seria embutida no bundle do navegador. Só é lida em `src/app/api/`, no servidor.
-- **A chave secreta é exigida no build**, não só em runtime: as três rotas criam o cliente admin
-  no topo do módulo, e o `next build` carrega os módulos ao coletar os dados das páginas. Sem a
-  variável no escopo, o build falha com `supabaseKey is required` (foi o que aconteceu com a Preview
-  em 2026-11-04). Ver AGENTS.md §14.3.
+- **A chave secreta só é exigida em runtime.** Até 2026-11-06 as três rotas criavam o cliente admin
+  no topo do módulo, e o `next build` falhava sem a variável (`supabaseKey is required`, Preview em
+  2026-11-04). Hoje o cliente nasce na requisição (`src/app/api/_lib/supabaseAdmin.js`): sem a chave
+  o build passa, `createProfile`/`deleteAccount` respondem 503 e o `/api/status` marca como
+  `critical` os serviços que dependem dela. Na Vercel ela continua necessária para o cadastro e a
+  exclusão de conta funcionarem.
 - **`DATABASE_URL` não vai para a Vercel.** Nenhum código da aplicação a lê; mantê-la no painel só
   guardaria uma senha de banco (que ignora o RLS) num lugar que não precisa dela.
 
