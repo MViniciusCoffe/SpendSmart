@@ -9,9 +9,12 @@
  * Decisões:
  * - script-src: nonce + 'strict-dynamic', sem 'unsafe-inline'. 'unsafe-eval' só em
  *   desenvolvimento, exigido pelo React para reconstruir a pilha de erros do servidor.
- * - style-src: 'unsafe-inline'. O nonce não cobre o atributo style="" que o React gera no servidor
- *   (a cor de cada categoria, por exemplo), e com nonce em style-src o navegador ignora
- *   'unsafe-inline'. A proteção forte fica nos scripts, onde está o risco de XSS.
+ * - style-src: nonce, que o Next.js aplica sozinho aos próprios <style>; folhas de estilo do app vêm
+ *   por 'self'. Um <style> injetado fica bloqueado. Em desenvolvimento, 'unsafe-inline', porque o
+ *   hot reload injeta estilos sem nonce.
+ * - style-src-attr: 'unsafe-inline' só para atributos style="", que o nonce não cobre. São os valores
+ *   de runtime que o React gera (a cor de cada categoria, a altura de um gráfico). Sem esta diretiva
+ *   o navegador usaria a regra de style-src e removeria esses atributos.
  * - connect-src: só a própria origem e a do Supabase (Auth e PostgREST são chamados do navegador).
  * - upgrade-insecure-requests só quando o Supabase é HTTPS: no Supabase CLI local (http://127.0.0.1)
  *   ele forçaria HTTPS e quebraria as chamadas.
@@ -26,7 +29,8 @@ export function buildContentSecurityPolicy(nonce, { isDev = false, supabaseUrl }
   const directives = [
     ["default-src", "'self'"],
     ["script-src", "'self'", `'nonce-${nonce}'`, "'strict-dynamic'", isDev && "'unsafe-eval'"],
-    ["style-src", "'self'", "'unsafe-inline'"],
+    ["style-src", "'self'", isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`],
+    ["style-src-attr", "'unsafe-inline'"],
     ["img-src", "'self'", "blob:", "data:"],
     ["font-src", "'self'"],
     ["connect-src", "'self'", supabase?.origin],

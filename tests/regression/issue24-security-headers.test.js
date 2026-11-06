@@ -86,6 +86,18 @@ describe("Regressão #24 — Content-Security-Policy com nonce (src/lib/security
     const csp = parseCsp(buildContentSecurityPolicy("abc123", { supabaseUrl: SUPABASE_REMOTO }))
 
     expect(csp["font-src"]).toEqual(["'self'"])
+  })
+
+  it('exige o nonce em <style> e libera só o atributo style="" gerado pelo React', () => {
+    const csp = parseCsp(buildContentSecurityPolicy("abc123", { supabaseUrl: SUPABASE_REMOTO }))
+
+    expect(csp["style-src"]).toEqual(["'self'", "'nonce-abc123'"])
+    expect(csp["style-src-attr"]).toEqual(["'unsafe-inline'"])
+  })
+
+  it("libera <style> inline em desenvolvimento (o hot reload não usa nonce)", () => {
+    const csp = parseCsp(buildContentSecurityPolicy("abc123", { isDev: true }))
+
     expect(csp["style-src"]).toEqual(["'self'", "'unsafe-inline'"])
   })
 
