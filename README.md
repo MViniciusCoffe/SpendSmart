@@ -133,8 +133,8 @@ A separação de responsabilidades adotada:
 | Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                              |
 | Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
 | Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
-| Testes de integração (Supabase/RLS)         | **2 suítes, 20 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
-| Testes de regressão                         | **8 suítes, 53 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
+| Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
+| Testes de regressão                         | **8 suítes, 61 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                    |
 | `npm test`                                  | **Passa** — 210/210                                                                                                              |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                             |
 | CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`                                           |
