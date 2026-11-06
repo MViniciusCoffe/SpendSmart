@@ -156,8 +156,7 @@ npm run test:integration:supabase                # RLS real no Supabase local
 npm run infra:reset                              # antes do PR: aplica tudo do zero (APAGA os dados locais)
 npm run migrations:push -- --target preview      # dry-run: lista as versões que serão aplicadas
 npm run migrations:push -- --target preview --apply
-# teste a Preview da branch; depois do merge em main:
-npm run migrations:push -- --target production --apply
+# teste a Preview da branch; no merge em main, o workflow de deploy aplica em Produção (§10)
 ```
 
 Regras:
@@ -243,7 +242,7 @@ projetos remotos: Preview e Produção têm as mesmas 3 tabelas e as mesmas 3 po
 
 - **Chave secreta só para duas rotas** — `createProfile` e `deleteAccount` poderiam virar trigger em
   `auth.users` e RPC `SECURITY DEFINER`, eliminando a `SUPABASE_SERVICE_ROLE_KEY` da Vercel (ver
-  AGENTS.md §14.3).
+  [architecture-options.md](architecture-options.md#próximo-passo-previsto)).
 
 ---
 
@@ -258,3 +257,49 @@ Ao criar ou destruir um ambiente:
 - [ ] RLS ativo e as três `*_owner_policy` presentes (`select * from pg_policies`)
 - [ ] Isolamento entre dois usuários exercitado antes de qualquer uso real
 - [ ] Nenhuma variável `NEXT_PUBLIC_` carregando segredo
+
+---
+
+## 10. Deploy de produção (issue #48)
+
+A Produção só recebe código pelo workflow `.github/workflows/deploy.yml`. O `vercel.json` desliga o
+deploy automático da Vercel para a `main` (`git.deploymentEnabled.main: false`); as Previews das
+outras branches continuam automáticas.
+
+Num push para a `main` (ou manualmente, em _Actions → Deploy de produção → Run workflow_):
+
+1. **`verify`:** testes unitários, pg-mem e regressão.
+2. **`production`:** espera a **aprovação** de um revisor do environment `production` do GitHub.
+   Aprovado, roda `supabase db push --dry-run` (lista no log o que vai ser aplicado), aplica as
+   migrations e só então faz `vercel deploy --prod`. Se a migration falhar, o deploy não acontece e a
+   Produção continua com o código anterior.
+
+A aprovação é a decisão humana que o `--apply` manual representava: ninguém aplica migration em
+Produção sem alguém olhar o dry-run. O build roda na Vercel, com as variáveis do painel (inclusive
+as _Sensitive_, que o `vercel pull` não consegue ler).
+
+**Não existe rollback de migration** (§5.2): desfazer é uma migration nova. Como o deploy roda alguns
+minutos depois da migration, toda migration precisa ser compatível com o código que ainda está no
+ar (adicionar antes de remover; remover coluna só depois que nenhum código a usa).
+
+### 10.1 Configuração (uma vez, antes do primeiro merge com o `vercel.json`)
+
+Sem isso, o merge desliga o deploy automático e o workflow falha por falta de secrets: a Produção
+fica parada no último deploy até a configuração.
+
+1. GitHub → _Settings → Environments → New environment_ `production`:
+   - _Required reviewers_: os mantenedores;
+   - _Deployment branches_: só `main`.
+2. Secrets **do environment** (não do repositório, para só esse job enxergar):
+
+   | Secret                 | Valor                                                                           |
+   | :--------------------- | :------------------------------------------------------------------------------ |
+   | `SUPABASE_PROD_DB_URL` | A mesma `DATABASE_URL` do `.env.production.remote` (Session pooler, porta 5432) |
+   | `VERCEL_TOKEN`         | Vercel → _Account Settings → Tokens_, escopo do time do projeto                 |
+   | `VERCEL_ORG_ID`        | `orgId` de `.vercel/project.json` (depois de `npx vercel link`)                 |
+   | `VERCEL_PROJECT_ID`    | `projectId` do mesmo arquivo                                                    |
+
+3. Rodar o workflow uma vez por _Run workflow_ e conferir no log o dry-run e a URL de produção.
+
+A `SUPABASE_PROD_DB_URL` ignora o RLS, como a `DATABASE_URL`: fica só no environment protegido, e
+continua fora da Vercel. Os runners do GitHub alcançam a porta 5432 (o bloqueio é da rede da UFRN).

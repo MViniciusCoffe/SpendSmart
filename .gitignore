@@ -34,3 +34,6 @@ CLAUDE.md
 # stryker
 /reports
 .stryker-tmp
+
+# Vercel CLI (vercel link): ids do projeto, gerado localmente
+.vercel
