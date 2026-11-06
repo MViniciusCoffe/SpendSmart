@@ -9,6 +9,7 @@ As migrações correspondentes estão em `supabase/migrations/`:
 | `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                                 |
 | `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.           |
 | `20261106031517_restrict_table_grants.sql`                 | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
+| `20261106150417_add_health_check.sql`                      | Cria a função `public.health_check()`, que o `/api/status` chama com a chave pública (`EXECUTE` para `anon`).                     |
 
 Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
 [environments.md §5](environments.md#5-migrations).
@@ -253,6 +254,11 @@ ambientes (antes dependiam dos privilégios padrão de cada projeto Supabase):
 
 O privilégio decide se o papel pode tocar na tabela; o RLS decide quais linhas. O `anon` é barrado
 pelos dois. O teste "Anon (sem sessão)" de `tests/integration/supabase/rls.test.js` cobre isso.
+
+A única coisa que o `anon` pode chamar é `public.health_check()` (`20261106150417_add_health_check.sql`),
+usada pelo `/api/status`. Ela confirma pelo catálogo (`to_regclass`) que as três tabelas existem, sem
+ler nenhuma linha, e roda como `SECURITY INVOKER`: não precisa de privilégio em tabela, então não
+abre nada além de "o banco responde e o schema está lá".
 
 O RLS é a última barreira, não a única. Os _services_ filtram por `user_id` explicitamente em toda
 leitura e escrita, conforme os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e

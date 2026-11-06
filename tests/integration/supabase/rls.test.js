@@ -235,6 +235,16 @@ describe("RLS - Isolation between users (Supabase real)", () => {
         expect(error.code).toBe("42501")
       }
     )
+
+    // 20261106150417_add_health_check: a única coisa que o anon pode chamar, usada pelo /api/status
+    it("pode chamar health_check(), que confirma o schema sem ler linhas", async () => {
+      const anon = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+
+      const { data, error } = await anon.rpc("health_check")
+
+      expect(error).toBeNull()
+      expect(data).toBe(true)
+    })
   })
 
   describe("Profiles", () => {
