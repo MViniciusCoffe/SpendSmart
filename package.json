@@ -69,7 +69,6 @@
     "@stryker-mutator/core": "^10.1.1",
     "@stryker-mutator/jest-runner": "^10.1.1",
     "babel-jest": "^30.5.2",
-    "babel-plugin-module-resolver": "^5.0.3",
     "commitizen": "^4.3.2",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9.39.5",

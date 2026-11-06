@@ -58,7 +58,9 @@ transform: {
 },
 ```
 
-O arquivo traz `preset-env`, `preset-react` e o `babel-plugin-module-resolver` dos aliases `@/...`.
+O arquivo traz só `preset-env` e `preset-react`. Os aliases `@/...` dos testes ficam no
+`moduleNameMapper` do `jest.config.js` (até 2026-11-05 também havia o `babel-plugin-module-resolver`,
+que fazia o mesmo trabalho e foi removido).
 O nome não é nenhum dos que o Next.js procura (`.babelrc*`, `babel.config.*`), então só o Jest o lê.
 
 **Por que.** Um `babel.config.js` na raiz é detectado pelo Next.js, que passa a usar Babel no lugar
