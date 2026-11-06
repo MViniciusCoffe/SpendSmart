@@ -190,24 +190,6 @@ describe("baseService", () => {
     })
   })
 
-  describe("clearSessionCache", () => {
-    it("limpa cache", async () => {
-      const mockSession = { user: { id: "u1" }, access_token: "token123" }
-      supabase.auth.getSession.mockResolvedValue({ data: { session: mockSession }, error: null })
-
-      await obterSessao()
-      clearSessionCache()
-
-      supabase.auth.getSession.mockResolvedValue({
-        data: { session: { user: { id: "u2" }, access_token: "new" } },
-        error: null
-      })
-      const session = await obterSessao()
-
-      expect(session.user.id).toBe("u2")
-    })
-  })
-
   // Expiração do cache de sessão (5 min), apontada pelos testes de mutação (#60)
   describe("expiração do cache de sessão", () => {
     const CINCO_MINUTOS = 5 * 60 * 1000

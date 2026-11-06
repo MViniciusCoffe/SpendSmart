@@ -48,9 +48,7 @@ describe("getCategories", () => {
     await expect(categoryService.getCategories()).resolves.toEqual([])
   })
 
-  it("traduz income e expense para receita e despesa", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
+  it("devolve o tipo como income/expense, sem tradução (os rótulos em português ficam na interface)", async () => {
     // Configura o mock do Supabase para retornar duas categorias, uma de despesa e outra de receita
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(
@@ -64,7 +62,7 @@ describe("getCategories", () => {
     // Chama o serviço para obter as categorias
     const resultado = await categoryService.getCategories()
 
-    // Verifica se o resultado traduz corretamente os tipos para inglês
+    // O DTO mantém os valores do banco (income/expense)
     expect(resultado).toEqual([
       {
         id: 1,
@@ -88,8 +86,6 @@ describe("getCategories", () => {
   // Verifica se a ordenação por nome crescente é aplicada corretamente
   // it significa "it should" e descreve o comportamento esperado do teste
   it("ordena por nome crescente", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
     // Configura o mock do Supabase para retornar um builder vazio,
     // apenas para testar a chamada do método order
     supabase.auth.getSession.mockResolvedValue(comSessao)

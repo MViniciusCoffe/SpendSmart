@@ -73,7 +73,7 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 
 | Nível                            | Pasta / artefato                        | Comando                             | Situação        |
 | :------------------------------- | :-------------------------------------- | :---------------------------------- | :-------------- |
-| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 211 testes      |
+| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 221 testes      |
 | Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,10%          |
 | Unidade de lógica do front-end   | `tests/unit/` (Jest)                    | `npm test`                          | Planejado       |
 | Componentes (#33)                | a definir                               | a definir                           | Adiado          |
@@ -98,8 +98,9 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 2. **Mapeamento de erro** — cada código do Postgres deve virar a mensagem correta em português
    (ver os mapas de mensagens de `createCategory` e `updateCategory` em
    `src/services/categoryService.js` como referência).
-3. **Tradução de domínio** — o DTO devolvido ao frontend deve mapear `income` para `receita` e os
-   nomes de coluna do banco para os nomes do frontend.
+3. **Mapeamento para DTO** — o service devolve só os campos do mapper (`src/services/utils/mappers.js`),
+   nunca a linha crua do banco. O `type` continua `income`/`expense`: os rótulos "Receita" e
+   "Despesa" são da interface.
 
 **Mocks:** o cliente Supabase é substituído por um dublê que devolve `{ data, error }`. O foco é
 garantir que o service reaja corretamente a cada par possível, inclusive `error` nulo.
@@ -139,7 +140,7 @@ supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1"
 
 O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam direto.
 
-**Estado atual:** 211 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
+**Estado atual:** 221 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
 `src/services/`. A suíte antiga, que cobria só o código morto `categoriaService.js`, foi substituída
 (issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26)).
 
@@ -416,7 +417,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 279 testes automatizados (211 unidade + 24 pg-mem + 17 Supabase local + 27 regressão),
+**Cobertura atual: 289 testes automatizados (221 unidade + 24 pg-mem + 17 Supabase local + 27 regressão),
 conferidos em 2026-11-05.** Os testes E2E da P3 entram nesta conta quando forem implementados.
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,

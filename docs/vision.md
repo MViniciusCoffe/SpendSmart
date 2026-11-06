@@ -61,14 +61,14 @@ RLS. O produto é single-user por natureza — cada conta enxerga apenas os pró
 A aplicação é um **monolito fullstack Next.js (App Router) com Supabase**, sem servidor HTTP
 próprio:
 
-| Camada       | Onde                    | Responsabilidade                                                |
-| :----------- | :---------------------- | :-------------------------------------------------------------- |
-| Interface    | `pages/`, `components/` | React, validação de formulário, chamada ao service              |
-| Negócio      | `services/`             | Regra de negócio, tradução PT/EN, mensagem de erro em português |
-| Cliente      | `src/lib/supabase.js`   | Instância única do `createClient`                               |
-| Privilegiado | `src/app/api/`          | Únicas funções server-side: `createProfile`, `deleteAccount`    |
-| Banco        | Supabase PostgreSQL     | Persistência com constraints, índices e RLS                     |
-| Migrations   | `supabase/migrations/`  | `.sql` aplicados pelo Supabase CLI (local, Preview e Produção)  |
+| Camada       | Onde                    | Responsabilidade                                                                |
+| :----------- | :---------------------- | :------------------------------------------------------------------------------ |
+| Interface    | `pages/`, `components/` | React, validação de formulário, chamada ao service                              |
+| Negócio      | `services/`             | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente      | `src/lib/supabase.js`   | Instância única do `createClient`                                               |
+| Privilegiado | `src/app/api/`          | Únicas funções server-side: `createProfile`, `deleteAccount`                    |
+| Banco        | Supabase PostgreSQL     | Persistência com constraints, índices e RLS                                     |
+| Migrations   | `supabase/migrations/`  | `.sql` aplicados pelo Supabase CLI (local, Preview e Produção)                  |
 
 A autenticação é inteiramente do **Supabase Auth**: não existe JWT próprio, cookie de sessão manual
 nem comparação de senha em SQL. O `user_id` vem sempre da sessão, nunca do corpo da requisição.

@@ -78,7 +78,7 @@ SpendSmart/
       layout/       Header, Footer, PageContainer/PageHeader, AuthShell (login e cadastro)
       withAuth.js   guarda das páginas privadas
     contexts/       AuthContext (sessão e usuário) e ToastContext
-    services/       camada de negócio: validação, tradução de domínio, mapeamento de erros
+    services/       camada de negócio: validação, mapeamento para DTO e de erros
     lib/            cliente Supabase (supabase.js), formatadores (utils/format.js), config
     styles/         globals.css e design-tokens.css (variáveis de cor, espaço, raio, sombra...)
   supabase/migrations/   schema do banco (.sql aplicados pelo Supabase CLI)
@@ -89,14 +89,14 @@ SpendSmart/
 
 A separação de responsabilidades adotada:
 
-| Camada       | Arquivo               | Responsabilidade                                                     |
-| :----------- | :-------------------- | :------------------------------------------------------------------- |
-| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                   |
-| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`    |
-| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`) |
-| Negócio      | `src/services/`       | Regra de negócio, tradução PT/EN, mensagem de erro em português      |
-| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                    |
-| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                       |
+| Camada       | Arquivo               | Responsabilidade                                                                |
+| :----------- | :-------------------- | :------------------------------------------------------------------------------ |
+| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                              |
+| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`               |
+| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`)            |
+| Negócio      | `src/services/`       | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                               |
+| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                                  |
 
 ---
 
@@ -110,8 +110,8 @@ A separação de responsabilidades adotada:
 3. **RLS é a última barreira, não a única.** Filtrar por `user_id` em toda leitura e escrita, além
    da política.
 4. **Dinheiro é `numeric(12,2)` com `check (amount > 0)`.** Nunca float.
-5. **`type` aceita apenas `income` ou `expense` no banco.** A tradução para receita/despesa
-   acontece só na fronteira do service.
+5. **`type` é `income` ou `expense` do banco até a interface.** O service e os DTOs usam esses
+   valores; "Receita" e "Despesa" são só rótulos de exibição nos componentes.
 6. **Nunca concatenar input em SQL.**
 7. **Exclusão é lógica (`deleted_at`).** Uma categoria com transações pode ser excluída (US-009):
    as transações continuam no histórico e no dashboard, exibindo a categoria como "Nome (deletada)",
@@ -131,7 +131,7 @@ A separação de responsabilidades adotada:
 | Dashboard com gráficos                      | Funcionando                                                                                                                      |
 | Excluir conta                               | Funcionando                                                                                                                      |
 | Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                              |
-| Testes de unidade                           | **211 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
+| Testes de unidade                           | **221 testes, 100% de linhas, ramos e funções em `src/services/`**                                                               |
 | Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                             |
 | Testes de integração (Supabase/RLS)         | **2 suítes, 17 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado) |
 | Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                                            |

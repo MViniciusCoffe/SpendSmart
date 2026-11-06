@@ -1,5 +1,11 @@
 import { createTestDb } from "../db"
-import { capturarErro, esperarCodigoPg, dataISO } from "@/tests/helpers/db"
+import {
+  capturarErro,
+  esperarCodigoPg,
+  dataISO,
+  inserirCategoria as inserirCategoriaNoBanco,
+  limparBanco
+} from "@/tests/helpers/db"
 
 // Testes de integração de persistência do registro de receita (US-010, Iteração 1):
 // CT10.01 — Cadastro com dados válidos
@@ -10,17 +16,13 @@ let db
 
 const USUARIO_TESTE = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
-const inserirCategoria = ({ userId = USUARIO_TESTE, nome = "Salário", tipo = "income" } = {}) =>
-  db.client
-    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
-    .then(() =>
-      db.client.query(
-        `INSERT INTO categories (user_id, name, type, description, color)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
-        [userId, nome, tipo, "Renda mensal", "#00AA55"]
-      )
-    )
+const inserirCategoria = (opcoes = {}) =>
+  inserirCategoriaNoBanco(db.client, {
+    userId: USUARIO_TESTE,
+    nome: "Salário",
+    tipo: "income",
+    ...opcoes
+  })
 
 const inserirReceita = ({
   userId = USUARIO_TESTE,
@@ -44,9 +46,7 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  await db.client.query("DELETE FROM transactions")
-  await db.client.query("DELETE FROM categories")
-  await db.client.query("DELETE FROM auth.users")
+  await limparBanco(db.client)
 })
 
 afterAll(async () => {

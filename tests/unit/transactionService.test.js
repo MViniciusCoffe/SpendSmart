@@ -35,7 +35,7 @@ describe("getTransactions", () => {
     await expect(transactionService.getTransactions()).rejects.toThrow("Usuário não autenticado.")
   })
 
-  it("traduz income e expense para receita e despesa", async () => {
+  it("devolve o tipo como income/expense, sem tradução (os rótulos em português ficam na interface)", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
     supabase.from.mockReturnValue(

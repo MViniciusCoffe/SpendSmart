@@ -729,6 +729,10 @@ services/
     └── utils.js            # fachada de compatibilidade para validators/baseService
 ```
 
+> **Atualização (2026-11-05):** `utils.js` foi removido. Nenhum arquivo de `src/` o importava, e o
+> próprio `utils.test.js` testava `validators` e `baseService` diretamente, sem importar a fachada
+> (issue #66).
+
 **Por que.** Antes, `baseService.js`, `logger.js`, `mappers.js`, `validators.js`, `utils.js` ficavam soltos em `services/`, misturados com os _domain services_ (`categoryService`, `transactionService`, etc.). Isso confundia o que é _domain logic_ vs _shared utility_.
 
 **Benefícios:**
