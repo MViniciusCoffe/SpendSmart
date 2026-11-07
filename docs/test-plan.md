@@ -204,20 +204,20 @@ Consequências da organização:
 
 **Casos que só a integração revela:**
 
-| #     | Caso                                                 | Por que só a integração                                                         | Situação                                                                                         |
-| :---- | :--------------------------------------------------- | :------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------- |
-| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`: conjunto exato de linhas; falha com o RLS desligado (verificado em 2026-11-05)    |
-| IT-02 | Isolamento de escrita entre dois usuários            | Depende do `WITH CHECK` das políticas.                                          | `rls.test.js`                                                                                    |
-| IT-03 | Deleção de conta remove tudo em cascata              | Depende das chaves estrangeiras para `auth.users`.                              | **Sem teste**                                                                                    |
-| IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                           |
-| IT-05 | Unicidade de categoria por (usuário, nome, tipo)     | Depende da constraint `23505`.                                                  | pg-mem (`categoryConstraints.test.js`)                                                           |
-| IT-06 | `amount` não negativo e não zero                     | Depende do `CHECK (amount > 0)`.                                                | pg-mem (CT10.02, CT13.02)                                                                        |
-| IT-07 | `transactions.type` deve bater com `categories.type` | Invariante que hoje não existe no banco. Ver §6.                                | **Sem teste e sem constraint**                                                                   |
-| IT-08 | `/api/createProfile` rejeita requisição sem token    | Depende do `getUser(token)` na rota.                                            | **Sem teste** (o unitário só verifica a chamada `fetch` do service)                              |
-| IT-09 | `/api/deleteAccount` rejeita token inválido com 401  | Idem.                                                                           | **Sem teste**                                                                                    |
-| IT-10 | Migrations aplicam do zero sem erro                  | Verifica o guard `to_regclass` e a ordem de execução.                           | Implícito: o pg-mem monta o schema a partir dos `.sql` e o job `rls` do CI roda `supabase start` |
+| #     | Caso                                                 | Por que só a integração                                                         | Situação                                                                                            |
+| :---- | :--------------------------------------------------- | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------- |
+| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`: conjunto exato de linhas; falha com o RLS desligado (verificado em 2026-11-05)       |
+| IT-02 | Isolamento de escrita entre dois usuários            | Depende do `WITH CHECK` das políticas.                                          | `rls.test.js`                                                                                       |
+| IT-03 | Deleção de conta remove tudo em cascata              | Depende das chaves estrangeiras para `auth.users`.                              | **Sem teste**                                                                                       |
+| IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                              |
+| IT-05 | Unicidade de categoria por (usuário, nome, tipo)     | Depende da constraint `23505`.                                                  | pg-mem (`categoryConstraints.test.js`)                                                              |
+| IT-06 | `amount` não negativo e não zero                     | Depende do `CHECK (amount > 0)`.                                                | pg-mem (CT10.02, CT13.02)                                                                           |
+| IT-07 | `transactions.type` deve bater com `categories.type` | Invariante que hoje não existe no banco. Ver §6.                                | **Sem teste e sem constraint** (#78)                                                                |
+| IT-08 | `/api/createProfile` rejeita requisição sem token    | Depende do `getUser(token)` na rota.                                            | Parcial: token inválido → 401 em regressão com mock (`api-error-responses.test.js`); sem integração |
+| IT-09 | `/api/deleteAccount` rejeita token inválido com 401  | Idem.                                                                           | Parcial: idem (`api-error-responses.test.js`); sem integração                                       |
+| IT-10 | Migrations aplicam do zero sem erro                  | Verifica o guard `to_regclass` e a ordem de execução.                           | Implícito: o pg-mem monta o schema a partir dos `.sql` e o job `rls` do CI roda `supabase start`    |
 
-Se a chave `service_role` for eliminada da aplicação (proposta registrada no AGENTS.md §14.3: trigger
+Se a chave `service_role` for eliminada da aplicação (issue #75: trigger
 de criação de perfil e RPC `delete_own_account()`), IT-08 e IT-09 passam a ser testes do trigger e da
 RPC no Supabase local.
 
@@ -400,10 +400,10 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 | US                       | Un. | Int.            | E2E   | Aceit. | Observação                                                                                                            |
 | :----------------------- | :-- | :-------------- | :---- | :----- | :-------------------------------------------------------------------------------------------------------------------- |
-| US-001 Criar conta       | x   | pg-mem (perfil) | ST-01 | x      | Rollback resolvido (#25, PR #47); IT-08 sem teste                                                                     |
+| US-001 Criar conta       | x   | pg-mem (perfil) | ST-01 | x      | Rollback resolvido (#25, PR #47); IT-08 parcial (regressão com mock)                                                  |
 | US-002 Entrar            | x   |                 | ST-01 | x      | Mapeamento de erro é 100% cliente                                                                                     |
 | US-003 Perfil            | x   |                 |       |        | Senha idêntica sem tratamento (#11)                                                                                   |
-| US-004 Excluir conta     | x   | IT-03, IT-09    | ST-03 |        | IT-03 e IT-09 sem teste                                                                                               |
+| US-004 Excluir conta     | x   | IT-03, IT-09    | ST-03 |        | IT-03 sem teste; IT-09 parcial                                                                                        |
 | US-005 Privacidade       |     | IT-01, IT-02    | ST-04 |        | IT-01/IT-02 comparam o conjunto exato (#66)                                                                           |
 | US-006 Criar categoria   | x   | IT-05           | ST-03 |        |                                                                                                                       |
 | US-007 Listar categorias | x   | IT-01, service  | ST-03 | ?      | `categoryService` real no Supabase local, com estado vazio (CA-007.02); sem relatório de aceitação próprio em `docs/` |
@@ -423,7 +423,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 conferidos em 2026-11-06.** Os testes E2E da P3 entram nesta conta quando forem implementados.
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,
-IT-08 e IT-09 sem teste, IT-07 sem constraint, US-003/US-012/US-015 sem integração nem E2E.
+IT-08 e IT-09 só com mock, IT-07 sem constraint (#78), US-003/US-012/US-015 sem integração nem E2E.
 
 ---
 
@@ -461,9 +461,9 @@ A separação por nível:
 | **Teste destrutivo apontado para banco com dados** | Alto. Em 2026-11-04 o `beforeEach` da integração apagou o Supabase local por causa de um `TEST_DATABASE_URL` no `.env.local`. | `db.js` recusa banco com contas com e-mail; a suíte RLS recusa URL não local; o E2E segue a mesma regra.             |
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
-| **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo e `AuthContext` sem `onAuthStateChange` (AGENTS.md §14.3).                                 | ST-04 os exercita; correção junto com os testes de front-end.                                                        |
-| **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | Constraint ou trigger (IT-07). Registrado no plano; issue própria a criar.                                           |
-| **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Testar as rotas, ou eliminar a `service_role` da aplicação (AGENTS.md §14.3).                                        |
+| **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo (#76) e `AuthContext` sem `onAuthStateChange` (#67).                                       | ST-04 os exercita; correção junto com os testes de front-end.                                                        |
+| **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | FK composta `(category_id, type)` (IT-07, #78).                                                                      |
+| **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Regressão com mock cobre o 401; eliminar a `service_role` da aplicação (#75).                                        |
 | **Front-end fora da cobertura medida (#33)**       | Baixo para a P3. A cobertura de 100% vale só para `src/services/`.                                                            | E2E cobre o comportamento da interface; testes de componente depois da P3.                                           |
 
 Riscos já mitigados: asserções vacuamente verdadeiras no RLS (#66, as leituras comparam o conjunto

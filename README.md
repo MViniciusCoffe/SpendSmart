@@ -156,14 +156,15 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | :------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`)                                                                 |
 | [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços                                                                  |
-| sem issue                                                     | Cache de sessão (`baseService.js`) nunca é limpo: logout e login de outro usuário na mesma aba em até 5 min deixam os services com o `user_id` antigo |
-| sem issue                                                     | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                                               |
-| sem issue                                                     | `profileService` fora do padrão: sem `withSession`/`withErrorHandling`, sem filtro de `deleted_at`, sem `profileTypeMap`                              |
-| sem issue                                                     | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                                        |
+| [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76) | Cache de sessão (`baseService.js`) nunca é limpo: logout e login de outro usuário na mesma aba em até 5 min deixam os services com o `user_id` antigo |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                                               |
+| [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77) | `profileService` fora do padrão: sem `withSession`/`withErrorHandling`, sem filtro de `deleted_at`, sem `profileTypeMap`                              |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                                        |
 
-Os defeitos sem issue foram encontrados por leitura de código (2026-11-03) e ficam para a frente de
-testes de front-end e sistema (P3), corrigidos junto com os testes que os cobrem. Os dois últimos
+Os quatro últimos foram encontrados por leitura de código (2026-11-03) e ficam para a frente de
+testes de front-end e sistema (P3), corrigidos junto com os testes que os cobrem. Os dois da [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)
 somem com a remoção das rotas privilegiadas (perfil criado por trigger no banco e exclusão por RPC).
+Também aberta: [#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78), o tipo da transação garantido pelo banco (IT-07).
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
 componentizadas), #13 (toasts no lugar de `alert`), #22
