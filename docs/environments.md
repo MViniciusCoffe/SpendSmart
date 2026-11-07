@@ -274,6 +274,11 @@ Num push para a `main` (ou manualmente, em _Actions → Deploy de produção →
    migrations e só então faz `vercel deploy --prod`. Se a migration falhar, o deploy não acontece e a
    Produção continua com o código anterior.
 
+**A Preview não muda:** deploy automático por branch, com as variáveis do escopo _Preview_ da
+Vercel, e migrations aplicadas à mão (`npm run migrations:push -- --target preview --apply`, §5.2).
+Não foi automatizada porque o banco de Preview é um só para todas as branches: uma migration de uma
+branch em andamento chegaria à Preview de todas as outras.
+
 A aprovação é a decisão humana que o `--apply` manual representava: ninguém aplica migration em
 Produção sem alguém olhar o dry-run. O build roda na Vercel, com as variáveis do painel (inclusive
 as _Sensitive_, que o `vercel pull` não consegue ler).
@@ -292,12 +297,16 @@ fica parada no último deploy até a configuração.
    - _Deployment branches_: só `main`.
 2. Secrets **do environment** (não do repositório, para só esse job enxergar):
 
-   | Secret                 | Valor                                                                           |
-   | :--------------------- | :------------------------------------------------------------------------------ |
-   | `SUPABASE_PROD_DB_URL` | A mesma `DATABASE_URL` do `.env.production.remote` (Session pooler, porta 5432) |
-   | `VERCEL_TOKEN`         | Vercel → _Account Settings → Tokens_, escopo do time do projeto                 |
-   | `VERCEL_ORG_ID`        | `orgId` de `.vercel/project.json` (depois de `npx vercel link`)                 |
-   | `VERCEL_PROJECT_ID`    | `projectId` do mesmo arquivo                                                    |
+   | Secret                 | Valor                                                                                                     |
+   | :--------------------- | :-------------------------------------------------------------------------------------------------------- |
+   | `SUPABASE_PROD_DB_URL` | A mesma `DATABASE_URL` do `.env.production.remote` (Session pooler, porta 5432)                           |
+   | `VERCEL_TOKEN`         | Vercel → _Account Settings → Tokens_, escopo do time do projeto                                           |
+   | `VERCEL_ORG_ID`        | `orgId` em `.vercel/repo.json` (ou `project.json`, conforme a versão do CLI), depois de `npx vercel link` |
+   | `VERCEL_PROJECT_ID`    | `id` do projeto no mesmo arquivo (`projectId` no `project.json`); também em _Settings → General_          |
+
+O `npx vercel link` também grava um `VERCEL_OIDC_TOKEN` no `.env.local` e acrescenta `.env*` ao
+`.gitignore`. Os dois são desnecessários aqui: remova a linha do token e a do `.gitignore` (ela
+anula as exceções `!.env.*.example` que vêm antes).
 
 3. Rodar o workflow uma vez por _Run workflow_ e conferir no log o dry-run e a URL de produção.
 
