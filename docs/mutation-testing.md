@@ -89,24 +89,27 @@ o que permite conferir o score sem rodar nada localmente.
 | Linha de base          | `bf7cb75` |              188 |    480 |            68 | **87,59%** |
 | Filtros e soft delete  | `8dcda35` |              198 |    506 |            42 | **92,34%** |
 | Bordas, cache e logger | `ce6d12b` |              208 |    531 |            17 | **96,90%** |
-| E-mail normalizado     | (este)    |              210 |    535 |            16 | **97,10%** |
+| E-mail normalizado     | `0a4e4f7` |              210 |    535 |            16 | **97,10%** |
+| Senha (#11) e colunas  | (este)    |              237 |    540 |            16 | **97,12%** |
 
-548 mutantes nas três primeiras rodadas e 551 na última (o validador de e-mail ganhou uma checagem
-de tipo), sempre com 0 sem cobertura e 0 timeouts.
+548 mutantes nas três primeiras rodadas, 551 na quarta (o validador de e-mail ganhou uma checagem
+de tipo) e 556 na quinta (tradução dos erros de senha da #11 e as listas de colunas em `mappers.js`),
+sempre com 0 sem cobertura e 0 timeouts. Na quinta, `categoryService` e `transactionService` perderam
+mutantes porque as strings de colunas repetidas viraram uma constante só, em `mappers.js`.
 
 ### 4.2 Score final por arquivo
 
 | Arquivo                          |  Mortos | Sobreviventes |      Score |
 | :------------------------------- | ------: | ------------: | ---------: |
 | `services/authServices.js`       |      64 |             2 |     96,97% |
-| `services/categoryService.js`    |      96 |             6 |     94,12% |
-| `services/profileService.js`     |      47 |             2 |     95,92% |
-| `services/transactionService.js` |      51 |             4 |     92,73% |
+| `services/categoryService.js`    |      94 |             6 |     94,00% |
+| `services/profileService.js`     |      53 |             2 |     96,36% |
+| `services/transactionService.js` |      50 |             4 |     92,59% |
 | `services/utils/baseService.js`  |      42 |             0 |    100,00% |
 | `services/utils/logger.js`       |      23 |             0 |    100,00% |
-| `services/utils/mappers.js`      |       6 |             0 |    100,00% |
+| `services/utils/mappers.js`      |       8 |             0 |    100,00% |
 | `services/utils/validators.js`   |     206 |             2 |     99,04% |
-| **Total**                        | **535** |        **16** | **97,10%** |
+| **Total**                        | **540** |        **16** | **97,12%** |
 
 ---
 

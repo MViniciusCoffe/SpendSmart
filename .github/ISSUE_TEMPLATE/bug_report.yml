@@ -1,0 +1,52 @@
+name: Defeito
+description: Algo não funciona como deveria
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Vulnerabilidade de segurança **não** entra aqui: use o reporte privado (ver `SECURITY.md`).
+  - type: textarea
+    id: comportamento
+    attributes:
+      label: O que acontece
+      description: O comportamento observado, com a mensagem de erro exata, se houver.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que deveria acontecer
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Entrar com um usuário de teste
+        2. Abrir /transactions
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Ambiente
+      options:
+        - Local (Supabase CLI)
+        - Preview (Vercel)
+        - Produção
+    validations:
+      required: true
+  - type: input
+    id: onde
+    attributes:
+      label: Onde está no código (se souber)
+      placeholder: src/services/transactionService.js:42
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: Evidência
+      description: Print, log ou resposta da API. Remova tokens, chaves e dados pessoais.

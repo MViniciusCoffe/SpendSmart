@@ -61,14 +61,14 @@ RLS. O produto é single-user por natureza — cada conta enxerga apenas os pró
 A aplicação é um **monolito fullstack Next.js (App Router) com Supabase**, sem servidor HTTP
 próprio:
 
-| Camada       | Onde                    | Responsabilidade                                                |
-| :----------- | :---------------------- | :-------------------------------------------------------------- |
-| Interface    | `pages/`, `components/` | React, validação de formulário, chamada ao service              |
-| Negócio      | `services/`             | Regra de negócio, tradução PT/EN, mensagem de erro em português |
-| Cliente      | `src/lib/supabase.js`   | Instância única do `createClient`                               |
-| Privilegiado | `src/app/api/`          | Únicas funções server-side: `createProfile`, `deleteAccount`    |
-| Banco        | Supabase PostgreSQL     | Persistência com constraints, índices e RLS                     |
-| Migrations   | `supabase/migrations/`  | `node-pg-migrate` (não Supabase CLI)                            |
+| Camada       | Onde                    | Responsabilidade                                                                |
+| :----------- | :---------------------- | :------------------------------------------------------------------------------ |
+| Interface    | `pages/`, `components/` | React, validação de formulário, chamada ao service                              |
+| Negócio      | `services/`             | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente      | `src/lib/supabase.js`   | Instância única do `createClient`                                               |
+| Privilegiado | `src/app/api/`          | Únicas funções server-side: `createProfile`, `deleteAccount`                    |
+| Banco        | Supabase PostgreSQL     | Persistência com constraints, índices e RLS                                     |
+| Migrations   | `supabase/migrations/`  | `.sql` aplicados pelo Supabase CLI (local, Preview e Produção)                  |
 
 A autenticação é inteiramente do **Supabase Auth**: não existe JWT próprio, cookie de sessão manual
 nem comparação de senha em SQL. O `user_id` vem sempre da sessão, nunca do corpo da requisição.
@@ -180,8 +180,8 @@ o requisito de segurança central (RNF04).
   nem comparação de senha em SQL.
 - **`user_id` sempre da sessão**, nunca do corpo da requisição; RLS é a última barreira, não a única.
 - **Valores monetários em `numeric(12,2)`** com `CHECK (amount > 0)`. Nunca float.
-- **Migrations via node-pg-migrate**; não editar `001_create_financial_schema.js`, que já foi
-  aplicada — mudanças de banco entram por migration nova com timestamp.
+- **Migrations `.sql` via Supabase CLI**; não editar uma migration já aplicada — mudanças de banco
+  entram por migration nova com timestamp (`npm run migrations:new`).
 - **Produto pessoal, single-user**, sem multi-tenancy corporativo, SLA ou requisito de escala.
 - **Prazo da unidade 1:** entregas P1, P2, Tarefa 02 e Tarefa 03 em 06/10/2026; semestre com 6
   iterações (2 por unidade) e pelo menos 1 User Story por membro por iteração.

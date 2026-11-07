@@ -134,18 +134,35 @@ describe("updateProfile", () => {
     )
   })
 
-  it("traduz falha ao trocar a senha e para antes de tocar no perfil", async () => {
+  it("recusa senha curta antes de chamar o Supabase e não toca no perfil", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.auth.updateUser.mockResolvedValue({ error: { message: "weak password" } })
 
     await expect(
       profileService.updateProfile({ full_name: "Joao", password: "123" })
-    ).rejects.toThrow(
-      "Não foi possível atualizar a senha. A senha deve ter no mínimo 6 caracteres."
-    )
-    // A senha é o primeiro passo, então o perfil nem chega a ser gravado
+    ).rejects.toThrow("Senha deve ter no mínimo 6 caracteres")
+    expect(supabase.auth.updateUser).not.toHaveBeenCalled()
     expect(supabase.from).not.toHaveBeenCalled()
   })
+
+  // Códigos reais do Supabase Auth (HTTP 422), conferidos no Supabase local
+  it.each([
+    ["same_password", "A nova senha deve ser diferente da atual."],
+    ["weak_password", "Senha deve ter no mínimo 6 caracteres"],
+    ["unexpected_failure", "Não foi possível atualizar a senha."],
+    [undefined, "Não foi possível atualizar a senha."]
+  ])(
+    "traduz o erro %p do Supabase Auth e para antes de tocar no perfil",
+    async (code, mensagem) => {
+      supabase.auth.getSession.mockResolvedValue(comSessao)
+      supabase.auth.updateUser.mockResolvedValue({ error: { code, message: "erro do Auth" } })
+
+      await expect(
+        profileService.updateProfile({ full_name: "Joao", password: "senha123" })
+      ).rejects.toThrow(new Error(mensagem))
+      // A senha é o primeiro passo, então o perfil nem chega a ser gravado
+      expect(supabase.from).not.toHaveBeenCalled()
+    }
+  )
 
   it("traduz falha ao gravar o perfil", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)

@@ -2,12 +2,19 @@ import React from "react"
 import { Footer } from "@/components/layout"
 import { Button, Card, Badge, Icon, Section } from "@/components/ui"
 import { siteConfig } from "@/lib/config/siteConfig"
+import { pageMetadata } from "@/lib/config/pageMetadata"
 import styles from "./about.module.css"
 
-export const metadata = {
-  title: "Sobre o SpendSmart — Controle Financeiro Pessoal",
-  description:
-    "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN)."
+export async function generateMetadata(_props, parent) {
+  return pageMetadata(
+    {
+      title: "Sobre",
+      description:
+        "Conheça a história, arquitetura, stack tecnológica e equipe por trás do projeto SpendSmart (BSI UFRN).",
+      path: "/about"
+    },
+    await parent
+  )
 }
 
 export default function AboutPage() {

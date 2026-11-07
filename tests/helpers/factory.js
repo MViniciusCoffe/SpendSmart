@@ -134,3 +134,11 @@ export async function getTransactionsByUser(userId) {
   if (error) throw error
   return data
 }
+
+// Remove linhas específicas (as "vítimas" dos testes de invasão do RLS), sem tocar no resto do cenário
+export async function deleteTestRows(table, ids) {
+  if (ids.length === 0) return
+  const admin = getAdminClient()
+  const { error } = await admin.from(table).delete().in("id", ids)
+  if (error) throw error
+}

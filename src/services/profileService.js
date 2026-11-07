@@ -1,5 +1,14 @@
 import { supabase } from "@/lib/supabase"
 import { handleSupabaseError } from "@/services/utils/baseService"
+import validators from "@/services/utils/validators"
+
+// Códigos do Supabase Auth ao trocar a senha (verificados no Supabase local, HTTP 422). O navegador
+// não conhece a senha atual (o Supabase guarda só o hash), então "senha igual à atual" só pode ser
+// detectada pela resposta do servidor (issue #11).
+const MENSAGENS_SENHA = {
+  same_password: "A nova senha deve ser diferente da atual.",
+  weak_password: "Senha deve ter no mínimo 6 caracteres"
+}
 
 export const profileService = {
   async getProfile() {
@@ -36,13 +45,13 @@ export const profileService = {
     const userId = session.user.id
 
     if (password) {
-      const { error: authError } = await supabase.auth.updateUser({
-        password
-      })
-      if (authError)
-        throw new Error(
-          "Não foi possível atualizar a senha. A senha deve ter no mínimo 6 caracteres."
-        )
+      // Senha curta é recusada aqui, sem ida ao servidor
+      validators.senha(password)
+
+      const { error: authError } = await supabase.auth.updateUser({ password })
+      if (authError) {
+        throw new Error(MENSAGENS_SENHA[authError.code] ?? "Não foi possível atualizar a senha.")
+      }
     }
 
     const profileUpdates = {}

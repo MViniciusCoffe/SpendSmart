@@ -1,24 +1,20 @@
 /**
  * Status Page - System Health Monitor
- * Optimized with Next.js 13+ features:
- * - Static Generation with ISR (revalidate: 60)
- * - Streaming with Suspense + loading.js
- * - Error Boundary with error.js
- * - Server Components by default
+ * - Renderizada a cada requisição: o `await connection()` do layout raiz já torna todas as páginas
+ *   dinâmicas (nonce da CSP), e os dados vêm do /api/status, buscado no navegador a cada 30 s
+ * - loading.js enquanto carrega e error.js como error boundary
  */
 
-import { Metadata } from "next"
 import { StatusPageContent } from "./components/StatusPageContent"
 
-/** @type {Metadata} */
+/** @type {import("next").Metadata} */
 export const metadata = {
-  title: "System Status | SpendSmart",
-  description: "Real-time system health monitoring for SpendSmart",
+  title: "Status do sistema",
+  description: "Monitoramento em tempo real da saúde dos serviços do SpendSmart",
   robots: "noindex, nofollow"
 }
 
 export const dynamic = "force-dynamic"
-export const revalidate = 60 // ISR: revalidate every 60 seconds
 
 export default async function StatusPage() {
   return <StatusPageContent />

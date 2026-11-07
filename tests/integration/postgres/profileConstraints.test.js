@@ -1,4 +1,5 @@
 import { createTestDb } from "../db"
+import { capturarErro, esperarCodigoPg, garantirUsuario, limparBanco } from "@/tests/helpers/db"
 
 // Testes de integração de persistência do cadastro (US-001, Iteração 1): o que
 // o banco garante na fronteira do POST /api/createProfile, que é a segunda
@@ -14,36 +15,25 @@ let db
 const USUARIO_NOVO = "33333333-3333-3333-3333-333333333333"
 
 const inserirPerfil = ({ id = USUARIO_NOVO, full_name = "Usuário de Teste" } = {}) =>
-  db.client
-    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [id])
-    .then(() =>
-      db.client.query(
-        `INSERT INTO profiles (id, full_name, birth_date, phone)
+  garantirUsuario(db.client, id).then(() =>
+    db.client.query(
+      `INSERT INTO profiles (id, full_name, birth_date, phone)
        VALUES ($1, $2, '2000-01-15', '84999990000')
        RETURNING id`,
-        [id, full_name]
-      )
+      [id, full_name]
     )
+  )
 
 // Mesmo padrão do categoryConstraints: o pg-mem não preenche `code` em todas
 // as violações, então a asserção primária é a mensagem padrão do PostgreSQL,
 // idêntica nos dois backends; quando o código existe, ele também é conferido.
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
 
 beforeAll(async () => {
   db = await createTestDb()
 })
 
 beforeEach(async () => {
-  await db.client.query("DELETE FROM profiles")
-  await db.client.query("DELETE FROM auth.users")
+  await limparBanco(db.client)
 })
 
 afterAll(async () => {
@@ -67,7 +57,7 @@ describe("US-001 — gravação do perfil no cadastro", () => {
     const erro = await capturarErro(inserirPerfil({ full_name: null }))
 
     expect(erro.message).toMatch(/violates not-null constraint/i)
-    if (erro.code) expect(erro.code).toBe("23502")
+    esperarCodigoPg(erro, "23502", db.modo)
   })
 
   it("rejeita perfil com id já cadastrado (23505) — reenvio não duplica nem sobrescreve", async () => {

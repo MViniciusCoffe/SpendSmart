@@ -8,19 +8,9 @@ module.exports = {
       transform: {
         "^.+\\.jsx?$": ["babel-jest", { configFile: "./jest.babel.config.js" }]
       },
-      collectCoverageFrom: ["services/**/*.js", "src/**/*.js"],
-      coverageDirectory: "coverage/unit",
       testTimeout: 10000,
       setupFiles: ["<rootDir>/tests/setupEnv.js"],
       moduleNameMapper: {
-        "^@/components/(.*)$": "<rootDir>/src/components/$1",
-        "^@/styles/(.*)$": "<rootDir>/src/styles/$1",
-        "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
-        "^@/hooks/(.*)$": "<rootDir>/src/hooks/$1",
-        "^@/services/(.*)$": "<rootDir>/src/services/$1",
-        "^@/contexts/(.*)$": "<rootDir>/src/contexts/$1",
-        "^@/utils/(.*)$": "<rootDir>/src/utils/$1",
-        "^@/tests/helpers/(.*)$": "<rootDir>/tests/helpers/$1",
         "^@/tests/(.*)$": "<rootDir>/tests/$1",
         "^@/(.*)$": "<rootDir>/src/$1"
       }
@@ -36,13 +26,6 @@ module.exports = {
       setupFiles: ["<rootDir>/tests/setupEnv.js", "<rootDir>/tests/setup.js"],
       testTimeout: 30000,
       moduleNameMapper: {
-        "^@/components/(.*)$": "<rootDir>/src/components/$1",
-        "^@/styles/(.*)$": "<rootDir>/src/styles/$1",
-        "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
-        "^@/hooks/(.*)$": "<rootDir>/src/hooks/$1",
-        "^@/services/(.*)$": "<rootDir>/src/services/$1",
-        "^@/contexts/(.*)$": "<rootDir>/src/contexts/$1",
-        "^@/utils/(.*)$": "<rootDir>/src/utils/$1",
         "^@/tests/(.*)$": "<rootDir>/tests/$1",
         "^@/(.*)$": "<rootDir>/src/$1"
       }
@@ -58,13 +41,6 @@ module.exports = {
       setupFiles: ["<rootDir>/tests/setupEnv.js", "<rootDir>/tests/setup.js"],
       testTimeout: 60000,
       moduleNameMapper: {
-        "^@/components/(.*)$": "<rootDir>/src/components/$1",
-        "^@/styles/(.*)$": "<rootDir>/src/styles/$1",
-        "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
-        "^@/hooks/(.*)$": "<rootDir>/src/hooks/$1",
-        "^@/services/(.*)$": "<rootDir>/src/services/$1",
-        "^@/contexts/(.*)$": "<rootDir>/src/contexts/$1",
-        "^@/utils/(.*)$": "<rootDir>/src/utils/$1",
         "^@/tests/(.*)$": "<rootDir>/tests/$1",
         "^@/(.*)$": "<rootDir>/src/$1"
       }
@@ -79,18 +55,15 @@ module.exports = {
       },
       testTimeout: 30000,
       moduleNameMapper: {
-        "^@/components/(.*)$": "<rootDir>/src/components/$1",
-        "^@/styles/(.*)$": "<rootDir>/src/styles/$1",
-        "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
-        "^@/hooks/(.*)$": "<rootDir>/src/hooks/$1",
-        "^@/services/(.*)$": "<rootDir>/src/services/$1",
-        "^@/contexts/(.*)$": "<rootDir>/src/contexts/$1",
-        "^@/utils/(.*)$": "<rootDir>/src/utils/$1",
         "^@/tests/(.*)$": "<rootDir>/tests/$1",
         "^@/(.*)$": "<rootDir>/src/$1"
       }
     }
   ],
+  // Opções de cobertura são globais: dentro de um project o Jest as ignora (estavam no "unit" e
+  // nenhuma valia). O escopo é o mesmo do Sonar (sonar.sources=src/services); o front-end é medido
+  // por fluxos E2E, não por linhas (docs/test-plan.md §2.1.2)
+  collectCoverageFrom: ["src/services/**/*.js"],
   coverageReporters: ["text", "html", "json-summary", "lcov"],
   coverageDirectory: "coverage"
 }

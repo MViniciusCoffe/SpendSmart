@@ -111,7 +111,10 @@ function SettingsPage() {
                   placeholder="Sua nova senha"
                   autoComplete="new-password"
                 />
-                <p className={styles.help_text}>Deixe em branco para manter a password atual</p>
+                <p className={styles.help_text}>
+                  Deixe em branco para manter a senha atual. A nova precisa ter no mínimo 6
+                  caracteres e ser diferente da atual.
+                </p>
               </div>
 
               <div className={styles.form_group}>

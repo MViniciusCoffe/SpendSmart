@@ -138,7 +138,7 @@ Funcionalidade: US-001 — Criar conta
 
 **Derivada de:** RF16
 **Guarda:** `components/utils/withAuth.js`
-**Banco:** políticas RLS em `supabase/migrations/001_create_financial_schema.js:118-120`
+**Banco:** políticas RLS em `supabase/migrations/1790304277000_create_financial_schema.sql` (bloco guardado por `auth.users`)
 
 | ID        | Critério de aceitação                                                                                                          |
 | :-------- | :----------------------------------------------------------------------------------------------------------------------------- |

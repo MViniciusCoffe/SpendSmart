@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/MViniciusCoffe/SpendSmart/security/advisories/new
+    about: Reporte em privado, nunca numa issue pública.

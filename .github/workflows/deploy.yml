@@ -1,0 +1,79 @@
+name: Deploy de produção
+
+# Issue #48: migration antes do deploy, com aprovação humana. O deploy automático da Vercel para a
+# main está desligado (vercel.json), então este workflow é o único caminho para a produção.
+# Configuração (environment, secrets, aprovadores): docs/environments.md §10.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Um deploy de produção por vez; o seguinte espera em vez de cancelar o que está rodando
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v5
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Testes unitários, de integração (pg-mem) e de regressão
+        run: |
+          npm test
+          npm run test:integration
+          npm run test:regression
+
+  production:
+    needs: verify
+    runs-on: ubuntu-latest
+    # O environment "production" exige aprovação: é a decisão humana do `--apply` (AGENTS.md §10.3)
+    environment:
+      name: production
+      url: https://spend-smart-lilac.vercel.app
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v5
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Configurar Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+
+      # O dry-run lista no log o que vai ser aplicado, antes de aplicar
+      - name: Migrations pendentes (dry-run)
+        run: supabase db push --db-url "$DATABASE_URL" --dry-run
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_PROD_DB_URL }}
+
+      - name: Aplicar migrations
+        run: supabase db push --db-url "$DATABASE_URL" --yes
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_PROD_DB_URL }}
+
+      # Build na própria Vercel, com as variáveis do painel (inclusive as Sensitive, que o
+      # `vercel pull` não lê). Só roda se as migrations passaram.
+      - name: Deploy na Vercel
+        run: npx --yes vercel@65.2.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

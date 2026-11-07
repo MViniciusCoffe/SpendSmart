@@ -2,134 +2,76 @@
 
 Dois modos de rodar banco local:
 
-| Modo               | O que sobe                                    | RLS | Auth | Studio | Uso recomendado                   |
+| Modo               | O que sobe                                    | RLS | Auth | Studio | Uso                               |
 | ------------------ | --------------------------------------------- | --- | ---- | ------ | --------------------------------- |
 | **Supabase CLI**   | Postgres + Auth + Realtime + Storage + Studio | ✅  | ✅   | ✅     | **Padrão** — desenvolvimento real |
-| **Docker Compose** | Só Postgres 16                                | ❌  | ❌   | ❌     | Só constraints/índices            |
+| **Docker Compose** | Só PostgreSQL 16                              | ❌  | ❌   | ❌     | Opcional — constraints e índices  |
 
-> **A matriz de ambientes e variáveis está em
-> [environments.md](environments.md).**
+> A matriz de ambientes, as variáveis e o fluxo de migrations estão em
+> [environments.md](environments.md). Este documento cobre só o que roda na máquina.
 
 ---
 
-## 1. Supabase CLI (padrão recomendado)
+## 1. Supabase CLI (padrão)
 
 ### 1.1 Arquivos
 
 ```text
 supabase/
-  config.toml          # configuração do projeto local
-  migrations/
-    1791833057000_create_financial_schema.sql
-    1791833057036_rename_profiles_columns_to_english.sql
-  .temp/               # ignorado pelo git
+  config.toml          # configuração do projeto local (Postgres 17, Auth, portas)
+  migrations/          # <timestamp>_<nome>.sql — única fonte do schema, aplicada pelo CLI
+  .temp/               # estado local do CLI, ignorado pelo git
+.env.local.example     # modelo do .env.local
 ```
 
 ### 1.2 Comandos
 
-| Comando                     | Efeito                                                              |
-| --------------------------- | ------------------------------------------------------------------- |
-| `supabase start`            | Sobe stack completa (Postgres + Auth + Realtime + Storage + Studio) |
-| `supabase status`           | Mostra URLs, chaves e status dos containers                         |
-| `supabase db reset`         | Recria banco, aplica migrations, roda seed                          |
-| `supabase studio`           | Abre dashboard web local (porta 54323)                              |
-| `supabase stop`             | Para containers (preserva volumes)                                  |
-| `supabase stop --no-backup` | Para e remove volumes                                               |
-| `supabase db reset`         | Recria banco + aplica migrations                                    |
-| `supabase db push`          | Aplica migrations pendentes (sem recriar)                           |
-| `supabase auth signup`      | Cria usuário no Auth local                                          |
+| Comando                 | Equivale a                      | Efeito                                                            |
+| ----------------------- | ------------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`           | `scripts/dev.js`                | Confere o `.env.local`, sobe o Supabase se preciso, inicia o Next |
+| `npm run infra:up`      | `supabase start`                | Sobe a stack e aplica as migrations na criação                    |
+| `npm run infra:status`  | `supabase status`               | URLs, chaves e estado dos containers                              |
+| `npm run infra:reset`   | `supabase db reset`             | **Apaga os dados**, recria o banco e aplica todas as migrations   |
+| `npm run migrations:up` | `supabase migration up --local` | Aplica só as migrations pendentes, preservando os dados           |
+| `npm run infra:studio`  | `supabase studio`               | Studio local (porta 54323)                                        |
+| `npm run infra:down`    | `supabase stop`                 | Para os containers, preserva os volumes                           |
 
-### 1.3 Variáveis locais (`.env.local`)
+### 1.3 Variáveis (`.env.local`)
 
 ```bash
-# Rode: supabase start
-# Copie as chaves do output para .env.local
-
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
-TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # supabase status
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_...                  # supabase status
 ```
 
-> **Prioridade Next.js:** `.env.local` > `.env.development` > `.env`. Se `.env.local` existe, `.env.development` é ignorado.
-
-### 1.4 Testes de integração contra banco local real
-
-```bash
-# Terminal 1
-supabase start
-
-# Terminal 2
-$env:TEST_DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-npm run test:integration
-```
-
-> **Nota:** Testes atuais usam UUIDs fixos que não existem no `auth.users` local — FKs bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`.
-
-O script `tests/helpers/factory.js` fornece helpers para seed limpo:
-
-```js
-const { createTestUser, createTestScenario, cleanupTestData } = require("../helpers/factory")
-await createTestScenario(userId, { categories: [...], transactions: [...] })
-await cleanupTestData([userId])
-```
+O `scripts/dev.js` recusa iniciar se o `NEXT_PUBLIC_SUPABASE_URL` não for local. Não defina
+`TEST_DATABASE_URL` no `.env.local`: os testes de integração passariam a apagar os dados do banco
+local (ver [environments.md §6](environments.md#6-testes)).
 
 ---
 
-## 2. Docker Compose (Postgres puro — legado)
+## 2. Docker Compose (Postgres puro, opcional)
 
-> **Use apenas se NÃO quiser Supabase CLI.** Sem Auth, sem RLS, sem Studio. Só valida constraints/índices.
-
-### 2.1 Arquivos
-
-```text
-infra/
-  compose.yaml
-  scripts/
-    wait-for-postgres.js
-.env.development.example
-```
-
-### 2.2 Variáveis do container
-
-Definidas em `infra/compose.yaml` e espelhadas no `.env.development.example`:
-
-```env
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=local_user
-POSTGRES_DB=local_db
-POSTGRES_PASSWORD=local
-```
-
-O `.env.development` real não é versionado. Copie o exemplo antes de usar:
+> Sem Auth, sem RLS, sem Studio: não dá para usar a aplicação contra ele. Serve para conferir que
+> as migrations rodam num Postgres sem `auth.users`.
 
 ```bash
-cp .env.development.example .env.development
+npm run services:up                                   # sobe e espera o healthcheck (--wait)
+npm run migrations:push -- --target docker --apply    # aplica supabase/migrations/*.sql
+npm run services:down                                 # remove container e rede
 ```
 
-> **Atenção:** o `.env.development` que existe hoje já está preenchido e aponta para o Supabase
-> remoto. Copiar o exemplo por cima substitui essas chaves. Guarde o conteúdo atual antes, se
-> ainda precisar dele.
+Os testes de integração **não** rodam contra este banco: eles inserem em `auth.users`, que só existe
+no Supabase. Com `TEST_DATABASE_URL`, eles rodam contra um Supabase local, que precisa ser descartável
+(os testes apagam `auth.users`, `categories` e `transactions`). O `tests/integration/db.js` recusa o
+banco se `auth.users` tiver alguma conta com e-mail.
 
-### 2.3 Comandos
+As credenciais (`local_user` / `local` / `local_db`, porta 5432) são os valores padrão do
+`infra/compose.yaml`; não há arquivo `.env` para este modo. O alvo `docker` do
+`scripts/db-migrations.js` usa essa mesma URL com `sslmode=disable` (o Postgres do compose não tem
+TLS).
 
-| Comando                          | Efeito                                                                 |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| `npm run services:up`            | Sobe o container em background                                         |
-| `npm run services:wait:database` | Aguarda a conexão usando `DATABASE_URL`                                |
-| `npm run services:stop`          | Para o container, preserva o volume                                    |
-| `npm run services:down`          | Remove container, rede e volume                                        |
-| `npm run migrations:up`          | Aplica as migrations de `supabase/migrations/` (lê `.env.development`) |
-| `npm run migrations:down`        | Desfaz a última migration                                              |
-| `npm run migrations:create`      | Cria um arquivo de migration com timestamp                             |
-| `npm run migrations:supabase:up` | Aplica as migrations no banco do `.env.development`                    |
-
-> Os três comandos leem `.env.development`. Não existe um `.env.supabase` separado: o conteúdo
-> seria o mesmo do `.env.development`, então `migrations:supabase:up` foi apontado para ele. Para
-> reverter, use `npm run migrations:down`.
-
-### 2.4 O que o Postgres local valida e o que não valida
+### 2.1 O que o Postgres puro valida e o que não valida
 
 | Valida                                             | Não valida                                         |
 | -------------------------------------------------- | -------------------------------------------------- |
@@ -138,40 +80,25 @@ cp .env.development.example .env.development
 | `check (amount > 0)`                               | `GRANT` de `service_role` e `authenticated`        |
 | `unique (user_id, name, type)`                     | FK para `auth.users` e o `on delete cascade`       |
 | `on delete restrict` de `transactions.category_id` |                                                    |
-| Os quatro índices                                  |                                                    |
+| Índices, `deleted_at` e o trigger de `updated_at`  |                                                    |
 
-O guard `IF to_regclass('auth.users') IS NOT NULL` em `supabase/migrations/1791833057000_create_financial_schema.sql` faz o PostgreSQL local pular silenciosamente toda a parte de Supabase. Consequência: **um banco local passa todos os testes sem nenhuma barreira de isolamento.** Ver [database-schema.md](database-schema.md#limites-conhecidos).
-
-### 2.5 Scripts de apoio
-
-```text
-infra/
-  scripts/
-    wait-for-postgres.js    # espera Postgres aceitar conexão (usado em services:wait:database)
-```
-
-> O script `run-services.js` (antigo `dev`) foi removido — aplicava migrations no banco remoto.
+O guard `IF to_regclass('auth.users') IS NOT NULL` nas migrations faz o Postgres puro pular a
+parte do Supabase. Consequência: **um banco sem `auth.users` passa nos testes sem nenhuma barreira de
+isolamento.** RLS só se testa com o Supabase CLI (`npm run test:integration:supabase`). Ver
+[database-schema.md](database-schema.md#limites-conhecidos).
 
 ---
 
-## 3. Nome das migrations
+## 3. Sugestão de uso
 
-A migration inicial em SQL chama-se `1791833057000_create_financial_schema.sql` (com timestamp).
-As antigas `.js` sem timestamp (`001_create_financial_schema.js`, etc.) são ignoradas pelo Supabase CLI.
+| Objetivo                         | Comando                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| Desenvolvimento diário           | `npm run dev`                                                                |
+| Aplicar uma migration nova       | `npm run migrations:up`                                                      |
+| Recriar o banco local (apaga)    | `npm run infra:reset`                                                        |
+| Criar uma migration              | `npm run migrations:new -- <nome>` (ver environments.md §5.2)                |
+| Testar RLS real                  | `supabase start` → `npm run test:integration:supabase`                       |
+| Conferir migrations sem Supabase | `npm run services:up` → `npm run migrations:push -- --target docker --apply` |
 
-Migrations novas **precisam** ter timestamp (`node-pg-migrate create` já faz isso). Não renomeie as antigas: já foram aplicadas e estão registradas na tabela `pgmigrations` do banco.
-
----
-
-## 4. Sugestão de uso
-
-| Objetivo                       | Comando                                                                              |
-| ------------------------------ | ------------------------------------------------------------------------------------ |
-| Desenvolvimento diário         | `npm run dev` (sobe Supabase CLI + Next.js)                                          |
-| Resetar banco local            | `supabase db reset` ou `npm run infra:reset`                                         |
-| Ver credenciais locais         | `supabase status` ou `npm run infra:status`                                          |
-| Dashboard local                | `supabase studio` ou `npm run infra:studio`                                          |
-| Validar constraints/índices só | `npm run services:up && npm run migrations:up`                                       |
-| Testes integração com RLS real | `supabase start` → criar usuários → `TEST_DATABASE_URL=... npm run test:integration` |
-
-> Antes de considerar qualquer regra que envolva segurança — RLS, cascata, `auth.uid()` —, valide com Supabase CLI local (`supabase start`).
+> Antes de considerar qualquer regra que envolva segurança — RLS, cascata, `auth.uid()` —, valide
+> com o Supabase CLI local.

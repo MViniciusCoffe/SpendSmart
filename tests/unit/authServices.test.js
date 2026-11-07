@@ -1,7 +1,6 @@
 jest.mock("@/lib/supabase", () => ({
   supabase: {
-    // Mocka apenas métodos que authServices usa
-    // SignOut não é usado ainda
+    // Mocka apenas os métodos de auth que authServices usa
     auth: {
       signUp: jest.fn(),
       signInWithPassword: jest.fn(),
@@ -139,11 +138,11 @@ describe("registerUser", () => {
       authService.registerUser({
         email: "a@b.com",
         password: "senha123",
-        nomeCompleto: "João",
-        dataNascimento: "2000-01-01",
-        telefone: "11999999999"
+        full_name: "João",
+        birth_date: "2000-01-01",
+        phone: "11999999999"
       })
-    ).rejects.toThrow("Sessão não iniciada após cadastro.") // mensagem que vamos definir
+    ).rejects.toThrow("Sessão não iniciada após cadastro.")
 
     // fetch NÃO deve ter sido chamado
     expect(global.fetch).not.toHaveBeenCalled()
@@ -166,9 +165,9 @@ describe("registerUser", () => {
       authService.registerUser({
         email: "a@b.com",
         password: "senha123",
-        nomeCompleto: "João",
-        dataNascimento: "2000-01-01",
-        telefone: "11999999999"
+        full_name: "João",
+        birth_date: "2000-01-01",
+        phone: "11999999999"
       })
     ).rejects.toThrow("Erro no banco")
 
@@ -200,9 +199,9 @@ describe("registerUser", () => {
       authService.registerUser({
         email: "a@b.com",
         password: "senha123",
-        nomeCompleto: "João",
-        dataNascimento: "2000-01-01",
-        telefone: "11999999999"
+        full_name: "João",
+        birth_date: "2000-01-01",
+        phone: "11999999999"
       })
     ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
   })
@@ -325,7 +324,7 @@ describe("argumentos enviados pelo authService", () => {
     })
   })
 
-  it("loginUser só registra no console os erros sem mensagem amigável específica", async () => {
+  it("loginUser não registra no console o erro que tem mensagem amigável", async () => {
     supabase.auth.signInWithPassword.mockResolvedValue({
       data: null,
       error: { message: "Invalid login credentials" }
@@ -334,7 +333,9 @@ describe("argumentos enviados pelo authService", () => {
       authService.loginUser({ email: "joao@email.com", password: "errada" })
     ).rejects.toThrow()
     expect(console.error).not.toHaveBeenCalled()
+  })
 
+  it("loginUser registra no console o erro sem mensagem amigável específica", async () => {
     supabase.auth.signInWithPassword.mockResolvedValue({
       data: null,
       error: { message: "connection failure", status: 500 }

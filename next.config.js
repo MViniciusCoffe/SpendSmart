@@ -1,42 +1,34 @@
+// Headers de segurança que não mudam por requisição (issue #24). A Content-Security-Policy tem um
+// nonce por requisição e por isso fica em src/proxy.js. O Strict-Transport-Security já vem da Vercel.
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Navegadores antigos, que não entendem o frame-ancestors da CSP
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), browsing-topics=()"
+  }
+]
+
+// Páginas que só fazem sentido com sessão: fora dos buscadores e de qualquer cache compartilhado
+const PRIVATE_ROUTES = ["/dashboard", "/transactions", "/categories", "/settings"]
+const privateHeaders = [
+  { key: "X-Robots-Tag", value: "noindex, nofollow" },
+  { key: "Cache-Control", value: "private, no-store" }
+]
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Disable Turbopack to use webpack config for path aliases
-  turbopack: {},
-  // Explicitly set the project root
+  poweredByHeader: false,
   outputFileTracingRoot: __dirname,
-  experimental: {
-    // Enable App Router features (already using Pages Router but good to have)
-  },
-  // Ensure path aliases work with webpack
-  webpack: (config, { isServer }) => {
-    const path = require("path")
 
-    // Add src to module resolution paths
-    config.resolve.modules = [path.resolve(__dirname, "src"), ...config.resolve.modules]
-
-    // Add path aliases
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@": path.resolve(__dirname, "src"),
-      "@/components": path.resolve(__dirname, "src/components"),
-      "@/components/ui": path.resolve(__dirname, "src/components/ui"),
-      "@/components/layout": path.resolve(__dirname, "src/components/layout"),
-      "@/components/forms": path.resolve(__dirname, "src/components/forms"),
-      "@/components/feedback": path.resolve(__dirname, "src/components/feedback"),
-      "@/app": path.resolve(__dirname, "src/app"),
-      "@/styles": path.resolve(__dirname, "src/styles"),
-      "@/styles/tokens": path.resolve(__dirname, "src/styles/tokens"),
-      "@/lib": path.resolve(__dirname, "src/lib"),
-      "@/hooks": path.resolve(__dirname, "src/hooks"),
-      "@/contexts": path.resolve(__dirname, "src/contexts"),
-      "@/services": path.resolve(__dirname, "src/services"),
-      "@/utils": path.resolve(__dirname, "src/utils"),
-      "@/types": path.resolve(__dirname, "src/types"),
-      "@/config": path.resolve(__dirname, "src/config")
-    }
-
-    return config
+  async headers() {
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      ...PRIVATE_ROUTES.map(route => ({ source: route, headers: privateHeaders }))
+    ]
   }
 }
 

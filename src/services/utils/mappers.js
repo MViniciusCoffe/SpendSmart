@@ -1,3 +1,10 @@
+// Colunas que cada mapper lê. Os services pedem exatamente estas, inclusive no retorno de insert e
+// update: um .select() sem argumento devolve todas as colunas (user_id, created_at...), que o mapper
+// descartaria depois (AGENTS.md §4.3, regra 10).
+export const CATEGORY_COLUMNS = "id,name,type,description,color,deleted_at"
+export const TRANSACTION_COLUMNS =
+  "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+
 export const categoryTypeMap = cat => ({
   id: cat.id,
   name: cat.name,

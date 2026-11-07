@@ -58,7 +58,9 @@ transform: {
 },
 ```
 
-O arquivo traz `preset-env`, `preset-react` e o `babel-plugin-module-resolver` dos aliases `@/...`.
+O arquivo traz só `preset-env` e `preset-react`. Os aliases `@/...` dos testes ficam no
+`moduleNameMapper` do `jest.config.js` (até 2026-11-05 também havia o `babel-plugin-module-resolver`,
+que fazia o mesmo trabalho e foi removido).
 O nome não é nenhum dos que o Next.js procura (`.babelrc*`, `babel.config.*`), então só o Jest o lê.
 
 **Por que.** Um `babel.config.js` na raiz é detectado pelo Next.js, que passa a usar Babel no lugar
@@ -108,6 +110,12 @@ integração.
 
 **Reavaliar quando.** Houver código JavaScript exercitado apenas por teste de integração. Até lá,
 aumentar a base sem aumentar a medição só produz número menor, não informação nova.
+
+**Escopo do relatório (2026-11-05).** `collectCoverageFrom: ["src/services/**/*.js"]` fica no nível
+global do `jest.config.js`. Até essa data ele estava dentro do project `unit`, onde o Jest o ignora
+(opções de cobertura são globais num config com `projects`); sem filtro, o relatório listava todo
+arquivo carregado pelos testes, inclusive o helper `tests/helpers/supabase.js` (70%), e o total
+aparecia como 97%.
 
 ---
 
@@ -193,12 +201,12 @@ comentário citando a issue que trata a causa.
 
 **Por que.** O baseline apurado com o ESLint funcionando é de **1 erro e 21 avisos**:
 
-| Regra                         | Ocorrências | Issue                                          |
-| :---------------------------- | :---------- | :--------------------------------------------- |
-| `no-alert`                    | 12          | #13, trocar `alert` por toast                  |
-| `@next/next/no-img-element`   | 8           | sem issue ainda                                |
-| `react-hooks/exhaustive-deps` | 1           | #24, `withAuth` não escuta `onAuthStateChange` |
-| `react/display-name`          | 1 erro      | `components/utils/withAuth.js:6`               |
+| Regra                         | Ocorrências | Issue                                                      |
+| :---------------------------- | :---------- | :--------------------------------------------------------- |
+| `no-alert`                    | 12          | #13, trocar `alert` por toast                              |
+| `@next/next/no-img-element`   | 8           | sem issue ainda                                            |
+| `react-hooks/exhaustive-deps` | 1           | #67 (antes #24), `withAuth` não escuta `onAuthStateChange` |
+| `react/display-name`          | 1 erro      | `components/utils/withAuth.js:6`                           |
 
 Os 21 avisos são defeitos reais já conhecidos e rastreados. Rebaixar é melhor do que desligar: o
 aviso continua aparecendo na saída e no relatório, então o número não some. Desligar a regra
@@ -209,9 +217,9 @@ o job. Ele fica para decisão: a correção natural é nomear o componente inter
 mudança de código, não de configuração.
 
 **Alternativa rejeitada.** `eslint . --quiet`, que só mostraria erros. Esconderia os 21 avisos que
-são a rastreabilidade de #13 e #24.
+são a rastreabilidade de #13 e #67 (a parte de sessão da antiga #24).
 
-**Reavaliar quando.** #13 e #24 forem fechadas, e a regra volta a `error`.
+**Reavaliar quando.** #13 e #67 forem fechadas, e a regra volta a `error`.
 
 ---
 
@@ -600,6 +608,8 @@ risco de corrupção, Preview deployments com acesso de serviço ao banco real.
 
 ## 22. Scripts de desenvolvimento reorganizados
 
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
+
 **Decisão.** Scripts `npm` organizados em dois mundos separados, com `dev` como comando principal.
 
 | Mundo               | Scripts                                                                        | Variáveis          | Uso             |
@@ -651,6 +661,8 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 
 ## 24. `.env.local` como padrão de desenvolvimento
 
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
+
 **Decisão.** `.env.local` (Supabase CLI) tem prioridade sobre `.env.development` (Docker Compose) no Next.js.
 
 **Por que.** Next.js carrega `.env.local` com prioridade máxima. Permite:
@@ -671,6 +683,8 @@ shutdown coordenado (SIGINT derruba ambos). Melhor que script customizado `run-s
 ---
 
 ## 25. Migrations em SQL para Supabase CLI
+
+> **Substituída pela entrada 28** (2026-11-04). Mantida como registro histórico.
 
 **Decisão.** Migrations novas usam formato `.sql` (padrão Supabase CLI) em vez de `.js` (node-pg-migrate).
 
@@ -723,6 +737,10 @@ services/
     └── utils.js            # fachada de compatibilidade para validators/baseService
 ```
 
+> **Atualização (2026-11-05):** `utils.js` foi removido. Nenhum arquivo de `src/` o importava, e o
+> próprio `utils.test.js` testava `validators` e `baseService` diretamente, sem importar a fachada
+> (issue #66).
+
 **Por que.** Antes, `baseService.js`, `logger.js`, `mappers.js`, `validators.js`, `utils.js` ficavam soltos em `services/`, misturados com os _domain services_ (`categoryService`, `transactionService`, etc.). Isso confundia o que é _domain logic_ vs _shared utility_.
 
 **Benefícios:**
@@ -747,7 +765,7 @@ services/
 scripts/
 ├── check-agents.js       # Validador de regras do AGENTS.md (CI + pre-commit)
 ├── dev.js                # Orquestrador principal: npm run dev
-└── wait-for-postgres.js  # Helper: npm run services:wait:database
+└── wait-for-postgres.js  # Helper: npm run services:wait:database (removido na entrada 28)
 ```
 
 **Por que.**
@@ -760,7 +778,7 @@ scripts/
 
 3. **Descoberta:** `npm run` lista tudo que está em `scripts/` implicitamente. `infra/scripts/` não aparece.
 
-**O que aconteceu com `wait-for-postgres.js`:**
+**O que aconteceu com `wait-for-postgres.js`** (removido na entrada 28: `services:up` passou a usar `docker compose up --wait`):
 
 - **Mantido** em `scripts/wait-for-postgres.js`
 - **Ainda útil:** É o health check do fluxo **Docker Compose fallback** (`services:wait:database` → `npm run migrations:up`)
@@ -800,3 +818,96 @@ código de aplicação, e os aliases `@/services/...` do `jsconfig.json` já apo
 
 **Condição para rever.** Se o front-end entrar no escopo do Sonar (issue #33), acrescentar
 `src/app` e `src/components` em `sonar.sources` num commit próprio, como descrito na entrada 19.
+
+---
+
+## 28. Ambientes separados e Supabase CLI como única ferramenta de migration
+
+**Decisão.** Três bancos — Supabase CLI local, projeto Supabase de Preview, projeto Supabase de
+Produção — e o Supabase CLI aplicando as migrations `.sql` em todos eles, por meio de
+`scripts/db-migrations.js` (`npm run migrations:list|push -- --target production|preview|docker`).
+Credenciais remotas ficam em `.env.production.remote` e `.env.preview.remote`, nomes que o Next.js
+não carrega. Não existe mais `.env.development`, `node-pg-migrate`, migration `.js` nem
+`scripts/wait-for-postgres.js`. Esta entrada substitui as entradas 22, 24 e 25. Detalhes em
+[environments.md](environments.md).
+
+**Por que.** Três defeitos verificados em 2026-11-04:
+
+- **A entrada 25 estava errada.** Ela dizia que o `node-pg-migrate` ignora `.sql`. A versão 8 executa
+  `.sql` (`dist/bundle/index.js`, `sqlMigration`). Com as duas versões de cada migration na mesma
+  pasta, `npm run migrations:up` rodava `001_create_financial_schema.js` (colunas em português) e em
+  seguida `1790304277000_create_financial_schema.sql`, que falhava com `relation "profiles" already
+exists` (42P07) e desfazia tudo. Verificado num banco descartável: **o fluxo node-pg-migrate não
+  aplicava nada.**
+- **`migrations:supabase:up` era idêntico a `migrations:up`**, e os dois liam `.env.development`. Quando
+  esse arquivo apontava para o Supabase remoto, todos os scripts de migration — inclusive
+  `migrations:down`, que revogaria os `GRANT`s — atingiam produção. Quando apontava para o Docker,
+  nenhum script atingia o remoto. Não havia caminho seguro e correto ao mesmo tempo.
+- **Um único projeto Supabase servia desenvolvimento, Preview e Produção** (issue #20), com a
+  `SUPABASE_SERVICE_ROLE_KEY` no escopo de Preview da Vercel: qualquer branch deste repositório
+  público gerava um endpoint com acesso de serviço ao banco real.
+
+O histórico de migrations do banco remoto antigo confirmava a deriva: a tabela `pgmigrations`
+registrava `001_...`, `rbac.js` e um `rename-profiles-columns-to-english.js` que nem existia mais no
+repositório, e o soft delete tinha sido aplicado sem registro em lugar nenhum.
+
+**Por que o Supabase CLI e não o node-pg-migrate.** O CLI já era quem aplicava as migrations no
+ambiente local (`supabase start`/`db reset`), e aceita `--db-url` para qualquer Postgres. Testado num
+PostgreSQL 16 puro descartável: as três migrations aplicam, o guard `to_regclass('auth.users')` pula
+RLS e `GRANT`s, e o histórico fica em `supabase_migrations.schema_migrations` — a mesma tabela em
+todos os ambientes. Manter o `node-pg-migrate` só para o Docker significaria uma segunda ferramenta
+executando os mesmos arquivos.
+
+**O que se perde.** O `down`. Migrations `.sql` do Supabase CLI não têm seção de reversão, e uma
+seção `-- Down Migration` seria executada como SQL comum pelo CLI. Desfazer uma mudança passa a ser
+uma migration nova.
+
+**Salvaguardas.** `--target` é obrigatório; `push` é dry-run sem `--apply`; o CLI ainda confirma
+`Y/n`; o `scripts/dev.js` recusa iniciar sem `.env.local` local ou com um `.env.development`
+presente.
+
+**Alternativa rejeitada.** Manter `node-pg-migrate` com um `.env` separado para o remoto (proposta
+original da issue #20). Resolveria o alvo errado, mas não a duplicação `.js`/`.sql`, e manteria duas
+tabelas de histórico divergindo. Também rejeitado: `supabase link` + `--linked`, que exige
+`supabase login` de cada pessoa que aplica migration; `--db-url` funciona só com o arquivo `.remote`.
+
+**Reavaliar quando.** O Supabase CLI ganhar suporte a migrations reversíveis, ou o projeto passar a
+precisar de um terceiro ambiente remoto (basta um novo `--target` e um novo `.env.<alvo>.remote`).
+
+## 29. Automação no GitHub: auditoria, Dependabot, CodeQL, deploy com aprovação e release-please
+
+**Decisão (2026-11-06, issues #48-#53).**
+
+- `test.yml` ganhou `npm run test:regression` e um job `audit` com `npm audit --audit-level=high`;
+  `lint.yml` ganhou `npm run check:agents`. A regressão já não precisava de `.env.local` (mocks), e
+  um commit com teste mas sem o código passou despercebido em 2026-11-06 justamente por ela não
+  rodar no CI.
+- **`--audit-level=high` e não `moderate`:** as vulnerabilidades moderadas de hoje (`deepmerge`,
+  `glob`, `minimatch`) estão só nas ferramentas de desenvolvimento do Jest/cobertura, e a correção
+  exige atualização major. Bloquear o CI por elas pararia todo PR sem ganho de segurança para a
+  produção (`npm audit --omit=dev`: 0).
+- **Dependabot** semanal, minor/patch agrupados (produção e desenvolvimento separados). Ignora
+  major do `eslint` (§2 do AGENTS: o 10 quebra o `eslint-config-next`), da
+  `sonarqube-scan-action` e do `actions/checkout` (§20).
+- **CodeQL** em workflow próprio (`security-extended`), não no _default setup_: a configuração fica
+  versionada e revisável.
+- **Deploy de produção** (`deploy.yml` + `vercel.json`): ver `environments.md` §10. Aprovação
+  humana pelo environment `production` do GitHub, migration antes do deploy, `vercel deploy --prod`
+  com build na Vercel. Rejeitado: deixar o deploy automático da Vercel em paralelo (corrida entre
+  migration e código novo) e aplicar migration sem aprovação (contraria o `--apply` manual).
+  `vercel@65.2.0` fixado (versão de mais de duas semanas).
+- **release-please** e não `semantic-release` (#53): é uma Action, sem dependência npm nova, e abre
+  um PR de release revisável em vez de publicar direto a cada push. Começa no commit `9a5c275`
+  (main antes da `chore/tech-debt`), em `0.1.0`, com `bump-minor-pre-major`.
+
+**Configurações fora do repositório** (feitas no GitHub pelo mantenedor): environment `production`
+com aprovadores e os secrets de `environments.md` §10.1; _Settings → Actions → General → Allow
+GitHub Actions to create and approve pull requests_ (o release-please abre PR com o `GITHUB_TOKEN`);
+_private vulnerability reporting_ ligado em 2026-11-06 (`SECURITY.md`).
+
+**Limite conhecido.** PR aberto pelo `GITHUB_TOKEN` (o de release, o do Dependabot não) não dispara
+outros workflows: o PR de release não roda CI. Ele só muda `CHANGELOG.md`, `package.json` e o
+manifesto.
+
+**Reavaliar quando.** As moderadas ganharem correção sem major (subir o nível para `moderate`), ou
+o projeto passar a ter mais de um aprovador disponível para o environment.

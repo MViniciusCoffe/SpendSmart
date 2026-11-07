@@ -35,7 +35,7 @@ describe("getTransactions", () => {
     await expect(transactionService.getTransactions()).rejects.toThrow("Usuário não autenticado.")
   })
 
-  it("traduz income e expense para receita e despesa", async () => {
+  it("devolve o tipo como income/expense, sem tradução (os rótulos em português ficam na interface)", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
 
     supabase.from.mockReturnValue(
@@ -136,7 +136,7 @@ describe("createTransaction", () => {
 
   it("traduz o DTO para as colunas e usa o user_id da sessao", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linhaTransacao, error: null })
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({
@@ -165,7 +165,7 @@ describe("createTransaction", () => {
 
   it("converte despesa em expense na escrita", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: linhaTransacao, error: null })
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
     supabase.from.mockReturnValue(builder)
 
     await transactionService.createTransaction({
@@ -400,5 +400,29 @@ describe("deleteTransaction", () => {
     await expect(transactionService.deleteTransaction(1)).rejects.toThrow(
       "Não foi possível deletar a transação."
     )
+  })
+})
+
+// .select() sem argumento depois de insert/update devolve todas as colunas (AGENTS.md §4.3, regra 10)
+describe("colunas devolvidas na escrita de transação", () => {
+  const COLUNAS =
+    "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+  const transacao = { title: "Mercado", amount: 80, type: "expense", category_id: 7 }
+
+  beforeEach(() => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+  })
+
+  it.each([
+    ["createTransaction", () => transactionService.createTransaction(transacao)],
+    ["updateTransaction", () => transactionService.updateTransaction({ id: 1, ...transacao })]
+  ])("%s pede só as colunas do mapper", async (_metodo, chamar) => {
+    const builder = criarBuilder({ data: linhaTransacao(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await chamar()
+
+    expect(builder.select).toHaveBeenCalledWith(COLUNAS)
+    expect(builder.select).not.toHaveBeenCalledWith()
   })
 })

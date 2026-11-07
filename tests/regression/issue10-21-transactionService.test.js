@@ -7,13 +7,25 @@ jest.mock("@/lib/supabase", () => ({
 
 import { supabase } from "@/lib/supabase"
 import { transactionService } from "@/services/transactionService"
+import { clearSessionCache } from "@/services/utils/baseService"
 import { criarBuilder, comSessao } from "@/tests/helpers/supabase"
 import { linha } from "@/tests/helpers/fixtures"
 
+// Cada teste começa com sessão válida, mocks limpos e cache de sessão vazio: nenhum depende da
+// sessão deixada pelo teste anterior (issue #66)
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.spyOn(console, "error").mockImplementation(() => {})
+  clearSessionCache()
+  supabase.auth.getSession.mockResolvedValue(comSessao)
+})
+
+afterEach(() => {
+  jest.restoreAllMocks()
+})
+
 describe("Regressão #10 — validação de título na fronteira", () => {
   it("createTransaction rejeita título vazio", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
     await expect(
       transactionService.createTransaction({ title: "", amount: 100, type: "income" })
     ).rejects.toThrow("Título é obrigatório")
@@ -28,7 +40,6 @@ describe("Regressão #10 — validação de título na fronteira", () => {
 
 describe("Regressão #21 — DTO com occurred_on e payment_method", () => {
   it("createTransaction devolve DTO com occurred_on e payment_method", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(
       criarBuilder({
         data: linha({
@@ -92,7 +103,6 @@ describe("Regressão #21 — DTO com occurred_on e payment_method", () => {
 
 describe("Regressão #10/#21 — validação de valor e tipo", () => {
   it("createTransaction com receita usa income", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ type: "income" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -107,7 +117,6 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
   })
 
   it("createTransaction com despesa usa expense", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
     const builder = criarBuilder({ data: linha({ type: "expense" }), error: null })
     supabase.from.mockReturnValue(builder)
 
@@ -122,8 +131,6 @@ describe("Regressão #10/#21 — validação de valor e tipo", () => {
   })
 
   it("createTransaction rejeita valor inválido (NaN)", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
     await expect(
       transactionService.createTransaction({
         title: "Teste",

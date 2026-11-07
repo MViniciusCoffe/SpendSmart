@@ -1,3 +1,5 @@
+import fs from "fs"
+import path from "path"
 import { newDb } from "pg-mem"
 import pg from "pg"
 
@@ -5,85 +7,117 @@ import pg from "pg"
 //
 // Dois modos, escolhidos pela variável TEST_DATABASE_URL:
 //
-// 1. Sem TEST_DATABASE_URL (padrão, inclusive CI): sobe um Postgres em memória
-//    com pg-mem, sem Docker. O DDL abaixo espelha exatamente as constraints que
-//    a migration 001_create_financial_schema.js cria num Postgres puro — ou
-//    seja, SEM o bloco RLS, que depende de auth.users e só existe no Supabase
-//    (mesmo comportamento do Postgres local do compose). A migration 002 só
-//    contém GRANTs de roles do Supabase, também inaplicáveis aqui.
-//    Justificativa: a máquina de desenvolvimento atual não tem Docker, e um
-//    teste de integração que ninguém consegue executar não verifica nada.
+// 1. Sem TEST_DATABASE_URL (padrão, inclusive CI): Postgres em memória com pg-mem, sem Docker.
+//    O schema vem das próprias migrations de supabase/migrations/*.sql — não existe cópia do DDL
+//    aqui, então os testes não podem divergir do banco real. O pg-mem não tem plpgsql nem RLS,
+//    por isso o adaptador abaixo:
+//      - desembrulha o bloco `IF to_regclass('auth.users') IS NOT NULL THEN ... END IF` (o stub de
+//        auth.users existe aqui), para as FKs com ON DELETE CASCADE virem da migration;
+//      - descarta RLS, políticas, GRANT/REVOKE, triggers e funções (o RLS real é testado em
+//        tests/integration/supabase/rls.test.js; o trigger de updated_at não é testado aqui);
+//      - falha se sobrar qualquer outro bloco plpgsql, para nenhuma migration nova ser ignorada
+//        em silêncio.
 //
-// 2. Com TEST_DATABASE_URL: conecta num Postgres real (ex.: o container de
-//    infra/compose.yaml). O schema precisa já ter sido aplicado pelas
-//    migrations: npm run services:up && npm run migrations:up.
+// 2. Com TEST_DATABASE_URL: conecta num Postgres real com o schema já aplicado. Precisa ser um
+//    Supabase (os testes inserem em auth.users, que o Postgres puro do infra/compose.yaml não tem).
+//    ATENÇÃO: os testes apagam auth.users, categories e transactions no beforeEach. Por isso
+//    assertDisposableDb recusa o banco se auth.users tiver alguma conta com e-mail. Passe a
+//    variável só na linha de comando, nunca no .env.local.
 //
-// Nos dois modos o contrato é o mesmo: um client com query() e end(), e as
-// mesmas asserções de código de erro do PostgreSQL (23505, 23503).
+// Nos dois modos o contrato é o mesmo: um client com query() e end(), e as mesmas asserções de
+// código de erro do PostgreSQL (23505, 23503).
 
-const DDL = `
+const MIGRATIONS_DIR = path.resolve(__dirname, "../../supabase/migrations")
+
+// Mesmo padrão de nome que o Supabase CLI aceita: os outros arquivos ele ignora, e aqui também
+const MIGRATION_FILE = /^\d{13,}_.+\.sql$/
+
+// Só existe no Supabase; no pg-mem basta a coluna que as FKs referenciam
+const AUTH_STUB = `
   CREATE SCHEMA IF NOT EXISTS auth;
-  
   CREATE TABLE auth.users (
     id uuid PRIMARY KEY,
     email text,
-    encrypted_password text,
-    email_confirmed_at timestamptz,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp
-  );
-
-  CREATE TABLE profiles (
-    id uuid PRIMARY KEY REFERENCES auth.users(id),
-    full_name text NOT NULL,
-    birth_date date,
-    phone text,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp
-  );
-
-  CREATE TABLE categories (
-    id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id),
-    name text NOT NULL,
-    type text NOT NULL,
-    description text,
-    color text NOT NULL DEFAULT '#FFFFFF',
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-    CONSTRAINT categories_type_check CHECK (type IN ('income', 'expense')),
-    CONSTRAINT categories_user_name_type_unique UNIQUE (user_id, name, type)
-  );
-
-  CREATE TABLE transactions (
-    id bigserial PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id),
-    category_id bigint NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
-    type text NOT NULL,
-    amount numeric(12,2) NOT NULL,
-    title text NOT NULL,
-    occurred_on date NOT NULL,
-    description text,
-    payment_method text,
-    created_at timestamptz NOT NULL DEFAULT current_timestamp,
-    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-    CONSTRAINT transactions_type_check CHECK (type IN ('income', 'expense')),
-    CONSTRAINT transactions_amount_positive CHECK (amount > 0),
-    CONSTRAINT transactions_category_fk FOREIGN KEY (category_id)
-      REFERENCES categories(id) ON DELETE RESTRICT
+    created_at timestamptz NOT NULL DEFAULT current_timestamp
   );
 `
 
+const AUTH_GUARDED_BLOCK =
+  /DO \$\$\s*BEGIN\s*IF to_regclass\('auth\.users'\) IS NOT NULL THEN([\s\S]*?)END IF;\s*END\s*\$\$;/gi
+const FUNCTION_BLOCK = /CREATE (OR REPLACE )?FUNCTION[\s\S]*?\$\$;/gi
+const UNSUPPORTED_BY_PG_MEM = /ENABLE ROW LEVEL SECURITY|CREATE POLICY|^GRANT\b|^REVOKE\b|TRIGGER/i
+
+export function migrationStatements() {
+  const files = fs
+    .readdirSync(MIGRATIONS_DIR)
+    .filter(file => MIGRATION_FILE.test(file))
+    .sort()
+
+  return files.flatMap(file => {
+    const sql = fs
+      .readFileSync(path.join(MIGRATIONS_DIR, file), "utf8")
+      .replace(/--.*$/gm, "")
+      .replace(FUNCTION_BLOCK, "")
+      .replace(AUTH_GUARDED_BLOCK, (_, body) => body)
+
+    if (sql.includes("$$")) {
+      throw new Error(
+        `${file}: bloco plpgsql que o pg-mem não executa. Adapte tests/integration/db.js.`
+      )
+    }
+
+    return sql
+      .split(";")
+      .map(statement => statement.trim())
+      .filter(statement => statement && !UNSUPPORTED_BY_PG_MEM.test(statement))
+  })
+}
+
+// Os testes apagam auth.users inteira no beforeEach. Os usuários que eles criam têm só id; conta com
+// e-mail significa cadastro de verdade (pelo app ou pelo Studio), então o banco não é descartável.
+// Em 2026-11-04 um TEST_DATABASE_URL no .env.local apontou os testes para o Supabase local e apagou
+// os dados dele.
+async function assertDisposableDb(client) {
+  const {
+    rows: [{ existe }]
+  } = await client.query("select to_regclass('auth.users') is not null as existe")
+  if (!existe) return
+
+  const {
+    rows: [{ contas }]
+  } = await client.query("select count(*)::int as contas from auth.users where email is not null")
+  if (contas > 0) {
+    await client.end()
+    throw new Error(
+      `TEST_DATABASE_URL aponta para um banco com ${contas} conta(s) com e-mail em auth.users. ` +
+        "Os testes de integração apagariam esses dados. Use pg-mem (sem TEST_DATABASE_URL) ou um " +
+        "banco descartável."
+    )
+  }
+}
+
 export async function createTestDb() {
   if (process.env.TEST_DATABASE_URL) {
-    const client = new pg.Client({ connectionString: process.env.TEST_DATABASE_URL })
+    // `date` como texto: o parser padrão cria um Date à meia-noite local, que vira o dia anterior
+    // em toISOString() nos fusos a leste de UTC
+    const DATE_OID = 1082
+    const client = new pg.Client({
+      connectionString: process.env.TEST_DATABASE_URL,
+      types: {
+        getTypeParser: (oid, format) =>
+          oid === DATE_OID ? value => value : pg.types.getTypeParser(oid, format)
+      }
+    })
     await client.connect()
+    await assertDisposableDb(client)
     return { client, modo: "postgres-real" }
   }
 
   const mem = newDb()
+  mem.public.none(AUTH_STUB)
+  for (const statement of migrationStatements()) mem.public.none(statement)
+
   const client = new (mem.adapters.createPg().Client)()
   await client.connect()
-  await client.query(DDL)
   return { client, modo: "pg-mem" }
 }

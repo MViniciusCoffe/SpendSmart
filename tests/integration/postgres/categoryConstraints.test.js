@@ -1,4 +1,10 @@
 import { createTestDb } from "../db"
+import {
+  capturarErro,
+  esperarCodigoPg,
+  inserirCategoria as inserirCategoriaNoBanco,
+  limparBanco
+} from "@/tests/helpers/db"
 
 // Testes de integração de persistência das categorias: IT-04 e IT-05 do plano
 // de testes (docs/test-plan.md). São os casos que nenhum mock em JS consegue
@@ -16,17 +22,8 @@ let db
 const USUARIO_A = "11111111-1111-1111-1111-111111111111"
 const USUARIO_B = "22222222-2222-2222-2222-222222222222"
 
-const inserirCategoria = ({ userId = USUARIO_A, nome = "Mercado", tipo = "expense" } = {}) =>
-  db.client
-    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
-    .then(() =>
-      db.client.query(
-        `INSERT INTO categories (user_id, name, type, description, color)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
-        [userId, nome, tipo, "Alimentação da casa", "#FF0000"]
-      )
-    )
+const inserirCategoria = (opcoes = {}) =>
+  inserirCategoriaNoBanco(db.client, { userId: USUARIO_A, ...opcoes })
 
 const inserirTransacao = categoriaId =>
   db.client.query(
@@ -40,24 +37,13 @@ const inserirTransacao = categoriaId =>
 // preenche `code` em violações de chave estrangeira (o 23503 só aparece no
 // Postgres real), então FK é verificada pela mensagem padrão do PostgreSQL,
 // idêntica nos dois backends; quando o código existe, ele também é conferido.
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
 
 beforeAll(async () => {
   db = await createTestDb()
 })
 
 beforeEach(async () => {
-  // Ordem importa: transactions primeiro por causa da FK RESTRICT
-  await db.client.query("DELETE FROM transactions")
-  await db.client.query("DELETE FROM categories")
-  await db.client.query("DELETE FROM auth.users")
+  await limparBanco(db.client)
 })
 
 afterAll(async () => {
@@ -99,7 +85,7 @@ describe("IT-04 — exclusão de categoria em uso é rejeitada", () => {
     )
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
 
     const { rowCount } = await db.client.query("SELECT 1 FROM categories WHERE id = $1", [
       rows[0].id
@@ -130,6 +116,6 @@ describe("IT-04 — exclusão de categoria em uso é rejeitada", () => {
     const erro = await capturarErro(inserirTransacao(999999))
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
   })
 })

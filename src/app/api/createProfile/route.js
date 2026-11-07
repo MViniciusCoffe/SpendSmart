@@ -1,15 +1,16 @@
 import { createClient } from "@supabase/supabase-js"
+import { adminUnavailableResponse, getSupabaseAdmin } from "../_lib/supabaseAdmin"
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// O cliente só recebe mensagens nossas. A mensagem do Postgres ou do Auth (nome de constraint,
+// detalhe de coluna) fica no log do servidor, nunca na resposta.
+const FALHA = { message: "Erro ao criar perfil" }
 
 export async function POST(request) {
   const token = request.headers.get("authorization")?.split(" ")[1]
   if (!token) return Response.json({ message: "Não autorizado" }, { status: 401 })
 
-  const { full_name, birth_date, phone } = await request.json()
+  const supabaseAdmin = getSupabaseAdmin()
+  if (!supabaseAdmin) return adminUnavailableResponse()
 
   try {
     const supabase = createClient(
@@ -21,7 +22,16 @@ export async function POST(request) {
       error: userError
     } = await supabase.auth.getUser(token)
 
-    if (userError || !user) throw new Error("Usuário inválido ou token expirado")
+    if (userError || !user) {
+      return Response.json({ message: "Usuário inválido ou token expirado" }, { status: 401 })
+    }
+
+    // Antes ficava fora do try: corpo que não era JSON virava erro não tratado
+    const body = await request.json().catch(() => null)
+    if (!body || typeof body !== "object") {
+      return Response.json({ message: "Corpo da requisição inválido" }, { status: 400 })
+    }
+    const { full_name, birth_date, phone } = body
 
     const { error: insertError } = await supabaseAdmin
       .from("profiles")
@@ -39,7 +49,7 @@ export async function POST(request) {
     return Response.json({ message: "Perfil criado com sucesso" })
   } catch (error) {
     console.error("[Create Profile API Error]", error)
-    return Response.json({ message: "Erro ao criar perfil", error: error.message }, { status: 500 })
+    return Response.json(FALHA, { status: 500 })
   }
 }
 

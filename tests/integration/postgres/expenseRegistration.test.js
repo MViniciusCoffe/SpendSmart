@@ -1,4 +1,11 @@
 import { createTestDb } from "../db.js"
+import {
+  capturarErro,
+  esperarCodigoPg,
+  dataISO,
+  inserirCategoria as inserirCategoriaNoBanco,
+  limparBanco
+} from "@/tests/helpers/db"
 
 // Testes de integração de persistência do registro de despesa (US-013, Iteração 2)
 // CT13.01 — Cadastro com dados válidos
@@ -11,17 +18,8 @@ let db
 
 const USUARIO_TESTE = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 
-const inserirCategoria = ({ userId = USUARIO_TESTE, nome = "Mercado", tipo = "expense" } = {}) =>
-  db.client
-    .query(`INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING`, [userId])
-    .then(() =>
-      db.client.query(
-        `INSERT INTO categories (user_id, name, type, description, color)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
-        [userId, nome, tipo, "Compras do mês", "#AA0000"]
-      )
-    )
+const inserirCategoria = (opcoes = {}) =>
+  inserirCategoriaNoBanco(db.client, { userId: USUARIO_TESTE, ...opcoes })
 
 const inserirDespesa = ({
   userId = USUARIO_TESTE,
@@ -40,23 +38,12 @@ const inserirDespesa = ({
     [userId, categoryId, amount, title, occurredOn, description, paymentMethod]
   )
 
-const capturarErro = async promise => {
-  try {
-    await promise
-  } catch (erro) {
-    return erro
-  }
-  throw new Error("A operação deveria ter sido rejeitada pelo banco")
-}
-
 beforeAll(async () => {
   db = await createTestDb()
 })
 
 beforeEach(async () => {
-  await db.client.query("DELETE FROM transactions")
-  await db.client.query("DELETE FROM categories")
-  await db.client.query("DELETE FROM auth.users")
+  await limparBanco(db.client)
 })
 
 afterAll(async () => {
@@ -64,7 +51,7 @@ afterAll(async () => {
 })
 
 describe("CT13.01 — Cadastro de despesa com dados válidos", () => {
-  it("persiste a despesa e devolve os dados corretos [pg-mem]", async () => {
+  it("persiste a despesa e devolve os dados corretos", async () => {
     const { rows: catRows } = await inserirCategoria()
     const categoryId = catRows[0].id
 
@@ -75,11 +62,7 @@ describe("CT13.01 — Cadastro de despesa com dados válidos", () => {
     expect(Number(rows[0].amount)).toBe(87.4)
     expect(rows[0].type).toBe("expense")
     expect(rows[0].category_id).toBe(categoryId)
-    const occurredOn =
-      rows[0].occurred_on instanceof Date
-        ? rows[0].occurred_on.toISOString().split("T")[0]
-        : rows[0].occurred_on
-    expect(occurredOn).toBe("2026-10-06")
+    expect(dataISO(rows[0].occurred_on)).toBe("2026-10-06")
     expect(rows[0].description).toBe("Compras da semana")
     expect(rows[0].payment_method).toBe("Débito")
   })
@@ -116,12 +99,7 @@ describe("CT13.03 — Detalhe preenchido (regressão #21)", () => {
       paymentMethod: "Débito"
     })
 
-    const occurredOn =
-      rows[0].occurred_on instanceof Date
-        ? rows[0].occurred_on.toISOString().split("T")[0]
-        : rows[0].occurred_on
-
-    expect(occurredOn).toBe("2026-10-06")
+    expect(dataISO(rows[0].occurred_on)).toBe("2026-10-06")
     expect(rows[0].payment_method).toBe("Débito")
   })
 })
@@ -179,6 +157,6 @@ describe("Limites de schema — campos obrigatórios e chaves estrangeiras", () 
     const erro = await capturarErro(inserirDespesa({ categoryId: 999999 }))
 
     expect(erro.message).toMatch(/violates foreign key constraint/i)
-    if (erro.code) expect(erro.code).toBe("23503")
+    esperarCodigoPg(erro, "23503", db.modo)
   })
 })

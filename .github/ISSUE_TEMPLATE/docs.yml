@@ -1,0 +1,19 @@
+name: Documentação
+description: Documento faltando, desatualizado ou contraditório
+title: "[Docs] "
+labels: [documentation]
+body:
+  - type: input
+    id: documento
+    attributes:
+      label: Documento
+      placeholder: docs/environments.md §5
+    validations:
+      required: true
+  - type: textarea
+    id: problema
+    attributes:
+      label: O que está errado ou faltando
+      description: Se o documento contradiz o código, cite os dois (o código prevalece).
+    validations:
+      required: true

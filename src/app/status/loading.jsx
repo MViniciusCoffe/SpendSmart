@@ -1,4 +1,10 @@
 import styles from "./loading.module.css"
+import { metricConfig, serviceMetadata } from "./utils/statusConfig"
+
+// Quantidade de cartões tirada da mesma configuração que a página usa: o esqueleto não fica com
+// mais (ou menos) itens que a tela carregada quando um serviço entra ou sai
+const SERVICE_IDS = Object.keys(serviceMetadata)
+const METRIC_KEYS = metricConfig.map(m => m.key)
 
 export default function Loading() {
   return <StatusPageSkeleton />
@@ -41,8 +47,8 @@ export function StatusPageSkeleton() {
           </div>
         </div>
         <div className={styles.metricsGrid}>
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className={styles.metricSkeleton}>
+          {METRIC_KEYS.map(key => (
+            <div key={key} className={styles.metricSkeleton}>
               <div className={styles.metricTop}>
                 <div className={styles.skeletonMetricIcon} />
                 <div className={styles.skeletonMetricTitle} />
@@ -61,8 +67,8 @@ export function StatusPageSkeleton() {
             <div className={styles.sectionTitle} />
           </div>
           <div className={styles.servicesList}>
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className={styles.serviceSkeleton}>
+            {SERVICE_IDS.map(id => (
+              <div key={id} className={styles.serviceSkeleton}>
                 <div className={styles.serviceInfo}>
                   <div className={styles.skeletonServiceIcon} />
                   <div className={styles.serviceText}>

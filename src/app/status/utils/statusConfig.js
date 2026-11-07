@@ -127,18 +127,6 @@ export const serviceMetadata = {
     description: "Supabase Auth (GoTrue)",
     icon: "auth"
   },
-  realtime: {
-    id: "realtime",
-    name: "Motor de Tempo Real",
-    description: "Supabase Realtime (Postgres Changes)",
-    icon: "realtime"
-  },
-  storage: {
-    id: "storage",
-    name: "Armazenamento de Arquivos",
-    description: "Supabase Storage (compatível com S3)",
-    icon: "storage"
-  },
   api: {
     id: "api",
     name: "API Gateway",

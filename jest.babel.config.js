@@ -1,33 +1,9 @@
+// Babel só para o Jest: o app é compilado pelo SWC/Turbopack do Next. O nome não é
+// babel.config.js de propósito; na raiz, esse nome faria o Next trocar o SWC pelo Babel.
+// Os aliases @/... dos testes são resolvidos pelo moduleNameMapper do jest.config.js.
 module.exports = {
   presets: [
     ["@babel/preset-env", { targets: { node: "current" } }],
     ["@babel/preset-react", { runtime: "automatic" }]
-  ],
-  plugins: [
-    [
-      "module-resolver",
-      {
-        root: ["./src", "./tests"],
-        alias: {
-          "@/tests": "./tests",
-          "@/components": "./src/components",
-          "@/components/ui": "./src/components/ui",
-          "@/components/layout": "./src/components/layout",
-          "@/components/forms": "./src/components/forms",
-          "@/components/feedback": "./src/components/feedback",
-          "@/app": "./src/app",
-          "@/styles": "./src/styles",
-          "@/styles/tokens": "./src/styles/tokens",
-          "@/lib": "./src/lib",
-          "@/hooks": "./src/hooks",
-          "@/contexts": "./src/contexts",
-          "@/services": "./src/services",
-          "@/utils": "./src/utils",
-          "@/types": "./src/types",
-          "@/config": "./src/config",
-          "@": "./src"
-        }
-      }
-    ]
   ]
 }

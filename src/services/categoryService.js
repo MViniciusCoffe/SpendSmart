@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase"
 import { withSession, withErrorHandling } from "@/services/utils/baseService"
-import { categoryTypeMap } from "@/services/utils/mappers"
+import { categoryTypeMap, CATEGORY_COLUMNS } from "@/services/utils/mappers"
 import validators from "@/services/utils/validators"
 
 export const categoryService = {
@@ -11,7 +11,7 @@ export const categoryService = {
         async () => {
           let query = supabase
             .from("categories")
-            .select("id,name,type,description,color,deleted_at")
+            .select(CATEGORY_COLUMNS)
             .eq("user_id", session.user.id)
           if (!includeDeleted) query = query.is("deleted_at", null)
           const { data, error } = await query.order("name", { ascending: true })
@@ -44,7 +44,7 @@ export const categoryService = {
                 user_id: session.user.id
               }
             ])
-            .select()
+            .select(CATEGORY_COLUMNS)
             .single()
           if (error) throw error
           return categoryTypeMap(data)
@@ -97,7 +97,7 @@ export const categoryService = {
             })
             .eq("id", id)
             .eq("user_id", session.user.id)
-            .select()
+            .select(CATEGORY_COLUMNS)
             .single()
           if (error) throw error
 
@@ -153,7 +153,7 @@ export const categoryService = {
             .update({ deleted_at: null })
             .eq("id", id)
             .eq("user_id", session.user.id)
-            .select("id,name,type,description,color,deleted_at")
+            .select(CATEGORY_COLUMNS)
             .single()
           if (error) throw error
           return categoryTypeMap(data)

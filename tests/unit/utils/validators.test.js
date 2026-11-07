@@ -1,102 +1,84 @@
 import validators from "@/services/utils/validators"
 
+// Uma entrada por caso (it.each): quando uma falha, as outras continuam rodando e o relatório diz
+// qual entrada quebrou (issue #66).
+
+// A idade é calculada a partir de new Date(): sem relógio fixo, o resultado mudaria com o dia em que
+// a suíte roda (issue #66). "Hoje" nestes testes é 2026-06-15.
+const usarHojeFixo = () => jest.useFakeTimers({ now: new Date(2026, 5, 15, 12) })
+
+afterEach(() => {
+  jest.useRealTimers()
+})
+
+const VAZIOS = [[""], [null], [undefined]]
+
 describe("validators", () => {
   describe("titulo", () => {
     it("retorna titulo valido com trim", () => {
       expect(validators.titulo("  Teste  ")).toBe("Teste")
     })
 
-    it("lança erro para string vazia", () => {
-      expect(() => validators.titulo("")).toThrow("Título é obrigatório")
-    })
-
-    it("lança erro para apenas espacos", () => {
-      expect(() => validators.titulo("   ")).toThrow("Título é obrigatório")
-    })
-
-    it("lança erro para valor nao string", () => {
-      expect(() => validators.titulo(123)).toThrow("Título é obrigatório")
-    })
-
-    it("lança erro para null", () => {
-      expect(() => validators.titulo(null)).toThrow("Título é obrigatório")
-    })
-
-    it("lança erro para undefined", () => {
-      expect(() => validators.titulo(undefined)).toThrow("Título é obrigatório")
+    it.each([
+      ["string vazia", ""],
+      ["apenas espaços", "   "],
+      ["valor não string", 123],
+      ["null", null],
+      ["undefined", undefined]
+    ])("lança erro para %s", (_caso, entrada) => {
+      expect(() => validators.titulo(entrada)).toThrow("Título é obrigatório")
     })
   })
 
   describe("valor", () => {
-    it("retorna numero valido", () => {
-      expect(validators.valor(100)).toBe(100)
-      expect(validators.valor("100")).toBe(100)
-      expect(validators.valor(100.5)).toBe(100.5)
+    it.each([
+      [100, 100],
+      ["100", 100],
+      [100.5, 100.5]
+    ])("aceita %p e devolve %p", (entrada, esperado) => {
+      expect(validators.valor(entrada)).toBe(esperado)
     })
 
-    it("lança TypeError para NaN", () => {
-      expect(() => validators.valor("abc")).toThrow(TypeError)
+    it.each([["abc"], [Infinity], [-Infinity]])("lança TypeError para %p", entrada => {
+      expect(() => validators.valor(entrada)).toThrow(TypeError)
+    })
+
+    it("usa a mensagem de número inválido para texto não numérico", () => {
       expect(() => validators.valor("abc")).toThrow("Valor inválido: deve ser um número válido")
     })
 
-    it("lança TypeError para Infinity", () => {
-      expect(() => validators.valor(Infinity)).toThrow(TypeError)
-    })
-
-    it("lança TypeError para -Infinity", () => {
-      expect(() => validators.valor(-Infinity)).toThrow(TypeError)
-    })
-
-    it("lança erro para valor <= 0", () => {
-      expect(() => validators.valor(0)).toThrow("Valor deve ser maior que zero")
-      expect(() => validators.valor(-10)).toThrow("Valor deve ser maior que zero")
-    })
-
-    it("lança TypeError para string nao numerica", () => {
-      expect(() => validators.valor("abc")).toThrow(TypeError)
+    it.each([[0], [-10], [""]])("lança erro de valor não positivo para %p", entrada => {
+      expect(() => validators.valor(entrada)).toThrow("Valor deve ser maior que zero")
     })
   })
 
   describe("tipo", () => {
-    it("retorna income valido", () => {
-      expect(validators.tipo("income")).toBe("income")
+    it.each([["income"], ["expense"]])("aceita %p", entrada => {
+      expect(validators.tipo(entrada)).toBe(entrada)
     })
 
-    it("retorna expense valido", () => {
-      expect(validators.tipo("expense")).toBe("expense")
-    })
-
-    it("lança erro para tipo invalido", () => {
-      expect(() => validators.tipo("invalid")).toThrow(
+    it.each([["invalid"], [""]])("lança erro para %p", entrada => {
+      expect(() => validators.tipo(entrada)).toThrow(
         "Tipo inválido: deve ser 'income' ou 'expense'"
       )
-    })
-
-    it("lança erro para string vazia", () => {
-      expect(() => validators.tipo("")).toThrow("Tipo inválido: deve ser 'income' ou 'expense'")
     })
   })
 
   describe("categoriaId", () => {
-    it("retorna id valido", () => {
-      expect(validators.categoriaId(1)).toBe(1)
-      expect(validators.categoriaId("10")).toBe(10)
+    it.each([
+      [1, 1],
+      ["10", 10]
+    ])("aceita %p e devolve %p", (entrada, esperado) => {
+      expect(validators.categoriaId(entrada)).toBe(esperado)
     })
 
-    it("lança erro para zero", () => {
-      expect(() => validators.categoriaId(0)).toThrow("Categoria inválida")
-    })
-
-    it("lança erro para negativo", () => {
-      expect(() => validators.categoriaId(-1)).toThrow("Categoria inválida")
-    })
-
-    it("lança erro para decimal", () => {
-      expect(() => validators.categoriaId(1.5)).toThrow("Categoria inválida")
-    })
-
-    it("lança erro para string nao numerica", () => {
-      expect(() => validators.categoriaId("abc")).toThrow("Categoria inválida")
+    it.each([
+      ["zero", 0],
+      ["negativo", -1],
+      ["decimal", 1.5],
+      ["string não numérica", "abc"]
+    ])("lança erro para %s", (_caso, entrada) => {
+      expect(() => validators.categoriaId(entrada)).toThrow("Categoria inválida")
     })
   })
 
@@ -105,39 +87,33 @@ describe("validators", () => {
       expect(validators.data("2024-01-15")).toBe("2024-01-15")
     })
 
-    it("retorna undefined para valor falsy", () => {
-      expect(validators.data("")).toBeUndefined()
-      expect(validators.data(null)).toBeUndefined()
-      expect(validators.data(undefined)).toBeUndefined()
+    it.each(VAZIOS)("retorna undefined para %p", entrada => {
+      expect(validators.data(entrada)).toBeUndefined()
     })
 
-    it("lança erro para formato invalido", () => {
-      expect(() => validators.data("15/01/2024")).toThrow("Data inválida: use formato YYYY-MM-DD")
-      expect(() => validators.data("2024/01/15")).toThrow("Data inválida: use formato YYYY-MM-DD")
-      expect(() => validators.data("invalid")).toThrow("Data inválida: use formato YYYY-MM-DD")
-    })
+    it.each([["15/01/2024"], ["2024/01/15"], ["invalid"]])(
+      "lança erro de formato para %p",
+      entrada => {
+        expect(() => validators.data(entrada)).toThrow("Data inválida: use formato YYYY-MM-DD")
+      }
+    )
 
-    it("lança TypeError para data invalida", () => {
-      expect(() => validators.data("2024-02-30")).toThrow(TypeError)
-      expect(() => validators.data("2024-04-31")).toThrow(TypeError)
-    })
+    it.each([["2024-02-30"], ["2024-04-31"]])(
+      "lança TypeError para a data inexistente %p",
+      entrada => {
+        expect(() => validators.data(entrada)).toThrow(TypeError)
+      }
+    )
   })
 
   describe("descricao", () => {
-    it("retorna descricao com trim", () => {
-      expect(validators.descricao("  teste  ")).toBe("teste")
-    })
-
-    it("retorna string vazia para undefined", () => {
-      expect(validators.descricao(undefined)).toBe("")
-    })
-
-    it("retorna string vazia para null", () => {
-      expect(validators.descricao(null)).toBe("")
-    })
-
-    it("converte numero para string", () => {
-      expect(validators.descricao(123)).toBe("123")
+    it.each([
+      ["  teste  ", "teste"],
+      [undefined, ""],
+      [null, ""],
+      [123, "123"]
+    ])("converte %p em %p", (entrada, esperado) => {
+      expect(validators.descricao(entrada)).toBe(esperado)
     })
   })
 
@@ -146,10 +122,8 @@ describe("validators", () => {
       expect(validators.formaPagamento("  pix  ")).toBe("pix")
     })
 
-    it("retorna undefined para valor falsy", () => {
-      expect(validators.formaPagamento("")).toBeUndefined()
-      expect(validators.formaPagamento(null)).toBeUndefined()
-      expect(validators.formaPagamento(undefined)).toBeUndefined()
+    it.each(VAZIOS)("retorna undefined para %p", entrada => {
+      expect(validators.formaPagamento(entrada)).toBeUndefined()
     })
   })
 
@@ -158,55 +132,34 @@ describe("validators", () => {
       expect(validators.nome("  João  ")).toBe("João")
     })
 
-    it("lança erro para string vazia", () => {
-      expect(() => validators.nome("")).toThrow("Nome é obrigatório")
-    })
-
-    it("lança erro para apenas espacos", () => {
-      expect(() => validators.nome("   ")).toThrow("Nome é obrigatório")
-    })
-
-    it("lança erro para nao string", () => {
-      expect(() => validators.nome(123)).toThrow("Nome é obrigatório")
+    it.each([
+      ["string vazia", ""],
+      ["apenas espaços", "   "],
+      ["valor não string", 123]
+    ])("lança erro para %s", (_caso, entrada) => {
+      expect(() => validators.nome(entrada)).toThrow("Nome é obrigatório")
     })
   })
 
   describe("email", () => {
-    it("retorna email valido em lowercase", () => {
-      expect(validators.email("TEST@EXAMPLE.COM")).toBe("test@example.com")
+    it.each([
+      ["TEST@EXAMPLE.COM", "test@example.com"],
+      ["user.name@example.com", "user.name@example.com"],
+      ["  Joao@Email.com ", "joao@email.com"],
+      ["user+tag@example.com", "user+tag@example.com"]
+    ])("aceita %p e devolve %p", (entrada, esperado) => {
+      expect(validators.email(entrada)).toBe(esperado)
     })
 
-    it("aceita email com ponto", () => {
-      expect(validators.email("user.name@example.com")).toBe("user.name@example.com")
-    })
-
-    it("remove espaços nas pontas antes de validar", () => {
-      expect(validators.email("  Joao@Email.com ")).toBe("joao@email.com")
-    })
-
-    it("lança erro para valor que não é string", () => {
-      expect(() => validators.email(12345)).toThrow("E-mail inválido")
-      expect(() => validators.email(null)).toThrow("E-mail inválido")
-    })
-
-    it("aceita email com mais sinal", () => {
-      expect(validators.email("user+tag@example.com")).toBe("user+tag@example.com")
-    })
-
-    it("lança erro para email invalido sem @", () => {
-      expect(() => validators.email("invalido")).toThrow("E-mail inválido")
-    })
-
-    it("lança erro para email sem dominio", () => {
-      expect(() => validators.email("user@")).toThrow("E-mail inválido")
-    })
-
-    it("lança erro para email sem TLD", () => {
-      expect(() => validators.email("user@exemplo")).toThrow("E-mail inválido")
-    })
-
-    it("lança erro para string vazia", () => {
-      expect(() => validators.email("")).toThrow("E-mail inválido")
+    it.each([
+      ["número", 12345],
+      ["null", null],
+      ["sem @", "invalido"],
+      ["sem domínio", "user@"],
+      ["sem TLD", "user@exemplo"],
+      ["string vazia", ""]
+    ])("lança erro para %s", (_caso, entrada) => {
+      expect(() => validators.email(entrada)).toThrow("E-mail inválido")
     })
   })
 
@@ -215,49 +168,40 @@ describe("validators", () => {
       expect(validators.senha("123456")).toBe("123456")
     })
 
-    it("lança erro para senha curta", () => {
-      expect(() => validators.senha("12345")).toThrow("Senha deve ter no mínimo 6 caracteres")
-    })
-
-    it("lança erro para string vazia", () => {
-      expect(() => validators.senha("")).toThrow("Senha deve ter no mínimo 6 caracteres")
-    })
-
-    it("lança erro para nao string", () => {
-      expect(() => validators.senha(123456)).toThrow("Senha deve ter no mínimo 6 caracteres")
+    it.each([
+      ["senha curta", "12345"],
+      ["string vazia", ""],
+      ["valor não string", 123456]
+    ])("lança erro para %s", (_caso, entrada) => {
+      expect(() => validators.senha(entrada)).toThrow("Senha deve ter no mínimo 6 caracteres")
     })
   })
 
   describe("telefone", () => {
-    it("retorna telefone limpo", () => {
-      expect(validators.telefone("(11) 99999-9999")).toBe("11999999999")
-      expect(validators.telefone("11 99999-9999")).toBe("11999999999")
+    it.each([["(11) 99999-9999"], ["11 99999-9999"]])("limpa %p", entrada => {
+      expect(validators.telefone(entrada)).toBe("11999999999")
     })
 
-    it("retorna undefined para valor falsy", () => {
-      expect(validators.telefone("")).toBeUndefined()
-      expect(validators.telefone(null)).toBeUndefined()
-      expect(validators.telefone(undefined)).toBeUndefined()
+    it.each(VAZIOS)("retorna undefined para %p", entrada => {
+      expect(validators.telefone(entrada)).toBeUndefined()
     })
 
-    it("lança erro para telefone curto", () => {
-      expect(() => validators.telefone("123456789")).toThrow("Telefone inválido")
-    })
-
-    it("lança erro para telefone longo", () => {
-      expect(() => validators.telefone("123456789012")).toThrow("Telefone inválido")
+    it.each([
+      ["curto", "123456789"],
+      ["longo", "123456789012"]
+    ])("lança erro para telefone %s", (_caso, entrada) => {
+      expect(() => validators.telefone(entrada)).toThrow("Telefone inválido")
     })
   })
 
   describe("dataNascimento", () => {
     it("retorna data valida", () => {
+      usarHojeFixo()
       expect(validators.dataNascimento("1990-01-01")).toBe("1990-01-01")
     })
 
-    it("retorna undefined para valor falsy", () => {
-      expect(validators.dataNascimento("")).toBeUndefined()
-      expect(validators.dataNascimento(null)).toBeUndefined()
-      expect(validators.dataNascimento(undefined)).toBeUndefined()
+    it.each(VAZIOS)("retorna undefined para %p", entrada => {
+      expect(validators.dataNascimento(entrada)).toBeUndefined()
     })
 
     it("lança erro para formato invalido", () => {
@@ -270,77 +214,80 @@ describe("validators", () => {
       expect(() => validators.dataNascimento("2024-13-45")).toThrow(TypeError)
     })
 
-    it("lança erro para menor de 13 anos", () => {
-      const futuro = new Date()
-      futuro.setFullYear(futuro.getFullYear() - 10)
-      const data = futuro.toISOString().split("T")[0]
-      expect(() => validators.dataNascimento(data)).toThrow("Idade deve ser entre 13 e 120 anos")
-    })
-
-    it("lança erro para maior de 120 anos", () => {
-      const passado = new Date()
-      passado.setFullYear(passado.getFullYear() - 121)
-      const data = passado.toISOString().split("T")[0]
-      expect(() => validators.dataNascimento(data)).toThrow("Idade deve ser entre 13 e 120 anos")
+    it.each([
+      ["menor de 13 anos", "2016-06-15"],
+      ["maior de 120 anos", "1905-06-15"]
+    ])("lança erro para %s", (_caso, entrada) => {
+      usarHojeFixo()
+      expect(() => validators.dataNascimento(entrada)).toThrow("Idade deve ser entre 13 e 120 anos")
     })
   })
 
   describe("cor", () => {
-    it("retorna cor em uppercase", () => {
-      expect(validators.cor("#ff0000")).toBe("#FF0000")
-      expect(validators.cor("#abcdef")).toBe("#ABCDEF")
+    it.each([
+      ["#ff0000", "#FF0000"],
+      ["#abcdef", "#ABCDEF"]
+    ])("converte %p em %p", (entrada, esperado) => {
+      expect(validators.cor(entrada)).toBe(esperado)
     })
 
-    it("retorna undefined para valor falsy", () => {
-      expect(validators.cor("")).toBeUndefined()
-      expect(validators.cor(null)).toBeUndefined()
-      expect(validators.cor(undefined)).toBeUndefined()
+    it.each(VAZIOS)("retorna undefined para %p", entrada => {
+      expect(validators.cor(entrada)).toBeUndefined()
     })
 
-    it("lança erro para formato invalido", () => {
-      expect(() => validators.cor("#ff00")).toThrow("Cor inválida: use formato #RRGGBB")
-      expect(() => validators.cor("ff0000")).toThrow("Cor inválida: use formato #RRGGBB")
-      expect(() => validators.cor("#gggggg")).toThrow("Cor inválida: use formato #RRGGBB")
+    it.each([["#ff00"], ["ff0000"], ["#gggggg"]])("lança erro de formato para %p", entrada => {
+      expect(() => validators.cor(entrada)).toThrow("Cor inválida: use formato #RRGGBB")
     })
   })
 
   // Casos de borda apontados pelos testes de mutação (#60)
   describe("bordas apontadas pelos testes de mutação", () => {
-    it("data e dataNascimento exigem o formato completo, sem texto antes ou depois", () => {
-      expect(() => validators.data("x2024-01-15")).toThrow("Data inválida: use formato YYYY-MM-DD")
-      expect(() => validators.data("2024-01-15x")).toThrow("Data inválida: use formato YYYY-MM-DD")
-    })
+    it.each([["x2024-01-15"], ["2024-01-15x"]])(
+      "data exige o formato completo, sem texto antes ou depois (%p)",
+      entrada => {
+        expect(() => validators.data(entrada)).toThrow("Data inválida: use formato YYYY-MM-DD")
+      }
+    )
 
     it("recusa ano com menos de 4 dígitos significativos que o Date desloca para 19xx", () => {
       // new Date(50, 0, 1) vira 1950-01-01: só a checagem do ano detecta
       expect(() => validators.data("0050-01-01")).toThrow(TypeError)
     })
 
-    it("usa a mensagem exata de data inexistente", () => {
+    it("data usa a mensagem exata de data inexistente", () => {
       expect(() => validators.data("2024-02-30")).toThrow(new TypeError("Data inválida"))
+    })
+
+    it("dataNascimento usa a mensagem exata de data inexistente", () => {
       expect(() => validators.dataNascimento("1990-02-30")).toThrow(
         new TypeError("Data de nascimento inválida")
       )
     })
 
-    it("email recusa texto antes ou depois do endereço", () => {
-      expect(() => validators.email("joao silva@email.com")).toThrow("E-mail inválido")
-      expect(() => validators.email("joao@email.com x")).toThrow("E-mail inválido")
-    })
+    it.each([["joao silva@email.com"], ["joao@email.com x"]])(
+      "email recusa texto antes ou depois do endereço (%p)",
+      entrada => {
+        expect(() => validators.email(entrada)).toThrow("E-mail inválido")
+      }
+    )
 
     it("telefone aceita exatamente 10 dígitos (fixo com DDD)", () => {
       expect(validators.telefone("(84) 3215-3000")).toBe("8432153000")
     })
 
-    it("dataNascimento aceita as idades limite de 13 e 120 anos", () => {
-      const ano = new Date().getFullYear()
-      expect(validators.dataNascimento(`${ano - 13}-01-01`)).toBe(`${ano - 13}-01-01`)
-      expect(validators.dataNascimento(`${ano - 120}-01-01`)).toBe(`${ano - 120}-01-01`)
+    it.each([
+      ["13", "2013-01-01"],
+      ["120", "1906-01-01"]
+    ])("dataNascimento aceita a idade limite de %s anos", (_idade, entrada) => {
+      usarHojeFixo()
+      expect(validators.dataNascimento(entrada)).toBe(entrada)
     })
 
-    it("cor recusa texto antes ou depois do #RRGGBB", () => {
-      expect(() => validators.cor("x#FF0000")).toThrow("Cor inválida: use formato #RRGGBB")
-      expect(() => validators.cor("#FF0000x")).toThrow("Cor inválida: use formato #RRGGBB")
-    })
+    it.each([["x#FF0000"], ["#FF0000x"]])(
+      "cor recusa texto antes ou depois do #RRGGBB (%p)",
+      entrada => {
+        expect(() => validators.cor(entrada)).toThrow("Cor inválida: use formato #RRGGBB")
+      }
+    )
   })
 })

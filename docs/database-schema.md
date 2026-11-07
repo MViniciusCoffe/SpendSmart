@@ -3,10 +3,16 @@
 Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
 As migrações correspondentes estão em `supabase/migrations/`:
 
-| Migration                               | O que faz                                                                                                                       |
-| :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `001_create_financial_schema.js`        | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS. |
-| `1790304277043_add-rbac-permissions.js` | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                               |
+| Migration                                                  | O que faz                                                                                                                         |
+| :--------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `1790304277000_create_financial_schema.sql`                | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS.   |
+| `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                                 |
+| `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.           |
+| `20261106031517_restrict_table_grants.sql`                 | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
+| `20261106150417_add_health_check.sql`                      | Cria a função `public.health_check()`, que o `/api/status` chama com a chave pública (`EXECUTE` para `anon`).                     |
+
+Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
+[environments.md §5](environments.md#5-migrations).
 
 > A segunda migração só tem efeito no Supabase: como `auth.users` não existe no PostgreSQL
 > local, todo o seu corpo fica dentro de um `IF` que não é satisfeito. Ver §7.
@@ -222,7 +228,7 @@ create index transactions_category_idx on public.transactions (category_id);
 
 RLS significa _Row Level Security_ (Segurança em Nível de Linha). Com RLS, o banco aplica regras por linha e impede que um usuário leia ou altere registros de outro usuário.
 
-Políticas criadas em `001_create_financial_schema.js:118-120`:
+Políticas criadas em `1790304277000_create_financial_schema.sql`, dentro do bloco guardado por `auth.users`:
 
 ```sql
 profiles:     USING      (id = auth.uid()) WITH CHECK (id = auth.uid())
@@ -234,6 +240,32 @@ As três são `FOR ALL`. O `USING` filtra a leitura e o `WITH CHECK` valida a es
 `UPDATE` não consegue mover um registro para fora do próprio `user_id`.
 
 As políticas usam a identidade da sessão do Supabase Auth. Elas não confiam em um `user_id` enviado pelo _frontend_.
+
+### Privilégios por papel
+
+Definidos de forma explícita em `20261106031517_restrict_table_grants.sql`, iguais em todos os
+ambientes (antes dependiam dos privilégios padrão de cada projeto Supabase):
+
+| Papel           | `profiles`, `categories`, `transactions` | Quem usa                                              |
+| :-------------- | :--------------------------------------- | :---------------------------------------------------- |
+| `anon`          | nenhum (`42501 permission denied`)       | Visitante sem sessão; nenhuma página pública consulta |
+| `authenticated` | `SELECT, INSERT, UPDATE, DELETE` + RLS   | O app, com a sessão do usuário                        |
+| `service_role`  | `SELECT, INSERT, UPDATE, DELETE`         | Rotas de `src/app/api/` (ignora RLS)                  |
+
+O privilégio decide se o papel pode tocar na tabela; o RLS decide quais linhas. O `anon` é barrado
+pelos dois. O teste "Anon (sem sessão)" de `tests/integration/supabase/rls.test.js` cobre isso.
+
+A única coisa que o `anon` pode chamar é `public.health_check()` (`20261106150417_add_health_check.sql`),
+usada pelo `/api/status`. Ela confirma pelo catálogo (`to_regclass`) que as três tabelas existem, sem
+ler nenhuma linha, e roda como `SECURITY INVOKER`: não precisa de privilégio em tabela, então não
+abre nada além de "o banco responde e o schema está lá".
+
+**Tabela nova:** a migration traz `REVOKE ALL ... FROM anon` e o `GRANT` explícito para
+`authenticated`/`service_role` (dentro da guarda de `auth.users`). O padrão do schema `public` no
+Supabase CLI dá todos os privilégios ao `anon`, e foi assim que o banco local ficou diferente da
+Produção até 2026-11-06. Exceção prevista: a tabela `incidents` da página `/status` (inspirada na
+página de status do GitHub, ainda não criada) é pública por natureza e o `/api/status` só usa a chave
+pública, então ela precisa de `GRANT SELECT` ao `anon` e de uma política de leitura `USING (true)`.
 
 O RLS é a última barreira, não a única. Os _services_ filtram por `user_id` explicitamente em toda
 leitura e escrita, conforme os `.eq("user_id", session.user.id)` de `src/services/categoryService.js` e
@@ -263,7 +295,7 @@ As pendências acima têm script pronto em [Future Migrations](future-migrations
 
 ## Ambiente local e Supabase
 
-O PostgreSQL local valida tabelas, restrições (_constraints_), índices e migrações. O Supabase adiciona `auth.users`, `auth.uid()`, RLS e os `GRANT` de `service_role` e `authenticated`. Por isso, as duas migrações verificam se `auth.users` existe antes de criar essas referências, usando o _guard_ `IF to_regclass('auth.users') IS NOT NULL` (`001_create_financial_schema.js:101`, `1790304277043_add-rbac-permissions.js:7`).
+O PostgreSQL local valida tabelas, restrições (_constraints_), índices e migrações. O Supabase adiciona `auth.users`, `auth.uid()`, RLS e os `GRANT` de `service_role` e `authenticated`. Por isso, as duas migrações verificam se `auth.users` existe antes de criar essas referências, usando o _guard_ `IF to_regclass('auth.users') IS NOT NULL` (`1790304277000_create_financial_schema.sql` e `1790304277043_add-rbac-permissions.sql`).
 
 O efeito colateral do _guard_ é que **o banco local não tem RLS nem FK para `auth.users`**. Isso é
 aceito como consequência de rodar a mesma migração em dois motores, e está registrado na issue

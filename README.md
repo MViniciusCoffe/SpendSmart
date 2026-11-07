@@ -78,10 +78,10 @@ SpendSmart/
       layout/       Header, Footer, PageContainer/PageHeader, AuthShell (login e cadastro)
       withAuth.js   guarda das páginas privadas
     contexts/       AuthContext (sessão e usuário) e ToastContext
-    services/       camada de negócio: validação, tradução de domínio, mapeamento de erros
+    services/       camada de negócio: validação, mapeamento para DTO e de erros
     lib/            cliente Supabase (supabase.js), formatadores (utils/format.js), config
     styles/         globals.css e design-tokens.css (variáveis de cor, espaço, raio, sombra...)
-  supabase/migrations/   schema do banco (node-pg-migrate)
+  supabase/migrations/   schema do banco (.sql aplicados pelo Supabase CLI)
   infra/          Docker Compose do Postgres puro
   tests/          suíte Jest — ver o estado real abaixo
   docs/           documentação
@@ -89,14 +89,14 @@ SpendSmart/
 
 A separação de responsabilidades adotada:
 
-| Camada       | Arquivo               | Responsabilidade                                                     |
-| :----------- | :-------------------- | :------------------------------------------------------------------- |
-| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                   |
-| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`    |
-| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`) |
-| Negócio      | `src/services/`       | Regra de negócio, tradução PT/EN, mensagem de erro em português      |
-| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                    |
-| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                       |
+| Camada       | Arquivo               | Responsabilidade                                                                |
+| :----------- | :-------------------- | :------------------------------------------------------------------------------ |
+| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                              |
+| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`               |
+| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`)            |
+| Negócio      | `src/services/`       | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                               |
+| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                                  |
 
 ---
 
@@ -110,50 +110,65 @@ A separação de responsabilidades adotada:
 3. **RLS é a última barreira, não a única.** Filtrar por `user_id` em toda leitura e escrita, além
    da política.
 4. **Dinheiro é `numeric(12,2)` com `check (amount > 0)`.** Nunca float.
-5. **`type` aceita apenas `income` ou `expense` no banco.** A tradução para receita/despesa
-   acontece só na fronteira do service.
+5. **`type` é `income` ou `expense` do banco até a interface.** O service e os DTOs usam esses
+   valores; "Receita" e "Despesa" são só rótulos de exibição nos componentes.
 6. **Nunca concatenar input em SQL.**
 7. **Exclusão é lógica (`deleted_at`).** Uma categoria com transações pode ser excluída (US-009):
    as transações continuam no histórico e no dashboard, exibindo a categoria como "Nome (deletada)",
    e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação
    e propaga o tipo às transações (CA-008.03).
 8. **Sem `alert`/`confirm`.** Feedback por toast e confirmações pelo `ConfirmDialog`.
+9. **`SUPABASE_SERVICE_ROLE_KEY` só no servidor**, sem prefixo `NEXT_PUBLIC_`, lida apenas por
+   `src/app/api/_lib/supabaseAdmin.js` e na requisição. Rota de API valida o token antes e nunca
+   devolve a mensagem de erro interna ao cliente.
+10. **Colunas explícitas nos services** (nem `select("*")` nem `.select()` vazio) e nada carregado de
+    outra origem no navegador (a CSP com nonce bloqueia).
+
+As demais convenções de código, com o motivo de cada uma, estão em
+[Convenções de código](docs/code-conventions.md).
 
 ---
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                               |
-| :------------------------------------------ | :--------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                          |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                     |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                   |
-| Dashboard com gráficos                      | Funcionando                                                                                          |
-| Excluir conta                               | Funcionando                                                                                          |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                  |
-| Testes de unidade                           | **210 testes, 100% de linhas, ramos e funções em `src/services/`**                                   |
-| Testes de integração (pg-mem)               | **5 suítes, 28 testes** (constraints, FK, unicidade)                                                 |
-| Testes de integração (Supabase/RLS)         | **1 suíte, 12 testes** (`tests/integration/supabase/rls.test.js`) — isolamento real entre 2 usuários |
-| Testes de regressão                         | **5 suítes, 27 testes** (issues #10, #21, #32, data no fuso, categoria excluída/tipo)                |
-| `npm test`                                  | **Passa** — 210/210                                                                                  |
-| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                 |
-| CI no GitHub Actions                        | **4 workflows** — `test.yml` (com job de RLS), `lint.yml`, `sonar.yml`, `mutation.yml`               |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)   |
-| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)              |
-| Ambientes separados                         | **Não existem** — um único banco para tudo (issue #20)                                               |
+| Item                                        | Estado                                                                                                                                                                                                                          |
+| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                     |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                              |
+| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                     |
+| Excluir conta                               | Funcionando                                                                                                                                                                                                                     |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                             |
+| Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                              |
+| Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                                                                                                                            |
+| Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado)                                                                                                |
+| Testes de regressão                         | **9 suítes, 67 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                                                                                                                   |
+| `npm test`                                  | **Passa** — 210/210                                                                                                                                                                                                             |
+| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                            |
+| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit`, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                              |
+| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                                                                                                                                         |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                    |
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                             |
-| :------------------------------------------------------------ | :----------------------------------------------------------------------------------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Rotas privadas sem proteção no servidor e sem headers de segurança                   |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Desenvolvimento, Preview e Produção usam o mesmo projeto Supabase                    |
-| —                                                             | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços |
+| #                                                             | Problema                                                                                                                                              |
+| :------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`)                                                                 |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços                                                                  |
+| sem issue                                                     | Cache de sessão (`baseService.js`) nunca é limpo: logout e login de outro usuário na mesma aba em até 5 min deixam os services com o `user_id` antigo |
+| sem issue                                                     | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                                               |
+| sem issue                                                     | `profileService` fora do padrão: sem `withSession`/`withErrorHandling`, sem filtro de `deleted_at`, sem `profileTypeMap`                              |
+| sem issue                                                     | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                                        |
+
+Os defeitos sem issue foram encontrados por leitura de código (2026-11-03) e ficam para a frente de
+testes de front-end e sistema (P3), corrigidos junto com os testes que os cobrem. Os dois últimos
+somem com a remoção das rotas privilegiadas (perfil criado por trigger no banco e exclusão por RPC).
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
 componentizadas), #13 (toasts no lugar de `alert`), #22
 (navbar duplicada), #23 (rotas públicas), #32 (valor com vírgula e separador de milhar) e #43
-(senha mínima no cadastro).
+(senha mínima no cadastro). Na branch `chore/tech-debt`: #8, #11, #20, #24 e #66.
 
 ### Sobre o RLS
 
@@ -183,7 +198,7 @@ arquivos abaixo, em Markdown.
 | [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
 | [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
 | [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,10%, evolução por rodada e mutantes aceitos         |
+| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,12%, evolução por rodada e mutantes aceitos         |
 | [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
 
 ### Planejamento de iterações
@@ -197,7 +212,8 @@ arquivos abaixo, em Markdown.
 
 | Documento                                             | Conteúdo                                                                       |
 | :---------------------------------------------------- | :----------------------------------------------------------------------------- |
-| [Esquema do banco](docs/database-schema.md)           | Tabelas, constraints, índices, 3FN, RLS, limites conhecidos                    |
+| [Convenções de código](docs/code-conventions.md)      | Services, páginas, CSP, rotas de API e o que o `check:agents` bloqueia         |
+| [Esquema do banco](docs/database-schema.md)           | Tabelas, constraints, índices, 3FN, RLS, privilégios, limites conhecidos       |
 | [Opções de arquitetura](docs/architecture-options.md) | ADR de 2026-09-22: as opções avaliadas e a adotada                             |
 | [Migrações futuras](docs/future-migrations.md)        | Propostas em SQL para `profiles` em inglês, `updated_at` e coerência de `type` |
 | [Infraestrutura local](docs/local-infrastructure.md)  | Docker Compose, comandos e o que o Postgres local não valida                   |
@@ -209,6 +225,7 @@ arquivos abaixo, em Markdown.
 | [Manual de execução](docs/execution-manual.md)      | Instalação, configuração, execução da aplicação e de todas as suítes de teste |
 | [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                   |
 | [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
+| [Política de segurança](SECURITY.md)                | Como reportar vulnerabilidade (reporte privado do GitHub) e o escopo          |
 | [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
 
 ## Scripts principais
@@ -219,14 +236,19 @@ arquivos abaixo, em Markdown.
 | `npm run infra:up`         | `supabase start`                              | Só sobe infra (já tem `.env.local`)                  |
 | `npm run next:dev`         | `next dev`                                    | Next.js só (infra já rodando)                        |
 | `npm run infra:down`       | `supabase stop`                               | Para infra                                           |
-| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations                            |
+| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations (**apaga os dados**)       |
 | `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                 |
 | `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                 |
-| `npm run services:up`      | `docker compose up -d`                        | Postgres puro (sem RLS)                              |
-| `npm run migrations:up`    | `node-pg-migrate up`                          | Aplica migrations (usa `.env.development`)           |
+| `npm run services:up`      | `docker compose up -d --wait`                 | Postgres puro (sem RLS)                              |
+| `npm run migrations:new`   | `supabase migration new`                      | Cria migration `.sql` com timestamp                  |
+| `npm run migrations:up`    | `supabase migration up --local`               | Aplica as migrations pendentes no banco local        |
+| `npm run migrations:list`  | `scripts/db-migrations.js list --target ...`  | Histórico de migrations num banco remoto/compose     |
+| `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)            |
 | `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
 | `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
+| `npm run test:regression`  | `jest tests/regression`                       | Testes de regressão (também no CI)                   |
 | `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
+| `npm run build`            | `next build`                                  | Build de produção (o mesmo que a Vercel roda)        |
 | `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                     |
 
 ---
@@ -235,11 +257,10 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                        | Bloqueia |
-| :------------------------------------------------------------ | :----------------------------- | :------- |
-| [#24](https://github.com/MViniciusCoffe/SpendSmart/issues/24) | Proteção server-side e headers | —        |
-| [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20) | Separar ambientes              | —        |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end         | —        |
+| #                                                             | Assunto                       | Bloqueia |
+| :------------------------------------------------------------ | :---------------------------- | :------- |
+| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Proteção server-side e sessão | —        |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end        | —        |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.
 Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.

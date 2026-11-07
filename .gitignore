@@ -12,8 +12,8 @@ package-lock.json
 .env
 .env.*
 !.env.example
-!.env.development.example
 !.env.local.example
+!.env.remote.example
 
 # Supabase CLI local state
 supabase/.temp
@@ -34,3 +34,6 @@ CLAUDE.md
 # stryker
 /reports
 .stryker-tmp
+
+# Vercel CLI (vercel link): ids do projeto, gerado localmente
+.vercel

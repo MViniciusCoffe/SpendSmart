@@ -1,0 +1,24 @@
+name: Release
+
+# Issue #53. A cada push na main, o release-please mantém aberto um PR "chore(main): release X.Y.Z"
+# com o CHANGELOG.md e a versão do package.json calculados pelos Conventional Commits (feat → minor,
+# fix → patch, enquanto a versão for 0.x). Ao fazer merge desse PR, ele cria a tag e o GitHub Release.
+# Configuração: release-please-config.json e .release-please-manifest.json.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Atualizar PR de release ou publicar o release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

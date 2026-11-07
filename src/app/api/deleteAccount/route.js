@@ -1,13 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
+import { adminUnavailableResponse, getSupabaseAdmin } from "../_lib/supabaseAdmin"
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// O cliente só recebe mensagens nossas; o erro do Auth fica no log do servidor
+const FALHA = { message: "Erro ao deletar conta" }
 
 export async function DELETE(request) {
   const token = request.headers.get("authorization")?.split(" ")[1]
   if (!token) return Response.json({ message: "Não autorizado" }, { status: 401 })
+
+  const supabaseAdmin = getSupabaseAdmin()
+  if (!supabaseAdmin) return adminUnavailableResponse()
 
   try {
     const supabase = createClient(
@@ -19,7 +21,9 @@ export async function DELETE(request) {
       error: userError
     } = await supabase.auth.getUser(token)
 
-    if (userError || !user) throw new Error("Usuário inválido ou token expirado")
+    if (userError || !user) {
+      return Response.json({ message: "Usuário inválido ou token expirado" }, { status: 401 })
+    }
 
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
     if (deleteError) throw deleteError
@@ -27,10 +31,7 @@ export async function DELETE(request) {
     return Response.json({ message: "Conta deletada com sucesso" })
   } catch (error) {
     console.error("[Delete Account API Error]", error)
-    return Response.json(
-      { message: "Erro ao deletar conta", error: error.message },
-      { status: 500 }
-    )
+    return Response.json(FALHA, { status: 500 })
   }
 }
 

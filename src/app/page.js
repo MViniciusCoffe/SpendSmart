@@ -2,12 +2,20 @@ import React from "react"
 import Link from "next/link"
 import { Footer } from "@/components/layout"
 import { Button, Card, Badge, Icon, Section } from "@/components/ui"
+import { pageMetadata } from "@/lib/config/pageMetadata"
 import styles from "./page.module.css"
 
-export const metadata = {
-  title: "SpendSmart — Organize suas finanças, realize seus sonhos",
-  description:
-    "Controle receitas, despesas e categorias com dashboard em tempo real, gráficos interativos e página de status pública."
+export async function generateMetadata(_props, parent) {
+  return pageMetadata(
+    {
+      title: "SpendSmart — Organize suas finanças, realize seus sonhos",
+      absolute: true,
+      description:
+        "Controle receitas, despesas e categorias com dashboard em tempo real, gráficos interativos e página de status pública.",
+      path: "/"
+    },
+    await parent
+  )
 }
 
 export default function Home() {

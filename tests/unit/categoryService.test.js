@@ -48,9 +48,7 @@ describe("getCategories", () => {
     await expect(categoryService.getCategories()).resolves.toEqual([])
   })
 
-  it("traduz income e expense para receita e despesa", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
+  it("devolve o tipo como income/expense, sem tradução (os rótulos em português ficam na interface)", async () => {
     // Configura o mock do Supabase para retornar duas categorias, uma de despesa e outra de receita
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(
@@ -64,7 +62,7 @@ describe("getCategories", () => {
     // Chama o serviço para obter as categorias
     const resultado = await categoryService.getCategories()
 
-    // Verifica se o resultado traduz corretamente os tipos para inglês
+    // O DTO mantém os valores do banco (income/expense)
     expect(resultado).toEqual([
       {
         id: 1,
@@ -88,8 +86,6 @@ describe("getCategories", () => {
   // Verifica se a ordenação por nome crescente é aplicada corretamente
   // it significa "it should" e descreve o comportamento esperado do teste
   it("ordena por nome crescente", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
     // Configura o mock do Supabase para retornar um builder vazio,
     // apenas para testar a chamada do método order
     supabase.auth.getSession.mockResolvedValue(comSessao)
@@ -528,5 +524,34 @@ describe("argumentos das queries de categoria", () => {
     await categoryService.restoreCategory(1)
 
     expect(builder.select).toHaveBeenCalledWith("id,name,type,description,color,deleted_at")
+  })
+})
+
+// .select() sem argumento depois de insert/update devolve todas as colunas (AGENTS.md §4.3, regra 10)
+describe("colunas devolvidas na escrita de categoria", () => {
+  const COLUNAS = "id,name,type,description,color,deleted_at"
+  const categoria = {
+    name: "Alimentacao",
+    type: "expense",
+    description: "Mercado",
+    color: "#FF0000"
+  }
+
+  beforeEach(() => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+  })
+
+  it.each([
+    ["createCategory", () => categoryService.createCategory(categoria)],
+    ["updateCategory", () => categoryService.updateCategory({ id: 1, ...categoria })],
+    ["restoreCategory", () => categoryService.restoreCategory(1)]
+  ])("%s pede só as colunas do mapper", async (_metodo, chamar) => {
+    const builder = criarBuilder({ data: linhaCategoria(), error: null })
+    supabase.from.mockReturnValue(builder)
+
+    await chamar()
+
+    expect(builder.select).toHaveBeenCalledWith(COLUNAS)
+    expect(builder.select).not.toHaveBeenCalledWith()
   })
 })

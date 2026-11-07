@@ -1,290 +1,314 @@
 # Ambientes
 
-Matriz de ambientes e de variáveis de ambiente. Este documento é a referência única: o
-`README.md` e os demais arquivos da pasta `docs/` não devem repetir esta tabela.
+Matriz de ambientes, variáveis e fluxo de migrations. Este documento é a referência única: o
+`README.md` e os demais arquivos de `docs/` apontam para cá em vez de repetir estas tabelas.
 
-> **Estado atual: ambiente único e provisório.** O SpendSmart roda hoje contra um único projeto
-> Supabase que é ao mesmo tempo desenvolvimento, teste manual e produção. A separação
-> definitiva está em construção — ver issue
-> [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20).
+> **Estado atual (2026-11-04):** desenvolvimento, Preview e Produção usam bancos separados
+> (issue [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20)). Até 2026-11-03 havia um
+> único projeto Supabase servindo os três; ver §8 para o que mudou e por quê.
 
 ---
 
 ## 1. Matriz de ambientes
 
-| Ambiente            | Banco                        | Vercel          | Finalidade                   | Estado                                                               |
-| ------------------- | ---------------------------- | --------------- | ---------------------------- | -------------------------------------------------------------------- |
-| **Desenvolvimento** | Supabase remoto (provisório) | não             | Trabalho local, migrations   | Ativo, misturado com produção                                        |
-| **Produção**        | Supabase remoto (provisório) | sim (`main`)    | Uso real                     | Ativo, e o **mesmo** banco do desenvolvimento                        |
-| **Preview**         | Supabase remoto (provisório) | sim, por branch | Revisão antes de produção    | Ativo, com as **mesmas** variáveis                                   |
-| **Testes**          | Supabase CLI local           | —               | Suite automatizada           | **Existe** — `npm run test:integration:supabase` roda RLS real local |
-| **Local (Docker)**  | PostgreSQL 16                | não             | Schema, constraints, índices | Ativo, mas **não usado** — ver §4                                    |
+| Ambiente                 | Banco                                     | Região                   | Onde roda o Next.js                      | Arquivo de variáveis                    |
+| ------------------------ | ----------------------------------------- | ------------------------ | ---------------------------------------- | --------------------------------------- |
+| **Local**                | Supabase CLI (`supabase start`)           | máquina do desenvolvedor | `npm run dev`                            | `.env.local`                            |
+| **Testes (CI)**          | pg-mem (em memória) e Supabase CLI no job | runner do GitHub Actions | — (só Jest)                              | nenhum (o job `rls` gera as chaves)     |
+| **Preview**              | Projeto Supabase `spsm-preview`           | us-east-1 (N. Virginia)  | Vercel, qualquer branch que não é `main` | painel da Vercel, escopo **Preview**    |
+| **Produção**             | Projeto Supabase `spsm-prod`              | sa-east-1 (São Paulo)    | Vercel, branch `main`                    | painel da Vercel, escopo **Production** |
+| **Postgres puro (opc.)** | PostgreSQL 16 do `infra/compose.yaml`     | máquina do desenvolvedor | —                                        | nenhum (credenciais fixas do compose)   |
 
-Preview e Production existem; o que não existe é um banco separado para qualquer um dos dois.
+Por que São Paulo para Produção: os serviços em `src/services/` rodam no navegador e falam direto
+com o Supabase, então a latência que o usuário sente é usuário → Supabase. Os usuários estão no
+Brasil. As funções da Vercel (rotas de `src/app/api/`) estão configuradas na região `gru1`
+(São Paulo) pelo mesmo motivo; essa configuração vale para o projeto inteiro da Vercel, então as
+rotas de API das Previews também rodam em `gru1`, a ~120 ms do banco de Preview. Aceitável para
+um ambiente de teste.
 
 ### O modelo de deploy da Vercel
 
-O projeto está conectado a Vercel e publicado em <https://spend-smart-lilac.vercel.app/>. A Vercel
-não usa GitHub Actions: ela tem o próprio pipeline, e o que aparece no repositório GitHub são
-_checagens_ (checks) reportando o resultado do build, não arquivos de workflow. Os três
-`.github/workflows/` deste repositório — `test.yml`, `lint.yml` e `sonar.yml` — são do GitHub Actions e não têm relação com a Vercel.
+O projeto está publicado em <https://spend-smart-lilac.vercel.app/>. A Vercel tem pipeline
+próprio, separado do GitHub Actions: o que aparece no GitHub são _checks_ reportando o build. A
+Vercel escolhe o ambiente pelo nome da branch:
 
-A Vercel decide o que buildar a partir do nome da branch:
+| Branch         | Resultado                                                       |
+| -------------- | --------------------------------------------------------------- |
+| `main`         | **Production**, no domínio `spend-smart-lilac.vercel.app`       |
+| Qualquer outra | **Preview**, em URL própria por branch/commit, banco de Preview |
 
-| Branch         | Resultado                                                 |
-| -------------- | --------------------------------------------------------- |
-| `main`         | **Production**, no domínio `spend-smart-lilac.vercel.app` |
-| Qualquer outra | **Preview**, em URL própria por commit ou branch          |
-
-O repositório é **público** no GitHub. Isso tem uma implicação que vale registrar: qualquer pessoa
-pode conectar o próprio repositório e fazer um deploy próprio do código. As variáveis de ambiente
-não vazam com isso — elas vivem no painel da Vercel, não no repositório — mas o código-fonte e a
-aplicação ficam acessíveis a terceiros.
+O repositório é público: qualquer branch aberta aqui gera uma Preview com acesso de serviço ao
+banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca os de Produção.
 
 ---
 
-## 2. Variáveis por ambiente
+## 2. Variáveis de ambiente
 
-| Variável                                                                              | Onde é lida                                                                    | Dev | Preview | Produção |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --- | ------- | -------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                                                            | `src/lib/supabase.js:3`                                                        | sim | sim     | sim      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`                                                | `src/lib/supabase.js:4`                                                        | sim | sim     | sim      |
-| `SUPABASE_SERVICE_ROLE_KEY`                                                           | `src/app/api/createProfile/route.js:6`, `src/app/api/deleteAccount/route.js:6` | sim | sim     | sim      |
-| `DATABASE_URL`                                                                        | `infra/scripts/wait-for-postgres.js:12`, `node-pg-migrate`                     | sim | não     | não      |
-| `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` | `infra/compose.yaml`                                                           | não | não     | não      |
+| Variável                               | Lida em                                                 | Local (`.env.local`)     | Preview (Vercel)         | Produção (Vercel)        | Sensível?                    |
+| -------------------------------------- | ------------------------------------------------------- | ------------------------ | ------------------------ | ------------------------ | ---------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `src/lib/supabase.js`, rotas de `src/app/api/`          | `http://127.0.0.1:54321` | URL do `spsm-preview`    | URL do `spsm-prod`       | Não                          |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `src/lib/supabase.js`, rotas de `src/app/api/`          | `supabase status`        | chave do `spsm-preview`  | chave do `spsm-prod`     | Não (vai para o navegador)   |
+| `SUPABASE_SERVICE_ROLE_KEY`            | `src/app/api/createProfile`, `deleteAccount`, `status`  | `supabase status`        | secret do `spsm-preview` | secret do `spsm-prod`    | **Sim** — marcar _Sensitive_ |
+| `DATABASE_URL`                         | só `scripts/db-migrations.js`, via `.env.<alvo>.remote` | —                        | **não existe na Vercel** | **não existe na Vercel** | **Sim**                      |
+| `TEST_DATABASE_URL`                    | `tests/integration/db.js` (opcional, ver §6)            | não definir por padrão   | —                        | —                        | Não (banco local)            |
 
-### Sobre o nome da chave pública
-
-A variável chama-se `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. O Supabase renomeou a antiga
-`anon` para `publishable`; a troca no código ocorreu no commit `e70e163`. O nome antigo
-`ANON_KEY` não funciona e não deve ser usado.
-
-### Sobre a chave de serviço
-
-`SUPABASE_SERVICE_ROLE_KEY` **não pode ter prefixo `NEXT_PUBLIC_`**. Com esse prefixo ela seria
-embutida no bundle enviado ao navegador, e qualquer visitante poderia ler dados de qualquer
-usuário, além de poder criar e excluir contas. Ela só pode ser lida dentro de `src/app/api/*`,
-que roda no servidor. Há dois pontos de leitura hoje: `createProfile` e `deleteAccount`.
+- **Chave pública:** chama-se `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. O Supabase renomeou a antiga
+  `anon` para `publishable` (troca no commit `e70e163`); `ANON_KEY` não é lido.
+- **Chave secreta:** `SUPABASE_SERVICE_ROLE_KEY` **nunca** leva prefixo `NEXT_PUBLIC_` — com ele, ela
+  seria embutida no bundle do navegador. Só é lida em `src/app/api/`, no servidor.
+- **A chave secreta só é exigida em runtime.** Até 2026-11-06 as três rotas criavam o cliente admin
+  no topo do módulo, e o `next build` falhava sem a variável (`supabaseKey is required`, Preview em
+  2026-11-04). Hoje o cliente nasce na requisição (`src/app/api/_lib/supabaseAdmin.js`): sem a chave
+  o build passa e `createProfile`/`deleteAccount` respondem 503. O `/api/status` não usa a chave
+  (só a pública, com a RPC `health_check()`). Na Vercel ela continua necessária para o cadastro e a
+  exclusão de conta funcionarem.
+- **`DATABASE_URL` não vai para a Vercel.** Nenhum código da aplicação a lê; mantê-la no painel só
+  guardaria uma senha de banco (que ignora o RLS) num lugar que não precisa dela.
 
 ---
 
 ## 3. Arquivos de ambiente
 
-| Arquivo                    | Versionado | Conteúdo atual                              | Para que serve                                             |
-| -------------------------- | ---------- | ------------------------------------------- | ---------------------------------------------------------- |
-| `.env.development`         | não        | `DATABASE_URL` (Supabase remoto) + 3 chaves | Fonte do Next.js em desenvolvimento e do `node-pg-migrate` |
-| `.env.development.example` | sim        | Só `POSTGRES_*` do Docker                   | Modelo do Postgres local                                   |
+| Arquivo                  | Versionado | Lido por                                       | Conteúdo                                       |
+| ------------------------ | ---------- | ---------------------------------------------- | ---------------------------------------------- |
+| `.env.local.example`     | sim        | — (modelo)                                     | as 3 variáveis do Supabase local               |
+| `.env.local`             | não        | Next.js (`next dev`), Jest (`tests/setup.js`)  | chaves do `supabase status`                    |
+| `.env.remote.example`    | sim        | — (modelo)                                     | `DATABASE_URL` com placeholders                |
+| `.env.production.remote` | não        | `scripts/db-migrations.js --target production` | `DATABASE_URL` do `spsm-prod` (Session pooler) |
+| `.env.preview.remote`    | não        | `scripts/db-migrations.js --target preview`    | `DATABASE_URL` do `spsm-preview`               |
 
-O `.gitignore` bloqueia `.env*` e libera apenas os arquivos `.example`. Isso está correto e deve
-permanecer.
-
-### Lacunas conhecidas
-
-1. **Não há `.env.supabase`.** Seria igual ao `.env.development`, então `npm run
-migrations:supabase:up` lê o `.env.development`.
-2. **Não existe `.env.example` genérico** com as quatro variáveis do Supabase.
-3. **`migrations:supabase:up` não aparece em nenhum documento.** Era este o único comando de
-   migração descrito no `README.md` antes desta revisão.
-4. **Não há separação de variáveis entre Production e Preview.** As duas usam o mesmo conjunto, e
-   esse conjunto é o mesmo do `.env.development` local, incluindo `SUPABASE_SERVICE_ROLE_KEY`. Ver
-   a subseção seguinte.
-5. **`.env.development.example:6` tem `DATABASE_URL` com variáveis não expandidas.** O valor é
-   `postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@...`, e nem o `dotenv` 16 nem o `pg` expandem
-   `$VAR` dentro de uma connection string — só o `dotenv-expand` faria, e ele não está instalado.
-   Quem copiar o exemplo terá falha de conexão com a string literal. O valor tem de ser escrito
-   expandido: `postgres://local_user:local@localhost:5432/local_db`.
-
-### O que a Vercel tem hoje, e o que isso significa
-
-O painel da Vercel está configurado com o **mesmo conjunto de variáveis** do `.env.development`
-local, incluindo `SUPABASE_SERVICE_ROLE_KEY`. Não há separação: Production, Preview e o
-desenvolvimento local apontam para o mesmo projeto Supabase provisório.
-
-Isso é aceitável enquanto o banco for provisório e o app não receber dados reais, por dois motivos
-práticos. O primeiro é que o `.env.development` não tem `DATABASE_URL` utilizável pela Vercel — a
-migração roda no container, não no serverless, então a variável não viaja. O segundo é mais
-importante: **qualquer Preview passa a ser um endpoint com acesso de serviço ao banco de
-produção**. Uma Preview é criada por branch, e branch é algo que qualquer um pode abrir neste
-repositório público. O `SUPABASE_SERVICE_ROLE_KEY` não fica exposto no bundle do navegador, mas
-`src/app/api/createProfile/route.js` e `src/app/api/deleteAccount/route.js` leem essa chave no servidor e ficam
-alcançáveis no domínio da Preview. Um deploy de Preview consegue criar e apagar contas no banco
-real.
-
-É por isso que a correção de `createProfile` (#29) é urgente, e não cosmeticamente urgente: ela
-troca o uso de `service_role` com `id` vindo do corpo por validação de sessão. Uma Preview não
-deveria poder apagar conta de terceiros por meio de um endpoint público.
-
-O que separa isso, na ordem:
-
-1. Remover a chave de serviço do escopo da Preview, ou reduzir o escopo das rotas de API.
-2. Corrigir #29, para que nenhuma rota dependa de `id` fornecido pelo cliente.
-3. Ter um projeto Supabase separado, com a issue [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20).
-
-Até lá, Preview e produção são o mesmo sistema. Tratar qualquer branch nova como se fosse um
-ambiente de teste é um erro: **é** um ambiente de teste, e o teste usa o banco real.
+- O `.gitignore` bloqueia `.env*` e libera só `.env.example`, `.env.local.example` e
+  `.env.remote.example`.
+- **Os arquivos `.remote` têm nome que o Next.js não carrega** (ele só lê `.env`, `.env.local`,
+  `.env.<modo>` e `.env.<modo>.local`). A aplicação nunca vê credenciais remotas.
+- **Não existe mais `.env.development`.** O Next.js o carregaria como fallback quando falta o
+  `.env.local`, e ele já guardou as credenciais de produção (issue #20). O `scripts/dev.js` se recusa
+  a iniciar se encontrar um.
+- **Quem precisa de quê:** um contribuidor precisa só do `.env.local`. Os arquivos `.remote` são de
+  quem aplica migrations nos bancos remotos. Para dar esse acesso a alguém, convide a pessoa para a
+  organização no Supabase em vez de enviar o arquivo: o acesso pode ser revogado sem rotacionar nada.
 
 ---
 
-### Ambiente Local com Supabase CLI (novo padrão)
-
-O ambiente local recomendado usa **Supabase CLI** — sobe Postgres + Auth + Realtime + Storage + Studio com RLS real.
-
-### 4.1 Como subir
+## 4. Local (Supabase CLI) — o único ambiente de desenvolvimento
 
 ```bash
-supabase start                    # sobe stack completa (portas 54321-54326)
-supabase status                   # mostra URLs e chaves
+supabase start                    # Postgres + Auth + Kong + Studio em containers
+npm run infra:status              # URL e chaves locais
+cp .env.local.example .env.local  # preencha com a saída do infra:status
+npm run dev                       # verifica o .env.local, sobe a infra se preciso, inicia o Next.js
 ```
 
-### 4.2 Variáveis locais (`.env.local`)
+O `scripts/dev.js` recusa iniciar se: o `.env.local` não existe; o `NEXT_PUBLIC_SUPABASE_URL` dele
+não é `127.0.0.1`/`localhost`; ou existe um `.env.development`. Assim o desenvolvimento não aponta
+para um banco remoto por engano.
 
-| Variável                               | Valor local                                               | Onde obtém                             |
-| -------------------------------------- | --------------------------------------------------------- | -------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `http://127.0.0.1:54321`                                  | Fixo                                   |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`                                      | `supabase status` → `anon key`         |
-| `SUPABASE_SERVICE_ROLE_KEY`            | `sb_secret_...`                                           | `supabase status` → `service_role key` |
-| `TEST_DATABASE_URL`                    | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` | Fixo (para testes integração)          |
+| Comando                | Efeito                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `npm run infra:up`     | `supabase start` — as migrations são aplicadas na criação                       |
+| `npm run infra:reset`  | `supabase db reset` — **apaga os dados**, recria o banco e aplica as migrations |
+| `npm run infra:status` | URLs e chaves locais                                                            |
+| `npm run infra:studio` | Studio local (porta 54323)                                                      |
+| `npm run infra:down`   | `supabase stop` (preserva os volumes)                                           |
 
-> **Prioridade Next.js:** `.env.local` > `.env.development` > `.env`. Se `.env.local` existe, `.env.development` é ignorado.
+---
 
-### 4.3 Comandos úteis
+## 5. Migrations
+
+### 5.1 Uma ferramenta, um formato
+
+As migrations são **apenas** os arquivos `supabase/migrations/<timestamp>_<nome>.sql`, aplicados
+pelo **Supabase CLI** em todos os alvos. Cada banco guarda o próprio histórico em
+`supabase_migrations.schema_migrations`. O `node-pg-migrate` e as migrations `.js` foram removidos
+em 2026-11-04 (ver [tooling-decisions.md](tooling-decisions.md), entrada 28).
+
+| Alvo                    | Comando                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Supabase local          | `npm run migrations:up` (pendentes) ou `npm run infra:reset` (do zero) |
+| Preview                 | `npm run migrations:push -- --target preview [--apply]`                |
+| Produção                | `npm run migrations:push -- --target production [--apply]`             |
+| Postgres puro (compose) | `npm run migrations:push -- --target docker [--apply]`                 |
+| Ver histórico           | `npm run migrations:list -- --target <alvo>`                           |
+| Criar migration         | `npm run migrations:new -- <nome>`                                     |
+
+O `scripts/db-migrations.js` exige `--target` (não há alvo padrão), faz **dry-run** a menos que
+receba `--apply`, e mesmo com `--apply` o CLI ainda pede confirmação `Y/n`.
+
+**O dry-run não testa a migration.** Ele só compara os timestamps de `supabase/migrations/` com a
+tabela de histórico do banco e lista as versões que faltam; o SQL não é executado. Uma migration com
+erro de sintaxe ou constraint quebrada passa no dry-run. O SQL se testa assim:
+
+| Verificação                         | O que pega                                                                   | Dados locais |
+| ----------------------------------- | ---------------------------------------------------------------------------- | ------------ |
+| `npm run test:integration` (pg-mem) | O que o pg-mem aceita: tabelas, constraints, FKs (monta o schema dos `.sql`) | Não toca     |
+| `npm run migrations:up`             | O SQL real, com RLS, grants e triggers, aplicando só as migrations pendentes | Preserva     |
+| `npm run infra:reset`               | A sequência inteira do zero, como num ambiente novo                          | **Apaga**    |
+| `migrations:push` (dry-run)         | Quais versões faltam na Preview/Produção (somente leitura)                   | Não toca     |
+
+### 5.2 Fluxo de uma mudança de schema
 
 ```bash
-supabase start                    # sobe stack completa
-supabase status                   # URLs e chaves
-supabase db reset                 # recria banco + aplica migrations
-supabase studio                   # abre dashboard local (porta 54323)
-supabase stop                     # para containers (preserva volumes)
-supabase stop --no-backup         # para e remove volumes
+npm run migrations:new -- add_algo              # cria supabase/migrations/<timestamp>_add_algo.sql
+# escreva o SQL; tudo que referencia auth.users vai dentro de IF to_regclass('auth.users') IS NOT NULL
+npm run migrations:up                            # aplica só as pendentes no banco local (preserva dados)
+npm run test:integration                         # pg-mem monta o schema a partir dos .sql
+npm run test:integration:supabase                # RLS real no Supabase local
+npm run infra:reset                              # antes do PR: aplica tudo do zero (APAGA os dados locais)
+npm run migrations:push -- --target preview      # dry-run: lista as versões que serão aplicadas
+npm run migrations:push -- --target preview --apply
+# teste a Preview da branch; no merge em main, o workflow de deploy aplica em Produção (§10)
 ```
 
-### 4.4 Testes de integração contra banco local real (RLS)
+Regras:
 
-```bash
-# Terminal 1: infra
-supabase start
+- **Nunca editar** o SQL de uma migration já aplicada em Preview ou Produção: o CLI compara só a
+  versão (o timestamp), então a mudança nunca chegaria aos bancos remotos. Crie uma nova.
+- **Não existe `down`.** O Supabase CLI executaria uma seção `-- Down Migration` como SQL comum. Para
+  desfazer, escreva uma migration nova que reverte.
+- Enquanto a migration ainda não saiu da sua máquina, dá para corrigir o SQL e rodar
+  `npm run infra:reset`: o `migrations:up` não reaplica uma versão que já está no histórico local.
+- Toda migration precisa rodar também num Postgres sem `auth.users` (o alvo `docker` e o pg-mem
+  dos testes): por isso o guard `to_regclass`.
 
-# Terminal 2: testes com RLS real
-$env:TEST_DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-npm run test:integration:supabase
-```
+### 5.3 Rede
 
-> **Nota:** Os testes atuais usam UUIDs fixos que não existem no `auth.users` local — as FKs para `auth.users` bloqueiam. Testes reais de RLS precisam usuários criados via `supabase auth signup`. A suíte `rls.test.js` cria seus próprios usuários via Admin API.
+As conexões de migration usam a porta 5432 do _Session pooler_ do Supabase. **A rede da UFRN
+bloqueia saídas para a porta 5432** (só 80/443 passam): rode os comandos remotos em outra rede
+(roteador de casa, roteamento pelo celular). A conexão direta `db.<ref>.supabase.co` é só IPv6 no
+plano gratuito; use o pooler.
 
 ---
 
-## 5. Ambiente de Testes (novo)
+## 6. Testes
 
-O ambiente de testes automatizado usa a **stack local do Supabase CLI** para validar RLS real:
+| Suíte                               | Banco                                                         |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `npm test` (unidade)                | nenhum (Supabase mockado)                                     |
+| `npm run test:integration`          | **pg-mem**, com schema montado de `supabase/migrations/*.sql` |
+| `npm run test:integration:supabase` | Supabase local (`supabase start` + `.env.local`)              |
+| CI (`test.yml`)                     | pg-mem no job principal; Supabase CLI efêmero no job `rls`    |
 
-| Aspecto                    | Detalhe                                                                                   |
-| :------------------------- | :---------------------------------------------------------------------------------------- |
-| Comando                    | `npm run test:integration:supabase`                                                       |
-| Suíte                      | `tests/integration/supabase/rls.test.js` (12 testes)                                      |
-| O que testa                | IT-01 (leitura isolada) e IT-02 (escrita isolada) para categories, transactions, profiles |
-| Pré-requisitos             | `supabase start` rodando + `.env.local` preenchido com chaves do `supabase status`        |
-| Roda no CI GitHub Actions? | **Não** — requer stack local Supabase. Documentado na issue #30.                          |
-
----
-
-## 6. O problema do `npm run dev` (histórico)
-
-`package.json:7` define `dev` como `node infra/scripts/run-services.js`. Esse script executa, em
-ordem:
-
-```text
-npm run services:up              sobe o PostgreSQL do Docker
-npm run services:wait:database    lê DATABASE_URL e espera a conexão
-npm run migrations:up             aplica migrations
-npm run next:dev                  sobe o Next.js
-```
-
-O passo 2 é o problema. `wait-for-postgres.js:12` lê `DATABASE_URL` de `.env.development`, que
-hoje aponta para o Supabase remoto. Portanto, o container do Docker sobe, o script se conecta ao
-**banco remoto**, aplica as migrations **nele** e só então inicia o Next.js.
-
-Consequências práticas:
-
-- O PostgreSQL do Docker nunca é usado. Ele sobe e fica ocioso.
-- Qualquer migration nova é aplicada no banco real assim que `npm run dev` roda.
-- O `migrations:up` da documentação local descreve um comportamento que não ocorre.
-
-### Como confirmar em qual banco você está
-
-Sem conectar, confira o host em `.env.development`:
-
-```bash
-node -e "console.log(new URL(require('fs').readFileSync('.env.development','utf8').split('\n').find(l=>l.startsWith('DATABASE_URL')).split('=').slice(1).join('=')).host)"
-```
-
-Um host `*.supabase.com` significa banco remoto. `localhost` significa Postgres local.
-
-### Direção planejada
-
-1. ~~Mover o `DATABASE_URL` remoto para `.env.supabase`~~ — descartado: o `.env.supabase` seria
-   igual ao `.env.development`, e `migrations:supabase:up` passou a ler o `.env.development`.
-2. Tirar `migrations:up` do encadeamento automático, ou exigir flag explícita.
-3. Completar `.env.development.example` com `NEXT_PUBLIC_SUPABASE_URL` e
-   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-4. ~~Criar `.env.supabase.example`~~ — descartado pelo mesmo motivo do item 1.
-5. Adicionar `migrations:supabase:down`, hoje inexistente.
-
-Enquanto isso não for feito, **trate `npm run dev` como um comando que escreve no banco de
-produção.**
+> ⚠️ **`TEST_DATABASE_URL` troca o pg-mem por um Postgres real, e os testes de integração apagam
+> `auth.users`, `categories` e `transactions` no `beforeEach`.** O `tests/setup.js` carrega o
+> `.env.local`, então deixar `TEST_DATABASE_URL` definido lá faz `npm run test:integration` apagar
+> os dados do Supabase local a cada execução (aconteceu em 2026-11-04). Mantenha a linha comentada e
+> passe a variável só na linha de comando, apontando para um banco descartável.
 
 ---
 
-## 6. Fluxo Docker Compose (Postgres puro — sem RLS, sem Auth)
+## 7. Configuração dos projetos Supabase remotos
 
-> **Use apenas se NÃO quiser Supabase CLI.** Sem Auth, sem RLS, sem Studio. Só valida constraints/índices.
+O que precisa estar igual nos dois projetos (e o que a aplicação quebra se não estiver):
 
-### 6.1 Como subir
+| Configuração (painel)                                     | Valor                       | Por quê                                                                                                      |
+| --------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Authentication → Email → **Confirm email**                | **desligado**               | `authService.registerUser` exige sessão logo após o `signUp`; com confirmação ligada o cadastro falha        |
+| Authentication → **Minimum password length**              | 6                           | igual ao `config.toml` local e ao validador do front-end (#43)                                               |
+| Authentication → URL Configuration → **Site URL**         | URL da Vercel do ambiente   | links de e-mail do Auth                                                                                      |
+| Authentication → **Redirect URLs** (só Preview)           | curinga das URLs de Preview | cada Preview tem URL própria                                                                                 |
+| Postgres                                                  | 17                          | igual ao `major_version` do `supabase/config.toml`                                                           |
+| Database → **Automatically expose new tables** (Produção) | desligado                   | os `GRANT`s vêm da migration `1790304277043_add-rbac-permissions.sql`; tabela nova só é exposta de propósito |
 
-```bash
-cp .env.development.example .env.development
-# edite .env.development com credenciais do Postgres local
-npm run services:up
-npm run services:wait:database
-npm run migrations:up
-npm run next:dev
-```
-
-> **Sem Supabase CLI = sem RLS, sem Auth.** Use só para validar constraints/índices.
-
----
-
-## 7. Ambientes que ainda não existem
-
-### Testes
-
-Precisa de um projeto Supabase separado, com RLS ativo e dados sintéticos. Sem ele, os casos
-IT-01 a IT-10 do [plano de testes](test-plan.md) não têm onde rodar.
-
-Justificativa específica: o guard em `001_create_financial_schema.js:101` só cria as políticas
-RLS se `auth.users` existir. Um PostgreSQL puro **nunca** terá RLS. Testar isolamento de usuário
-contra Postgres puro daria um falso positivo — os testes passariam enquanto a barreira real não
-está presente.
-
-### Homologação
-
-**Já existe, e não é um ambiente isolado.** A Vercel cria Preview automaticamente para qualquer
-branch que não seja `main`, então a revisão antes de produção acontece em uma URL por branch. O
-problema é que essa Preview não é uma homologação: ela usa as mesmas variáveis e o mesmo banco da
-produção. Ver a seção "O que a Vercel tem hoje, e o que isso significa" em §3.
-
-Uma Preview que aponta para o banco real é útil para revisar **interface**, e não serve para
-revisar **dados**: não há como popular um banco de teste, porque não há banco de teste, e não há
-como limpar o que um teste de tela sujar.
+Plano gratuito: 2 projetos ativos por organização (os dois estão em uso), e projeto sem atividade
+por ~7 dias é pausado — reative pelo painel.
 
 ---
 
-## 6. Checklist de mudança de ambiente
+## 8. Histórico: o ambiente único (até 2026-11-03)
+
+Até a separação, um único projeto Supabase (o atual `spsm-preview`) era desenvolvimento, Preview e
+Produção ao mesmo tempo, e o `.env.development` local guardava a `DATABASE_URL` e a
+`SUPABASE_SERVICE_ROLE_KEY` dele. Consequências que motivaram a issue #20:
+
+- Qualquer Preview — gerada por qualquer branch deste repositório público — tinha acesso de serviço
+  ao banco real.
+- Os scripts de migration (`migrations:up`/`down`/`supabase:up`, todos lendo `.env.development`)
+  apontavam para produção; o `migrations:down` revogaria os `GRANT`s e derrubaria a aplicação.
+- Sem `.env.local`, o `next dev` carregaria silenciosamente as credenciais de produção.
+
+O que foi feito: Produção ganhou um projeto novo (`spsm-prod`, com schema aplicado por
+`supabase db push` e histórico limpo); o projeto antigo virou Preview e teve chave secreta e senha
+rotacionadas e o histórico de migrations registrado com `supabase migration repair` (o schema já
+estava completo); a `DATABASE_URL` saiu da Vercel; as credenciais remotas foram para arquivos
+`.env.*.remote` que o Next.js não lê. Nenhum segredo esteve no histórico do git (verificado em
+2026-11-04 em todos os commits).
+
+Em 2026-11-05 o drift da Preview foi removido pelo SQL Editor: três políticas `SELECT` criadas à mão
+no painel (`Permitir leitura ...`, redundantes com as `*_owner_policy`) e a tabela
+`public.pgmigrations` do node-pg-migrate. Verificado com uma consulta somente leitura nos dois
+projetos remotos: Preview e Produção têm as mesmas 3 tabelas e as mesmas 3 políticas.
+
+### Pendências conhecidas
+
+- **Chave secreta só para duas rotas** — `createProfile` e `deleteAccount` poderiam virar trigger em
+  `auth.users` e RPC `SECURITY DEFINER`, eliminando a `SUPABASE_SERVICE_ROLE_KEY` da Vercel (ver
+  [architecture-options.md](architecture-options.md#próximo-passo-previsto)).
+
+---
+
+## 9. Checklist de mudança de ambiente
 
 Ao criar ou destruir um ambiente:
 
-- [ ] `.env.example` correspondente criado e versionado
-- [ ] As quatro variáveis do Supabase documentadas
-- [ ] `migrations:up` e `migrations:down` verificados no novo alvo
-- [ ] RLS confirmado ativo (`select` no `pg_policies`)
+- [ ] Arquivo `.example` correspondente versionado, sem segredo
+- [ ] Variáveis documentadas na §2, com o escopo da Vercel
+- [ ] Configurações da §7 replicadas no projeto Supabase
+- [ ] `npm run migrations:list -- --target <alvo>` mostra todas as versões aplicadas
+- [ ] RLS ativo e as três `*_owner_policy` presentes (`select * from pg_policies`)
 - [ ] Isolamento entre dois usuários exercitado antes de qualquer uso real
 - [ ] Nenhuma variável `NEXT_PUBLIC_` carregando segredo
+
+---
+
+## 10. Deploy de produção (issue #48)
+
+A Produção só recebe código pelo workflow `.github/workflows/deploy.yml`. O `vercel.json` desliga o
+deploy automático da Vercel para a `main` (`git.deploymentEnabled.main: false`); as Previews das
+outras branches continuam automáticas.
+
+Num push para a `main` (ou manualmente, em _Actions → Deploy de produção → Run workflow_):
+
+1. **`verify`:** testes unitários, pg-mem e regressão.
+2. **`production`:** espera a **aprovação** de um revisor do environment `production` do GitHub.
+   Aprovado, roda `supabase db push --dry-run` (lista no log o que vai ser aplicado), aplica as
+   migrations e só então faz `vercel deploy --prod`. Se a migration falhar, o deploy não acontece e a
+   Produção continua com o código anterior.
+
+**A Preview não muda:** deploy automático por branch, com as variáveis do escopo _Preview_ da
+Vercel, e migrations aplicadas à mão (`npm run migrations:push -- --target preview --apply`, §5.2).
+Não foi automatizada porque o banco de Preview é um só para todas as branches: uma migration de uma
+branch em andamento chegaria à Preview de todas as outras.
+
+A aprovação é a decisão humana que o `--apply` manual representava: ninguém aplica migration em
+Produção sem alguém olhar o dry-run. O build roda na Vercel, com as variáveis do painel (inclusive
+as _Sensitive_, que o `vercel pull` não consegue ler).
+
+**Não existe rollback de migration** (§5.2): desfazer é uma migration nova. Como o deploy roda alguns
+minutos depois da migration, toda migration precisa ser compatível com o código que ainda está no
+ar (adicionar antes de remover; remover coluna só depois que nenhum código a usa).
+
+### 10.1 Configuração (uma vez, antes do primeiro merge com o `vercel.json`)
+
+Sem isso, o merge desliga o deploy automático e o workflow falha por falta de secrets: a Produção
+fica parada no último deploy até a configuração.
+
+1. GitHub → _Settings → Environments → New environment_ `production`:
+   - _Required reviewers_: os mantenedores;
+   - _Deployment branches_: só `main`.
+2. Secrets **do environment** (não do repositório, para só esse job enxergar):
+
+   | Secret                 | Valor                                                                                                     |
+   | :--------------------- | :-------------------------------------------------------------------------------------------------------- |
+   | `SUPABASE_PROD_DB_URL` | A mesma `DATABASE_URL` do `.env.production.remote` (Session pooler, porta 5432)                           |
+   | `VERCEL_TOKEN`         | Vercel → _Account Settings → Tokens_, escopo do time do projeto                                           |
+   | `VERCEL_ORG_ID`        | `orgId` em `.vercel/repo.json` (ou `project.json`, conforme a versão do CLI), depois de `npx vercel link` |
+   | `VERCEL_PROJECT_ID`    | `id` do projeto no mesmo arquivo (`projectId` no `project.json`); também em _Settings → General_          |
+
+O `npx vercel link` também grava um `VERCEL_OIDC_TOKEN` no `.env.local` e acrescenta `.env*` ao
+`.gitignore`. Os dois são desnecessários aqui: remova a linha do token e a do `.gitignore` (ela
+anula as exceções `!.env.*.example` que vêm antes).
+
+3. Rodar o workflow uma vez por _Run workflow_ e conferir no log o dry-run e a URL de produção.
+
+A `SUPABASE_PROD_DB_URL` ignora o RLS, como a `DATABASE_URL`: fica só no environment protegido, e
+continua fora da Vercel. Os runners do GitHub alcançam a porta 5432 (o bloqueio é da rede da UFRN).
