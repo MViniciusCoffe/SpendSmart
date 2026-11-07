@@ -1,7 +1,10 @@
 name: linting
 
 on:
+  # Push só na main: nas outras branches o PR já dispara o mesmo workflow. Sem o filtro, cada PR
+  # rodava tudo duas vezes (push + pull_request), dobrando o uso e a chance de falha intermitente
   push:
+    branches: [main]
   pull_request:
 
 jobs:
