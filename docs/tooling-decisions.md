@@ -913,6 +913,9 @@ _private vulnerability reporting_ ligado em 2026-11-06 (`SECURITY.md`).
   por código de terceiros, sem ganho: atualização de dependência não muda `src/services/`.
 - `CHANGELOG.md` e `.release-please-manifest.json` entraram no `.prettierignore`: o release-please
   os reescreve no formato dele a cada release, e o `lint.yml` reprovava o PR de release.
+- `test.yml` e `lint.yml` disparam no `push` só da `main`; nas outras branches, só pelo PR. Antes cada
+  PR rodava tudo duas vezes, e uma das duas execuções do job `rls` falhou com a porta 54322 ocupada no
+  runner (a outra, no mesmo commit, passou). Efeito colateral: branch sem PR não roda CI.
 
 **Limite conhecido.** PR aberto pelo `GITHUB_TOKEN` (o de release, o do Dependabot não) não dispara
 outros workflows sozinho: o CI do PR de release só roda se alguém disparar (_Re-run_ na aba de
