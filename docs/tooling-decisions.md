@@ -905,9 +905,18 @@ com aprovadores e os secrets de `environments.md` §10.1; _Settings → Actions 
 GitHub Actions to create and approve pull requests_ (o release-please abre PR com o `GITHUB_TOKEN`);
 _private vulnerability reporting_ ligado em 2026-11-06 (`SECURITY.md`).
 
+**Ajustes depois do primeiro uso (2026-11-07).**
+
+- O `sonar.yml` é pulado nos PRs do Dependabot (`if: github.actor != 'dependabot[bot]'`). Esses
+  runs não recebem os secrets do repositório, e o scanner falhava com `URI with undefined scheme`.
+  Copiar o token do LABENS para os secrets do Dependabot entregaria a credencial a runs disparados
+  por código de terceiros, sem ganho: atualização de dependência não muda `src/services/`.
+- `CHANGELOG.md` e `.release-please-manifest.json` entraram no `.prettierignore`: o release-please
+  os reescreve no formato dele a cada release, e o `lint.yml` reprovava o PR de release.
+
 **Limite conhecido.** PR aberto pelo `GITHUB_TOKEN` (o de release, o do Dependabot não) não dispara
-outros workflows: o PR de release não roda CI. Ele só muda `CHANGELOG.md`, `package.json` e o
-manifesto.
+outros workflows sozinho: o CI do PR de release só roda se alguém disparar (_Re-run_ na aba de
+checks). Ele só muda `CHANGELOG.md`, `package.json`, `package-lock.json` e o manifesto.
 
 **Reavaliar quando.** As moderadas ganharem correção sem major (subir o nível para `moderate`), ou
 o projeto passar a ter mais de um aprovador disponível para o environment.
