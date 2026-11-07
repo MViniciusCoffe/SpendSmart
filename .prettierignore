@@ -17,6 +17,9 @@ supabase/.temp
 supabase/.branches
 
 # Generated files
+# Escritos pelo release-please a cada release, no formato dele; formatar à mão não dura
+CHANGELOG.md
+.release-please-manifest.json
 supabase/query_temp.sql
 supabase/write_query.js
 *.bak

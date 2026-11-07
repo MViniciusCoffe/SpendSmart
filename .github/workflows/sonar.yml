@@ -7,6 +7,9 @@ on:
 
 jobs:
   sonar:
+    # Run do Dependabot não recebe os secrets do repositório (SONAR_TOKEN/SONAR_HOST_URL vazios), e
+    # atualização de dependência não muda src/services/, o escopo do Sonar: o job é pulado, não falha
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
