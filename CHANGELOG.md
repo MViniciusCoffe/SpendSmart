@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.0...v0.2.1) (2026-11-07)
+
+
+### Documentação
+
+* liga defeitos às issues [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)-[#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78) e evita CI duplicado nos PRs ([0cca571](https://github.com/MViniciusCoffe/SpendSmart/commit/0cca5717f185ec5b8029867ed8e4804dd4e1e6ed))
+* liga os defeitos conhecidos às issues [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)-[#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78) e atualiza IT-08/IT-09 ([36c16da](https://github.com/MViniciusCoffe/SpendSmart/commit/36c16daf3c6a225b66eda7e6c3563e6e7f9aa1ca))
+
 ## [0.2.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.1.0...v0.2.0) (2026-11-07)
 
 
