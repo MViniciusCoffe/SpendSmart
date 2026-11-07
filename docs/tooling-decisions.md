@@ -916,6 +916,11 @@ _private vulnerability reporting_ ligado em 2026-11-06 (`SECURITY.md`).
 - `test.yml` e `lint.yml` disparam no `push` só da `main`; nas outras branches, só pelo PR. Antes cada
   PR rodava tudo duas vezes, e uma das duas execuções do job `rls` falhou com a porta 54322 ocupada no
   runner (a outra, no mesmo commit, passou). Efeito colateral: branch sem PR não roda CI.
+- O job `rls` falhou de novo na `main` com a porta 54322 ocupada. Causa mais provável: as portas
+  do Supabase local (54321-54324) ficam dentro da faixa efêmera do Linux (32768-60999), e uma
+  conexão de saída do runner às vezes usa uma delas como porta de origem. O `test.yml` passou a
+  afastar a faixa efêmera (`sysctl net.ipv4.ip_local_port_range="60000 65000"`) antes do
+  `supabase start`. Se voltar a falhar, a próxima medida é repetir o `supabase start` uma vez.
 
 **Limite conhecido.** PR aberto pelo `GITHUB_TOKEN` (o de release, o do Dependabot não) não dispara
 outros workflows sozinho: o CI do PR de release só roda se alguém disparar (_Re-run_ na aba de
