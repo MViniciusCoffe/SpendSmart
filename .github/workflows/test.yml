@@ -72,6 +72,13 @@ jobs:
         with:
           version: 2.121.0
 
+      # As portas do Supabase local (54321, 54322...) caem na faixa efêmera do Linux (32768-60999).
+      # Uma conexão de saída (os pulls das imagens, por exemplo) às vezes pega a 54322 como porta de
+      # origem, e o `supabase start` falha com "address already in use" de forma intermitente.
+      # Afastar a faixa efêmera libera as portas do Supabase.
+      - name: Reservar as portas do Supabase
+        run: sudo sysctl -w net.ipv4.ip_local_port_range="60000 65000"
+
       # Só Postgres, Auth e o gateway: é o que os testes de RLS usam
       - name: Subir Supabase local
         run: supabase start -x studio,imgproxy,vector,logflare,realtime,storage-api,edge-runtime,supavisor,postgres-meta,mailpit
