@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.2...v0.2.3) (2026-11-08)
+
+
+### Documentação
+
+* evidências do ST-02 e suíte E2E com 15 testes ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([ee711cc](https://github.com/MViniciusCoffe/SpendSmart/commit/ee711cceee7565a49b44c295428c56751a237e31))
+* revisão do ST-02 com controle negativo e critérios de validação corrigidos ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([2616479](https://github.com/MViniciusCoffe/SpendSmart/commit/2616479a68adb877325380b48619c2de0de1fa1a))
+
 ## [0.2.2](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.1...v0.2.2) (2026-11-08)
 
 
