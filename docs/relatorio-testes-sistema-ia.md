@@ -397,7 +397,7 @@ O ST-01 (CA-001.02) verifica a mensagem, a ausência de "Tente novamente" e que 
 A primeira versão desta correção introduziu o alerta vazio da seção 4.3.1, encontrado e corrigido na
 mesma sessão.
 
-**Pull Request com as melhorias:** #`<pr>`
+**Pull Request com as melhorias:** [#84](https://github.com/MViniciusCoffe/SpendSmart/pull/84)
 
 ---
 
