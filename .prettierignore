@@ -31,3 +31,7 @@ supabase/write_query.js
 AGENTS.md
 CLAUDE.md
 .claude/
+
+# Playwright
+test-results
+playwright-report

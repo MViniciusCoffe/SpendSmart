@@ -36,7 +36,9 @@
     "lint:eslint:check": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
     "prepare": "husky",
-    "commit": "cz"
+    "commit": "cz",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "lint-staged": {
     "*.{js,jsx}": [
@@ -63,12 +65,14 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@babel/core": "^8.1.0",
     "@babel/eslint-parser": "^8.0.7",
     "@babel/preset-env": "^8.0.7",
     "@babel/preset-react": "^8.0.1",
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.3",
+    "@playwright/test": "1.64.1",
     "@stryker-mutator/core": "^10.1.1",
     "@stryker-mutator/jest-runner": "^10.1.1",
     "babel-jest": "^30.5.2",
