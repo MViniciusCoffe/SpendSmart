@@ -384,6 +384,14 @@
   animation: shake 0.4s ease-out;
 }
 
+/* Link de saída dentro do erro (ex.: "Entrar com este e-mail"): mesma cor da mensagem, sublinhado
+   para não depender só da cor (WCAG 1.4.1) */
+.error a {
+  color: inherit;
+  font-weight: var(--font-weight-semibold, 600);
+  text-decoration: underline;
+}
+
 .footer {
   margin-top: var(--space-6);
   padding-top: var(--space-4);

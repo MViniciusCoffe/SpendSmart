@@ -20,6 +20,8 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("")
 
   const [errorMessage, setErrorMessage] = useState("")
+  // E-mail já cadastrado: tentar de novo não resolve, então o erro oferece o caminho para entrar
+  const [emailTaken, setEmailTaken] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleRegister = async e => {
@@ -37,6 +39,7 @@ export default function RegisterPage() {
 
     setIsLoading(true)
     setErrorMessage("")
+    setEmailTaken(false)
 
     try {
       // Register through the context so the header knows the user right away
@@ -54,7 +57,10 @@ export default function RegisterPage() {
         success("Conta criada! Faça login para continuar.")
         router.push("/login")
       } else {
-        setErrorMessage(`Erro ao criar usuário. Tente novamente. ${error.message}`)
+        // O service já devolve a mensagem certa em português; o prefixo "Tente novamente" mandava
+        // repetir o que não ia funcionar (heurísticas 9 e 3 de Nielsen, auditoria da P3)
+        setErrorMessage(error.message)
+        setEmailTaken(error.message === "E-mail já cadastrado")
       }
     } finally {
       setIsLoading(false)
@@ -151,7 +157,20 @@ export default function RegisterPage() {
           </AuthField>
         </AuthRow>
 
-        <AuthError>{errorMessage}</AuthError>
+        {/* Só com mensagem: o AuthError esconde filhos vazios, mas não um fragmento com o link */}
+        <AuthError>
+          {errorMessage && (
+            <>
+              {errorMessage}
+              {emailTaken && (
+                <>
+                  {". "}
+                  <Link href="/login">Entrar com este e-mail</Link>
+                </>
+              )}
+            </>
+          )}
+        </AuthError>
 
         <Button
           type="submit"
