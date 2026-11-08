@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.1...v0.2.2) (2026-11-08)
+
+
+### Correções
+
+* contraste do texto atenuado abaixo de 4,5:1 (WCAG 1.4.3) ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([f224db1](https://github.com/MViniciusCoffe/SpendSmart/commit/f224db1051ba32e246adce96d32f9e19c6b8a294))
+* e-mail já cadastrado oferece entrar em vez de "Tente novamente" ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([3368ea8](https://github.com/MViniciusCoffe/SpendSmart/commit/3368ea84c8d2ad433f4d65407097971aa7e6e51b))
+
+
+### Documentação
+
+* link do PR [#84](https://github.com/MViniciusCoffe/SpendSmart/issues/84) no relatório da P3 ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([1a6dd20](https://github.com/MViniciusCoffe/SpendSmart/commit/1a6dd201f6ecc7ef31eba782b9eaa5d5d51e3f50))
+* relatório da P3 (testes de sistema, IA instrumental e acessibilidade) ([#83](https://github.com/MViniciusCoffe/SpendSmart/issues/83)) ([ee34ebb](https://github.com/MViniciusCoffe/SpendSmart/commit/ee34ebb8d4ede708d37b4e5cd2a2292909fed6a3))
+
 ## [0.2.1](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.0...v0.2.1) (2026-11-07)
 
 
