@@ -139,7 +139,10 @@ Vercel e evita esse comportamento, que é só do modo de desenvolvimento.
 | ST-01 | Senha curta bloqueada no cliente, **sem nenhuma chamada a `/auth/v1/signup`**     | CA-001.03                               | Marcus          | José                |
 | ST-01 | Credenciais válidas levam ao dashboard, também depois de sair                     | CA-002.01                               | Marcus          | José (US-002)       |
 | ST-01 | Senha errada e e-mail inexistente dão a mesma mensagem                            | CA-002.02                               | Marcus          | José                |
-| ST-02 | Registrar e consultar despesa                                                     | CA-013.01 a CA-013.04                   | **José**        | Marcus (US-013)     |
+| ST-02 | Despesa válida aparece na listagem e recalcula saídas e saldo no dashboard        | CA-013.01                               | **José**        | Marcus (US-013)     |
+| ST-02 | Valor vazio, não numérico ou negativo é bloqueado, sem POST e sem gravar          | CA-013.02                               | **José**        | Marcus              |
+| ST-02 | Detalhe da despesa abre com data e forma de pagamento preenchidas                 | CA-013.03                               | **José**        | Marcus              |
+| ST-02 | Valor `1234,5` é exibido como `R$ 1.234,50` na listagem e no dashboard            | CA-013.04                               | **José**        | Marcus              |
 
 Cada teste cobre o caminho feliz ou uma regra de erro. A regra de dupla verificação do plano
 (ninguém testa a própria US) definiu a autoria.
@@ -174,6 +177,41 @@ Playwright, o teste falhou: a conta não existia, e o Auth respondeu 400. Agora 
 própria conta pela API admin no `beforeAll` (`createAccount` em `tests/e2e/support/env.js`).
 Verificado com `--fully-parallel --workers=5` (cada teste num processo separado: 5 passaram) e com o
 CA-002.01 sozinho.
+
+**ST-02 (2026-11-08).** Quatro testes, um por critério de aceitação. Cada um cria a própria conta e a
+própria categoria de despesa no `beforeAll` (pela API admin), então roda sozinho e em qualquer ordem.
+Saída da suíte completa:
+
+```text
+  ✓   1 a11y-audit.spec.js:48:3 › tela /login sem violações WCAG A/AA (6.0s)
+  ✓   2 a11y-audit.spec.js:48:3 › tela /register sem violações WCAG A/AA (4.5s)
+  ✓   3 a11y-audit.spec.js:94:5 › telas privadas › tela /dashboard sem violações WCAG A/AA (6.6s)
+  ✓   4 a11y-audit.spec.js:94:5 › telas privadas › tela /transactions sem violações WCAG A/AA (7.2s)
+  ✓   5 a11y-audit.spec.js:94:5 › telas privadas › tela /categories sem violações WCAG A/AA (7.2s)
+  ✓   6 a11y-audit.spec.js:94:5 › telas privadas › tela /settings sem violações WCAG A/AA (6.9s)
+  ✓   7 st-01-cadastro-login.spec.js:31:3 › US-001 — Criar conta › CA-001.01 e CA-001.04 — cadastro válido… (3.4s)
+  ✓   8 st-01-cadastro-login.spec.js:56:3 › US-001 — Criar conta › CA-001.02 — e-mail já cadastrado… (3.4s)
+  ✓   9 st-01-cadastro-login.spec.js:73:3 › US-001 — Criar conta › CA-001.03 — senha curta é bloqueada… (2.7s)
+  ✓  10 st-01-cadastro-login.spec.js:91:3 › US-002 — Entrar › CA-002.01 — credenciais válidas… (5.7s)
+  ✓  11 st-01-cadastro-login.spec.js:100:3 › US-002 — Entrar › CA-002.02 — senha errada… (4.4s)
+  ✓  12 st-02-despesa.spec.js:91:3 › US-013 — CA-013.01: registro válido › despesa válida aparece na listagem e recalcula saídas e saldo (6.1s)
+  ✓  13 st-02-despesa.spec.js:138:3 › US-013 — CA-013.02: valor inválido › valor vazio, não numérico ou negativo é bloqueado sem gravar (5.6s)
+  ✓  14 st-02-despesa.spec.js:192:3 › US-013 — CA-013.03: detalhe da despesa › detalhe mostra data e forma de pagamento preenchidas (6.1s)
+  ✓  15 st-02-despesa.spec.js:231:3 › US-013 — CA-013.04: formatação monetária › valor 1234,5 aparece como R$ 1.234,50 (5.5s)
+
+  15 passed (2.1m)
+```
+
+Os quatro também passaram sozinhos (`npx playwright test st-02 --grep CA-013.0X`, 1 a cada execução) e
+em paralelo com 2 workers (`--fully-parallel --workers=2`, 4 passed). Com 4 workers, o Supabase Auth
+local devolve 500/504 no `POST /auth/v1/token` (`context canceled` e `request_timeout`) e os logins
+não terminam: é limite da máquina de desenvolvimento (8 GB, 1,6 GB livres, Docker com 3,7 GB), não do
+fluxo. A suíte do CI usa 1 worker (padrão de `playwright.config.js`).
+
+**Observação do CA-013.02.** O formulário usa `noValidate` e o campo Valor é `type="text"`, então
+`el.validity.valid` continua `true` para vazio, `abc` e `-10`. O bloqueio vem do validador do
+`TransactionForm`; o teste confere o efeito exigido (mensagem, nenhum POST para
+`/rest/v1/transactions` e nenhuma linha no banco) em vez da restrição nativa.
 
 No CI, o relatório HTML (com trace, vídeo e captura das falhas) fica como artefato
 `playwright-report` em cada execução do job `rls`.
@@ -403,16 +441,16 @@ mesma sessão.
 
 ## 6. Conclusões e pendências
 
-- **Playwright** foi adotado e está no CI: ST-01 (5 cenários de US-001/US-002) e a auditoria WCAG das
-  6 telas, contra o build de produção e o Supabase local.
+- **Playwright** foi adotado e está no CI: ST-01 (5 cenários de US-001/US-002), ST-02 (4 cenários de
+  US-013, um por critério de aceitação) e a auditoria WCAG das 6 telas, contra o build de produção e o
+  Supabase local.
 - **O teste instrumental encontrou o que o script não encontra**: uma regressão introduzida na própria
   P3 e a primeira reprodução real do defeito #76.
 - **Acessibilidade:** de 6 violações AA para 0, com a auditoria automatizada como guarda.
 - **Usabilidade:** 2 problemas corrigidos (heurísticas 3, 8 e 9); os restantes viram backlog.
 
-| Pendência                                                                         | Responsável |
-| :-------------------------------------------------------------------------------- | :---------- |
-| ST-02 — Registrar e consultar despesa (CA-013.01 a CA-013.04), na mesma estrutura | José        |
-| Sessão instrumental com um segundo agente (ex.: Antigravity), opcional            | José        |
-| Correção do cache de sessão com teste ST-04                                       | #76 com #67 |
-| `aria-label` em inglês, salto de nível de título, mensagem nativa de validação    | #82         |
+| Pendência                                                                      | Responsável |
+| :----------------------------------------------------------------------------- | :---------- |
+| Sessão instrumental com um segundo agente (ex.: Antigravity), opcional         | José        |
+| Correção do cache de sessão com teste ST-04                                    | #76 com #67 |
+| `aria-label` em inglês, salto de nível de título, mensagem nativa de validação | #82         |

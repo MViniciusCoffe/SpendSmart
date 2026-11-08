@@ -287,8 +287,9 @@ laço e a auditoria não terminava. Cada execução cria usuários próprios (`e
 e os remove ao final, como a suíte de RLS. Evidências no
 [relatório da P3](relatorio-testes-sistema-ia.md) §3.3.
 
-**Estado (2026-11-07):** ST-01 implementado (5 testes) e no CI, no job `rls` do `test.yml`, com o
-relatório HTML como artefato. ST-02 é do José.
+**Estado (2026-11-08):** ST-01 implementado (5 testes) e ST-02 implementado (4 testes, um por
+critério CA-013.01 a CA-013.04), ambos no CI, no job `rls` do `test.yml`, com o relatório HTML como
+artefato. A suíte soma 15 testes. ST-02 é do José; US-013 é do Marcus (dupla verificação, §9).
 
 **CI (recomendado pela P3):** um job headless no `test.yml` que reaproveita a subida do Supabase do
 job `rls`, faz `next build` e `next start` e roda a suíte E2E.
@@ -498,7 +499,7 @@ inexistente (#13).
 - [ ] Testes de unidade e integração concluídos
 - [x] Relatório de cobertura gerado em formato `lcov` — `coverage/lcov.info`, 100% em `services/`
 - [ ] As User Stories atendem aos próprios critérios de aceitação
-- [ ] (P3) ST-01 e ST-02 passando localmente, com evidência no relatório
+- [x] (P3) ST-01 e ST-02 passando localmente, com evidência no relatório
 - [ ] (P3) Sessão de teste instrumental registrada, com análise comparativa
 - [ ] (P3) Linha de base de acessibilidade e usabilidade registrada e ≥ 2 melhorias aplicadas
 
@@ -557,19 +558,19 @@ cada iteração é sempre escrito pelo colega que não desenvolveu a história, 
 
 ## 10. Entregáveis da P3
 
-| Entregável                                                                                                     | Onde                                                      | Situação                  |
-| :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- | :------------------------ |
-| Issue "P3 - Testes de Sistema, Testes Instrumentais com IA, Usabilidade e Acessibilidade - Grupo <Nome>"       | `bsi-tasks` e repositório do projeto                      | A fazer                   |
-| Branches da entrega (ex.: `docs/#<id>-testes-sistema-ia`, `test/#<id>-e2e-suite`)                              | Repositório do projeto                                    | A fazer                   |
-| Pesquisa comparativa de ferramentas E2E e decisão técnica                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
-| Pesquisa sobre IA em testes de sistema e teste instrumental                                                    | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
-| Scripts E2E (ST-01, ST-02) e comando de execução documentado                                                   | `tests/e2e/` e [execution-manual.md](execution-manual.md) | ST-01 feito; ST-02 (José) |
-| Evidências da execução E2E (e job headless no CI, recomendado)                                                 | Relatório e `.github/workflows/test.yml`                  | Feito (CI no job `rls`)   |
-| Sessão de teste instrumental por IA e análise comparativa                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
-| Auditoria de acessibilidade e de usabilidade (linha de base)                                                   | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
-| ≥ 2 melhorias de usabilidade/acessibilidade (Antes × Depois)                                                   | PR para `main`, referenciado no relatório                 | Feito (2)                 |
-| Links atualizados em `softwaretesting/20262/README.md`                                                         | `bsi-tasks`                                               | A fazer                   |
-| Texto no SIGAA: grupo, integrantes e usuários do GitHub, issue, PRs, relatório, scripts E2E e PR das melhorias | SIGAA                                                     | A fazer                   |
+| Entregável                                                                                                     | Onde                                                      | Situação                |
+| :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- | :---------------------- |
+| Issue "P3 - Testes de Sistema, Testes Instrumentais com IA, Usabilidade e Acessibilidade - Grupo <Nome>"       | `bsi-tasks` e repositório do projeto                      | A fazer                 |
+| Branches da entrega (ex.: `docs/#<id>-testes-sistema-ia`, `test/#<id>-e2e-suite`)                              | Repositório do projeto                                    | A fazer                 |
+| Pesquisa comparativa de ferramentas E2E e decisão técnica                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                   |
+| Pesquisa sobre IA em testes de sistema e teste instrumental                                                    | `docs/relatorio-testes-sistema-ia.md`                     | Feito                   |
+| Scripts E2E (ST-01, ST-02) e comando de execução documentado                                                   | `tests/e2e/` e [execution-manual.md](execution-manual.md) | Feito (ST-01 e ST-02)   |
+| Evidências da execução E2E (e job headless no CI, recomendado)                                                 | Relatório e `.github/workflows/test.yml`                  | Feito (CI no job `rls`) |
+| Sessão de teste instrumental por IA e análise comparativa                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                   |
+| Auditoria de acessibilidade e de usabilidade (linha de base)                                                   | `docs/relatorio-testes-sistema-ia.md`                     | Feito                   |
+| ≥ 2 melhorias de usabilidade/acessibilidade (Antes × Depois)                                                   | PR para `main`, referenciado no relatório                 | Feito (2)               |
+| Links atualizados em `softwaretesting/20262/README.md`                                                         | `bsi-tasks`                                               | A fazer                 |
+| Texto no SIGAA: grupo, integrantes e usuários do GitHub, issue, PRs, relatório, scripts E2E e PR das melhorias | SIGAA                                                     | A fazer                 |
 
 Commits convencionais referenciam a issue da P3 (`#<id>`), e as entregas chegam à `main` por Pull
 Request.
