@@ -147,7 +147,7 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                            |
 | CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit`, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                              |
-| Testes de front-end                         | **Não existem** — `src/app/` e `src/components/` sem cobertura automatizada (issue #33)                                                                                                                                         |
+| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login, 5 testes) e auditoria WCAG A/AA das 6 telas (axe), no CI; sem testes de componente (issue #33)                                                                            |
 | Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                    |
 
 ### Defeitos conhecidos
@@ -193,14 +193,15 @@ arquivos abaixo, em Markdown.
 
 ### Requisitos e testes
 
-| Documento                                                             | Conteúdo                                                                             |
-| :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
-| [Documento de Visão](docs/vision.md)                                  | Escopo, personas, RF01-RF16, RNF01-RNF07, riscos e equipe                            |
-| [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação            |
-| [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                |
-| [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin |
-| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,12%, evolução por rodada e mutantes aceitos         |
-| [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)     |
+| Documento                                                             | Conteúdo                                                                               |
+| :-------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| [Documento de Visão](docs/vision.md)                                  | Escopo, personas, RF01-RF16, RNF01-RNF07, riscos e equipe                              |
+| [User Stories](docs/user-stories.md)                                  | `US-001` a `US-016`, derivadas de RF01 a RF16, com critérios de aceitação              |
+| [Plano de testes](docs/test-plan.md)                                  | Níveis de teste, 10 casos de integração, matriz US/RF, riscos, papéis                  |
+| [Plano de teste das iterações 1, 2 e 3](docs/test-plan-iterations.md) | 31 casos de teste com passos, dados de entrada, resultado esperado e sintaxe Gherkin   |
+| [Relatório da P3](docs/relatorio-testes-sistema-ia.md)                | E2E (Playwright), teste instrumental por IA, auditoria de usabilidade e acessibilidade |
+| [Testes de mutação](docs/mutation-testing.md)                         | Stryker em `services/`: score 97,12%, evolução por rodada e mutantes aceitos           |
+| [Estado atual dos testes](docs/test-state-report.md)                  | Registro histórico do diagnóstico inicial dos testes (estado atual: seção acima)       |
 
 ### Planejamento de iterações
 
@@ -248,6 +249,7 @@ arquivos abaixo, em Markdown.
 | `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
 | `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
 | `npm run test:regression`  | `jest tests/regression`                       | Testes de regressão (também no CI)                   |
+| `npm run test:e2e`         | `playwright test`                             | E2E e acessibilidade (build + Supabase local)        |
 | `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
 | `npm run build`            | `next build`                                  | Build de produção (o mesmo que a Vercel roda)        |
 | `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                     |

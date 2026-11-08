@@ -14,7 +14,10 @@ const IGNORE_DIRS = [
   ".git",
   ".husky",
   "reports",
-  ".stryker-tmp"
+  ".stryker-tmp",
+  // Saída gerada pelo Playwright (relatório HTML e traces), não é código do projeto
+  "playwright-report",
+  "test-results"
 ]
 const IGNORE_FILES = ["AGENTS.md", "scripts/check-agents.js", "docs/"]
 

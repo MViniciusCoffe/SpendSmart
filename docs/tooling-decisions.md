@@ -928,3 +928,23 @@ checks). Ele só muda `CHANGELOG.md`, `package.json`, `package-lock.json` e o ma
 
 **Reavaliar quando.** As moderadas ganharem correção sem major (subir o nível para `moderate`), ou
 o projeto passar a ter mais de um aprovador disponível para o environment.
+
+## 30. Playwright para os testes de sistema e `@axe-core/playwright` para a acessibilidade
+
+**Decisão (2026-11-07, P3).** `@playwright/test` 1.64.1 e `@axe-core/playwright` 4.14.0, fixados sem
+`^`. A comparação com Selenium e Cypress está no
+[relatório da P3](relatorio-testes-sistema-ia.md) §1.
+
+- **Specs em `tests/e2e/*.spec.js`**, fora do Jest: os projects do Jest procuram `*.test.js` em
+  outras pastas, e os dois runners não se enxergam.
+- **Contra o build de produção** (`next build` + `next start` na porta 3100) e não o `next dev`: no
+  dev, o Fast Refresh recarregava `/login` em laço e a auditoria não terminava. A porta 3100 evita
+  colisão com o `npm run dev`. Custo: ~1 min de build por execução local.
+- **No mesmo job do RLS** (`test.yml`, job `rls`): reaproveita a subida do Supabase local (~2 min).
+- **Auditoria como teste**: `a11y-audit.spec.js` falha se surgir violação WCAG A/AA. É a guarda da
+  correção de contraste da P3.
+- `check-agents.js` ignora `playwright-report/` e `test-results/`, que trazem JS gerado pelo
+  Playwright (o visualizador de trace).
+
+**Reavaliar quando.** A suíte crescer a ponto de o build pesar menos que a execução (aí vale
+paralelizar), ou o projeto precisar testar Firefox/WebKit (basta outro `project` no config).
