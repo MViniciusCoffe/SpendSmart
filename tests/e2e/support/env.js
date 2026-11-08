@@ -1,5 +1,6 @@
 // Ambiente dos testes E2E: lê o .env.local (o mesmo que o Next.js usa) e recusa qualquer Supabase
 // que não seja o local. Os testes criam e apagam usuários com a chave secreta.
+const crypto = require("crypto")
 const path = require("path")
 const { createClient } = require("@supabase/supabase-js")
 
@@ -25,8 +26,10 @@ function adminClient() {
   })
 }
 
-// Um prefixo por execução: os usuários de uma rodada não colidem com os de outra
-const RUN_ID = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+// Um prefixo por execução: os usuários de uma rodada não colidem com os de outra. crypto em vez de
+// Math.random(): o id entra no e-mail que vai junto da senha, e o CodeQL (js/insecure-randomness)
+// trata isso como contexto de segurança
+const RUN_ID = `${Date.now().toString(36)}${crypto.randomBytes(2).toString("hex")}`
 const emailFor = label => `e2e-${RUN_ID}-${label}@test.local`
 
 async function findUsersByEmail(admin, email) {
