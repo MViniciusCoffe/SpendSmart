@@ -214,7 +214,16 @@ Não há como abrir a aplicação contra ele (falta o Auth). Detalhes em
 | Integração Supabase (RLS) | `npm run test:integration:supabase` | `supabase start` + `.env.local` | Isolamento real entre dois usuários                          |
 | Todas                     | `npm run test:all`                  | `supabase start` + `.env.local` | Unidade, pg-mem, regressão e RLS                             |
 | Mutação                   | `npm run test:mutation`             | Só Node.js                      | Eficácia da suíte unitária (Stryker), mínimo de 85%          |
+| Regressão                 | `npm run test:regression`           | Só Node.js                      | Defeitos já corrigidos (mocks; também roda no CI)            |
+| Sistema (E2E) e acessib.  | `npm run test:e2e`                  | `supabase start` + `.env.local` | Fluxos no navegador (Playwright) e WCAG A/AA (axe)           |
 
+- **E2E (Playwright):** na primeira vez, instale o navegador com `npx playwright install chromium`
+  (no Linux, `npx playwright install --with-deps chromium` instala também as bibliotecas do sistema).
+  O comando faz `next build`, sobe `next start` na porta **3100** (não colide com o `npm run dev` na
+  3000), roda `tests/e2e/` em Chromium headless e derruba o servidor. Os testes criam usuários
+  `e2e-<execução>-...@test.local` e os apagam no fim; recusam rodar se o `.env.local` não apontar
+  para o Supabase local. Relatório: `npm run test:e2e:report` (HTML com trace, vídeo e captura das
+  falhas). Para ver o navegador: `npx playwright test --headed`; passo a passo: `--ui`.
 - **Cobertura:** abra `coverage/lcov-report/index.html` no navegador. Meta da disciplina: 70%;
   resultado atual: 100% em `src/services/`.
 - **Mutação:** leva alguns minutos. Abra `reports/mutation/mutation.html` no navegador. Resultados e

@@ -83,7 +83,7 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 | Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
 | Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 21 testes       |
 | Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 67 testes       |
-| Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | a definir na implementação          | P3              |
+| Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | `npm run test:e2e`                  | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
 | Aceitação (manual)               | `docs/acceptance-test-report-*.md`      | —                                   | Iterações 1 a 3 |
 | Usabilidade e acessibilidade     | relatório da P3                         | ferramenta de auditoria (§2.5)      | P3              |
@@ -280,10 +280,15 @@ Fluxos adicionais, se houver tempo, em ordem de valor:
 | ST-04 | Sair e entrar com outro usuário na mesma aba                                                                               | Exercita o defeito conhecido do cache de sessão (AGENTS.md §14.3); esperado falhar hoje |
 | ST-05 | Excluir categoria com lançamentos (CA-009.02, CA-009.05)                                                                   | Soft delete visível na interface                                                        |
 
-**Execução:** contra a aplicação local (`npm run dev`) e o Supabase CLI local, nunca contra a Vercel
-ou os bancos remotos. Cada execução cria usuários próprios (`e2e-<execução>@test.local`) pela tela de
-cadastro e os remove ao final, como a suíte de RLS. Evidências (saída do terminal, relatório HTML,
-capturas ou vídeo) vão para o relatório da P3.
+**Execução:** `npm run test:e2e` faz `next build` e sobe `next start` na porta 3100, contra o
+Supabase CLI local, nunca contra a Vercel ou os bancos remotos (`tests/e2e/support/env.js` recusa
+outro host). O build de produção é usado porque, em `next dev`, o Fast Refresh recarregava `/login` em
+laço e a auditoria não terminava. Cada execução cria usuários próprios (`e2e-<execução>-...@test.local`)
+e os remove ao final, como a suíte de RLS. Evidências no
+[relatório da P3](relatorio-testes-sistema-ia.md) §3.3.
+
+**Estado (2026-11-07):** ST-01 implementado (5 testes) e no CI, no job `rls` do `test.yml`, com o
+relatório HTML como artefato. ST-02 é do José.
 
 **CI (recomendado pela P3):** um job headless no `test.yml` que reaproveita a subida do Supabase do
 job `rls`, faz `next build` e `next start` e roda a suíte E2E.
@@ -419,8 +424,9 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 349 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 67 regressão),
-conferidos em 2026-11-06.** Os testes E2E da P3 entram nesta conta quando forem implementados.
+**Cobertura atual: 360 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 67 regressão
+
+- 11 E2E: 5 do ST-01 e 6 da auditoria de acessibilidade), conferidos em 2026-11-07.**
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,
 IT-08 e IT-09 só com mock, IT-07 sem constraint (#78), US-003/US-012/US-015 sem integração nem E2E.
@@ -551,19 +557,19 @@ cada iteração é sempre escrito pelo colega que não desenvolveu a história, 
 
 ## 10. Entregáveis da P3
 
-| Entregável                                                                                                     | Onde                                                      | Situação |
-| :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- | :------- |
-| Issue "P3 - Testes de Sistema, Testes Instrumentais com IA, Usabilidade e Acessibilidade - Grupo <Nome>"       | `bsi-tasks` e repositório do projeto                      | A fazer  |
-| Branches da entrega (ex.: `docs/#<id>-testes-sistema-ia`, `test/#<id>-e2e-suite`)                              | Repositório do projeto                                    | A fazer  |
-| Pesquisa comparativa de ferramentas E2E e decisão técnica                                                      | `docs/relatorio-testes-sistema-ia.md`                     | A fazer  |
-| Pesquisa sobre IA em testes de sistema e teste instrumental                                                    | `docs/relatorio-testes-sistema-ia.md`                     | A fazer  |
-| Scripts E2E (ST-01, ST-02) e comando de execução documentado                                                   | `tests/e2e/` e [execution-manual.md](execution-manual.md) | A fazer  |
-| Evidências da execução E2E (e job headless no CI, recomendado)                                                 | Relatório e `.github/workflows/test.yml`                  | A fazer  |
-| Sessão de teste instrumental por IA e análise comparativa                                                      | `docs/relatorio-testes-sistema-ia.md`                     | A fazer  |
-| Auditoria de acessibilidade e de usabilidade (linha de base)                                                   | `docs/relatorio-testes-sistema-ia.md`                     | A fazer  |
-| ≥ 2 melhorias de usabilidade/acessibilidade (Antes × Depois)                                                   | PR para `main`, referenciado no relatório                 | A fazer  |
-| Links atualizados em `softwaretesting/20262/README.md`                                                         | `bsi-tasks`                                               | A fazer  |
-| Texto no SIGAA: grupo, integrantes e usuários do GitHub, issue, PRs, relatório, scripts E2E e PR das melhorias | SIGAA                                                     | A fazer  |
+| Entregável                                                                                                     | Onde                                                      | Situação                  |
+| :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- | :------------------------ |
+| Issue "P3 - Testes de Sistema, Testes Instrumentais com IA, Usabilidade e Acessibilidade - Grupo <Nome>"       | `bsi-tasks` e repositório do projeto                      | A fazer                   |
+| Branches da entrega (ex.: `docs/#<id>-testes-sistema-ia`, `test/#<id>-e2e-suite`)                              | Repositório do projeto                                    | A fazer                   |
+| Pesquisa comparativa de ferramentas E2E e decisão técnica                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
+| Pesquisa sobre IA em testes de sistema e teste instrumental                                                    | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
+| Scripts E2E (ST-01, ST-02) e comando de execução documentado                                                   | `tests/e2e/` e [execution-manual.md](execution-manual.md) | ST-01 feito; ST-02 (José) |
+| Evidências da execução E2E (e job headless no CI, recomendado)                                                 | Relatório e `.github/workflows/test.yml`                  | Feito (CI no job `rls`)   |
+| Sessão de teste instrumental por IA e análise comparativa                                                      | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
+| Auditoria de acessibilidade e de usabilidade (linha de base)                                                   | `docs/relatorio-testes-sistema-ia.md`                     | Feito                     |
+| ≥ 2 melhorias de usabilidade/acessibilidade (Antes × Depois)                                                   | PR para `main`, referenciado no relatório                 | Feito (2)                 |
+| Links atualizados em `softwaretesting/20262/README.md`                                                         | `bsi-tasks`                                               | A fazer                   |
+| Texto no SIGAA: grupo, integrantes e usuários do GitHub, issue, PRs, relatório, scripts E2E e PR das melhorias | SIGAA                                                     | A fazer                   |
 
 Commits convencionais referenciam a issue da P3 (`#<id>`), e as entregas chegam à `main` por Pull
 Request.
