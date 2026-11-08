@@ -52,6 +52,8 @@ jobs:
         run: npm audit --audit-level=high
 
   rls:
+    # RLS contra o Supabase real e, no mesmo Supabase, os testes E2E (Playwright)
+    name: rls + e2e
     runs-on: ubuntu-latest
 
     steps:
@@ -94,3 +96,19 @@ jobs:
 
       - name: Executar testes de RLS (Supabase real)
         run: npm run test:integration:supabase
+
+      # Testes de sistema (P3): o mesmo Supabase local, build de produção do Next.js e Chromium
+      # headless. O relatório HTML (com trace, vídeo e captura das falhas) fica como artefato.
+      - name: Instalar o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar testes E2E e auditoria de acessibilidade (Playwright)
+        run: npm run test:e2e
+
+      - name: Publicar relatório do Playwright
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
