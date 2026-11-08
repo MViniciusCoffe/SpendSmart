@@ -27,7 +27,9 @@
   /* Semantic - Text */
   --color-text-primary: #f0f6fc;
   --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  /* #64748b dava 3,99:1 sobre o fundo secundário (WCAG 1.4.3 pede 4,5:1). #8b98ad passa em todos os
+     fundos do sistema, inclusive o mais claro (--color-bg-active, 4,62:1). Auditoria da P3. */
+  --color-text-muted: #8b98ad;
   --color-text-inverse: #04090b;
 
   /* Semantic - Border */
@@ -245,7 +247,8 @@
   /* Tokens referenced by components but previously only defined in the
      unused styles/tokens/ folder, so they resolved to nothing */
   --color-mercury-glow: rgba(0, 212, 170, 0.3);
-  --color-text-tertiary: #666666;
+  /* Era #666666 (3,3:1, reprovado na WCAG 1.4.3): agora segue o texto atenuado */
+  --color-text-tertiary: var(--color-text-muted);
   --color-scrollbar-thumb: #3a3a3a;
   --color-scrollbar-thumb-hover: #4a4a4a;
   --color-scrollbar-track: transparent;
