@@ -168,7 +168,7 @@ Funcionalidade: US-001 — Criar conta
 | ID        | Critério de aceitação                                                                                                                 |
 | :-------- | :------------------------------------------------------------------------------------------------------------------------------------ |
 | CA-006.01 | Dado nome, tipo, descrição e cor, quando salvo, então a categoria é criada e aparece na listagem                                      |
-| CA-006.02 | Dado nome, tipo e cor ausentes, quando submeto, então o navegador impede o envio                                                      |
+| CA-006.02 | Dado nome, tipo e cor ausentes, quando submeto, então o formulário impede o envio e indica o campo com erro                           |
 | CA-006.03 | Dado uma categoria com o mesmo nome, tipo e usuário, quando tento criar, então recebo "Categoria já existe" (código Postgres `23505`) |
 
 **Cenários formais (Gherkin):**
@@ -388,12 +388,12 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 **Tela:** `src/app/transactions/page.js`
 **Service:** `transactionService.createTransaction` (`src/services/transactionService.js`)
 
-| ID        | Critério de aceitação                                                                                       |
-| :-------- | :---------------------------------------------------------------------------------------------------------- |
-| CA-010.01 | Dado categoria, valor, título, data e forma de pagamento, quando salvo, então a receita aparece na listagem |
-| CA-010.02 | Dado valor ausente, não numérico ou zero, quando submeto, então o navegador impede o envio                  |
-| CA-010.03 | Dado uma receita registrada, quando consulto, então o título e a data aparecem preenchidos no detalhe       |
-| CA-010.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais e nunca é negativo             |
+| ID        | Critério de aceitação                                                                                                 |
+| :-------- | :-------------------------------------------------------------------------------------------------------------------- |
+| CA-010.01 | Dado categoria, valor, título, data e forma de pagamento, quando salvo, então a receita aparece na listagem           |
+| CA-010.02 | Dado valor ausente, não numérico ou zero, quando submeto, então o formulário impede o envio e indica o campo com erro |
+| CA-010.03 | Dado uma receita registrada, quando consulto, então o título e a data aparecem preenchidos no detalhe                 |
+| CA-010.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais e nunca é negativo                       |
 
 > **CA-010.03 atendido.** O título vem do mesmo `TransactionForm` usado para receitas e despesas,
 > e o campo enviado bate com o do service (issues #10 e #21, PR #42).
@@ -437,12 +437,12 @@ Funcionalidade: US-009 — Excluir categoria (soft delete)
 **Tela:** `src/app/transactions/page.js`
 **Service:** `transactionService.createTransaction` (`src/services/transactionService.js`)
 
-| ID        | Critério de aceitação                                                                                        |
-| :-------- | :----------------------------------------------------------------------------------------------------------- |
-| CA-013.01 | Dado categoria, valor, título, data e forma de pagamento, quando salvo, então a despesa aparece na listagem  |
-| CA-013.02 | Dado valor ausente, não numérico ou negativo, quando submeto, então o navegador impede o envio               |
-| CA-013.03 | Dado uma despesa registrada, quando consulto o detalhe, então data e forma de pagamento aparecem preenchidas |
-| CA-013.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais                                 |
+| ID        | Critério de aceitação                                                                                                     |
+| :-------- | :------------------------------------------------------------------------------------------------------------------------ |
+| CA-013.01 | Dado categoria, valor, título, data e forma de pagamento, quando salvo, então a despesa aparece na listagem               |
+| CA-013.02 | Dado valor ausente, não numérico ou negativo, quando submeto, então o formulário impede o envio e indica o campo com erro |
+| CA-013.03 | Dado uma despesa registrada, quando consulto o detalhe, então data e forma de pagamento aparecem preenchidas              |
+| CA-013.04 | Dado o valor gravado, quando consulto, então o valor tem duas casas decimais                                              |
 
 > **CA-013.03 atendido.** A tela lê `occurred_on` e `payment_method`, os mesmos campos que o service
 > devolve (issue #21, PR #42).
@@ -465,7 +465,7 @@ Funcionalidade: US-013 — Registrar despesa
 
   Cenário: CA-013.02 — Valor ausente, não numérico ou negativo
     Quando submeto o formulário com valor vazio, não numérico ou negativo
-    Então o navegador bloqueia o envio
+    Então o formulário bloqueia o envio e indica o campo com erro
     E nada é persistido
 
   Cenário: CA-013.03 — Detalhe preenchido (regressão #21)

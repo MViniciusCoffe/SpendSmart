@@ -211,7 +211,24 @@ fluxo. A suíte do CI usa 1 worker (padrão de `playwright.config.js`).
 **Observação do CA-013.02.** O formulário usa `noValidate` e o campo Valor é `type="text"`, então
 `el.validity.valid` continua `true` para vazio, `abc` e `-10`. O bloqueio vem do validador do
 `TransactionForm`; o teste confere o efeito exigido (mensagem, nenhum POST para
-`/rest/v1/transactions` e nenhuma linha no banco) em vez da restrição nativa.
+`/rest/v1/transactions` e nenhuma linha no banco) em vez da restrição nativa. A validação própria é
+intencional (mensagens em português, junto do campo), então o texto do critério mudou de "o navegador
+impede o envio" para "o formulário impede o envio e indica o campo com erro", também no CA-006.02 e no
+CA-010.02, que tinham a mesma redação ([user-stories.md](user-stories.md)).
+
+**Controle negativo do ST-02 (revisão do Marcus).** Cada critério recebeu um defeito proposital, um
+por vez, com o teste correspondente rodando sozinho (`--retries=0`) e o código restaurado em seguida.
+Os quatro falharam pelo motivo esperado:
+
+| Defeito introduzido                                         | Teste     | Resultado | Falha                                 |
+| :---------------------------------------------------------- | :-------- | :-------- | :------------------------------------ |
+| Saldo do dashboard soma as despesas em vez de subtrair      | CA-013.01 | Falhou    | esperava `-R$ 87,40`                  |
+| Valor negativo aceito pelo `TransactionForm`                | CA-013.02 | Falhou    | a mensagem "maior que 0" não apareceu |
+| Edição abre sem a forma de pagamento (volta do defeito #21) | CA-013.03 | Falhou    | esperava `"debit_card"`               |
+| `formatCurrency` arredonda o valor e perde os centavos      | CA-013.04 | Falhou    | esperava `R$ 1.234,50`                |
+
+Fora do escopo do ST-02: valor zero (está no CA-010.02, de receitas) e título e valor no formulário de
+edição (o CA-013.03 pede só data e forma de pagamento).
 
 No CI, o relatório HTML (com trace, vídeo e captura das falhas) fica como artefato
 `playwright-report` em cada execução do job `rls`.
