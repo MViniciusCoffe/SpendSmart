@@ -152,12 +152,13 @@ As demais convenções de código, com o motivo de cada uma, estão em
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                                |
-| :------------------------------------------------------------ | :-------------------------------------------------------------------------------------- |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores          |
+| #                                                             | Problema                                                                                                                         |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
+| [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) | Cliente Supabase aceita sessão vinda da URL (`detectSessionInUrl` ligado sem uso): um link pode logar o navegador em outra conta |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                          |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                   |
 
-Os dois foram encontrados por leitura de código (2026-11-03) e somem com a remoção das rotas
+A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15. Os dois da #75 foram encontrados da mesma forma (2026-11-03) e somem com a remoção das rotas
 privilegiadas da [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) (perfil criado por
 trigger no banco e exclusão por RPC).
 
