@@ -1,30 +1,17 @@
 import { supabase } from "@/lib/supabase"
 import { logger } from "./logger"
 
-let _sessionCache = null
-let _cacheExpiry = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 min
-
-export const obterSessao = async forceRefresh => {
-  const now = Date.now()
-  if (!forceRefresh && _sessionCache && now < _cacheExpiry) {
-    return _sessionCache
-  }
-
+// Lida a cada chamada, sem cache: o getSession() lê o armazenamento do próprio cliente (só vai à
+// rede para renovar um token vencido), então já devolve o usuário atual depois de um logout, de um
+// login de outro usuário na mesma aba ou de uma troca feita em outra aba. Um cache aqui
+// reaproveitava o user_id anterior por 5 minutos (issue #76).
+export const obterSessao = async () => {
   const {
     data: { session },
     error
   } = await supabase.auth.getSession()
   if (error || !session) throw new Error("Usuário não autenticado.")
-
-  _sessionCache = session
-  _cacheExpiry = now + CACHE_TTL
   return session
-}
-
-export const clearSessionCache = () => {
-  _sessionCache = null
-  _cacheExpiry = 0
 }
 
 export const traduzirErroSupabase = (error, mensagens) => {

@@ -8,14 +8,12 @@ jest.mock("@/lib/supabase", () => ({
 import { supabase } from "@/lib/supabase"
 import { categoryService } from "@/services/categoryService"
 import { criarBuilder, linhaCategoria, comSessao } from "../helpers/supabase"
-import { clearSessionCache } from "@/services/utils/baseService"
 
 // Regressão: transações de categoria excluída apareciam sem categoria ("—")
 // porque a única listagem disponível escondia as categorias deletadas (US-009, CA-009.05)
 describe("Regressão: nome de categoria excluída nas transações", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    clearSessionCache()
     supabase.auth.getSession.mockResolvedValue(comSessao)
   })
 
