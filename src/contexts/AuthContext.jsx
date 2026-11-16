@@ -36,7 +36,8 @@ export function AuthProvider({ children }) {
       let userData = authUser
       try {
         const profile = await profileService.getProfile()
-        userData = { ...authUser, ...profile }
+        // Só o nome: espalhar o perfil sobrescreveria created_at/updated_at do usuário do Auth
+        userData = { ...authUser, full_name: profile?.full_name ?? null }
       } catch (profileErr) {
         console.warn("Failed to fetch profile:", profileErr.message)
       }
@@ -135,9 +136,9 @@ export function AuthProvider({ children }) {
       setError(null)
       try {
         await profileService.updateProfile(profileData)
-        const { password, ...publicData } = profileData
-        if (user) {
-          setUser({ ...user, ...publicData })
+        // Campo vazio não muda nada no banco, então também não apaga o nome do Header
+        if (user && profileData.full_name) {
+          setUser({ ...user, full_name: profileData.full_name })
         }
       } catch (err) {
         setError(err.message)

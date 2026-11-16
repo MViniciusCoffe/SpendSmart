@@ -34,10 +34,8 @@ const respostaComErro = mensagem => ({
   json: () => Promise.resolve({ message: mensagem })
 })
 
-// Guarda as duas pontas da corrente de escrita no banco.
-// O "from" devolve "update", que devolve "eq", que devolve a promessa final
-let update
-let eq
+// Corrente de escrita no banco: update -> eq -> is, que resolve com o resultado
+let escrita
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -47,9 +45,8 @@ beforeEach(() => {
 
   // Comportamento padrão: trocar a senha e gravar o perfil funcionam
   supabase.auth.updateUser.mockResolvedValue({ error: null })
-  eq = jest.fn().mockResolvedValue({ error: null })
-  update = jest.fn().mockReturnValue({ eq })
-  supabase.from.mockReturnValue({ update })
+  escrita = criarBuilder({ error: null })
+  supabase.from.mockReturnValue(escrita)
 })
 
 afterEach(() => {
@@ -70,13 +67,15 @@ describe("updateProfile", () => {
     expect(resultado).toBe(true)
     expect(supabase.from).toHaveBeenCalledWith("profiles")
     // O serviço traduz os nomes do formulário para os nomes das colunas do banco
-    expect(update).toHaveBeenCalledWith({
+    expect(escrita.update).toHaveBeenCalledWith({
       full_name: "Joao Silva",
       birth_date: "1990-01-01",
       phone: "11999999999"
     })
     // E o filtro por usuário vem do id da sessão, nunca do que o formulário mandou
-    expect(eq).toHaveBeenCalledWith("id", "u1")
+    expect(escrita.eq).toHaveBeenCalledWith("id", "u1")
+    // Perfil excluído (soft delete) não é editado
+    expect(escrita.is).toHaveBeenCalledWith("deleted_at", null)
   })
 
   it("atualiza a senha e não toca no banco quando não há dados de perfil", async () => {
@@ -96,7 +95,7 @@ describe("updateProfile", () => {
     await profileService.updateProfile({ full_name: "Joao Silva", password: "novaSenha123" })
 
     expect(supabase.auth.updateUser).toHaveBeenCalledWith({ password: "novaSenha123" })
-    expect(update).toHaveBeenCalledWith({ full_name: "Joao Silva" })
+    expect(escrita.update).toHaveBeenCalledWith({ full_name: "Joao Silva" })
   })
 
   it("ignora os campos que o usuário deixou em branco", async () => {
@@ -105,7 +104,7 @@ describe("updateProfile", () => {
     await profileService.updateProfile({ full_name: "Joao Silva" })
 
     // Só o nome vai para o banco, data de nascimento e telefone ficam de fora
-    expect(update).toHaveBeenCalledWith({ full_name: "Joao Silva" })
+    expect(escrita.update).toHaveBeenCalledWith({ full_name: "Joao Silva" })
   })
 
   it("não chama nem a senha nem o banco quando nada vem preenchido", async () => {
@@ -166,7 +165,9 @@ describe("updateProfile", () => {
 
   it("traduz falha ao gravar o perfil", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    eq.mockResolvedValue({ error: { message: "violates check constraint" } })
+    supabase.from.mockReturnValue(
+      criarBuilder({ error: { code: "23514", message: "violates check constraint" } })
+    )
 
     await expect(profileService.updateProfile({ full_name: "Joao" })).rejects.toThrow(
       "Não foi possível atualizar os dados do perfil."
@@ -187,17 +188,39 @@ describe("getProfile", () => {
     await expect(profileService.getProfile()).rejects.toThrow("Usuário não autenticado.")
   })
 
-  it("busca o perfil pelo id da sessão e devolve os dados", async () => {
+  it("busca o perfil ativo pelo id da sessão e devolve o DTO", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    const builder = criarBuilder({ data: { full_name: "Joao Silva" }, error: null })
+    const linha = {
+      id: "u1",
+      full_name: "Joao Silva",
+      birth_date: "1990-01-01",
+      phone: "11999999999",
+      created_at: "2026-10-01T00:00:00Z",
+      updated_at: "2026-10-02T00:00:00Z",
+      deleted_at: null,
+      coluna_extra: "não sai do service"
+    }
+    const builder = criarBuilder({ data: linha, error: null })
     supabase.from.mockReturnValue(builder)
 
     const resultado = await profileService.getProfile()
 
     expect(supabase.from).toHaveBeenCalledWith("profiles")
-    expect(builder.select).toHaveBeenCalledWith("full_name")
+    // Texto literal, não a constante: se a constante esvaziar, o teste tem de falhar
+    expect(builder.select).toHaveBeenCalledWith(
+      "id,full_name,birth_date,phone,created_at,updated_at,deleted_at"
+    )
     expect(builder.eq).toHaveBeenCalledWith("id", "u1")
-    expect(resultado).toEqual({ full_name: "Joao Silva" })
+    expect(builder.is).toHaveBeenCalledWith("deleted_at", null)
+    const { coluna_extra, ...dto } = linha
+    expect(resultado).toEqual(dto)
+  })
+
+  it("devolve null quando não há perfil ativo", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.from.mockReturnValue(criarBuilder({ data: null, error: null }))
+
+    await expect(profileService.getProfile()).resolves.toBeNull()
   })
 
   it("traduz erro do banco", async () => {
