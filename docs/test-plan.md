@@ -75,14 +75,14 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 
 | Nível                            | Pasta / artefato                        | Comando                             | Situação        |
 | :------------------------------- | :-------------------------------------- | :---------------------------------- | :-------------- |
-| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 237 testes      |
+| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 236 testes      |
 | Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,12%          |
 | Unidade de lógica do front-end   | `tests/unit/` (Jest)                    | `npm test`                          | Planejado       |
 | Componentes (#33)                | a definir                               | a definir                           | Adiado          |
 | Integração do front-end          | `tests/e2e/` (Playwright, rede mockada) | a definir na implementação          | Planejado       |
 | Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
 | Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 21 testes       |
-| Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 67 testes       |
+| Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 70 testes       |
 | Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | `npm run test:e2e`                  | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
 | Aceitação (manual)               | `docs/acceptance-test-report-*.md`      | —                                   | Iterações 1 a 3 |
@@ -142,7 +142,7 @@ supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1"
 
 O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam direto.
 
-**Estado atual:** 237 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
+**Estado atual:** 236 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
 `src/services/`. A suíte antiga, que cobria só o código morto `categoriaService.js`, foi substituída
 (issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26)).
 
@@ -274,11 +274,11 @@ a regra de dupla verificação (§9), cada integrante automatiza uma US desenvol
 
 Fluxos adicionais, se houver tempo, em ordem de valor:
 
-| ID    | Fluxo                                                                                                                      | Por que                                                                                 |
-| :---- | :------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
-| ST-03 | Fluxo principal: criar conta → categorias de receita e despesa → lançamentos → saldo no dashboard (US-016) → excluir conta | Cobre o roteiro de §2.3.3 inteiro e o IT-03 pela interface                              |
-| ST-04 | Sair e entrar com outro usuário na mesma aba                                                                               | Exercita o defeito conhecido do cache de sessão (AGENTS.md §14.3); esperado falhar hoje |
-| ST-05 | Excluir categoria com lançamentos (CA-009.02, CA-009.05)                                                                   | Soft delete visível na interface                                                        |
+| ID    | Fluxo                                                                                                                      | Por que                                                                         |
+| :---- | :------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------ |
+| ST-03 | Fluxo principal: criar conta → categorias de receita e despesa → lançamentos → saldo no dashboard (US-016) → excluir conta | Cobre o roteiro de §2.3.3 inteiro e o IT-03 pela interface                      |
+| ST-04 | Sair e entrar com outro usuário na mesma aba                                                                               | Regressão da #76 (cache de sessão) e da #67 (logout em outra aba); implementado |
+| ST-05 | Excluir categoria com lançamentos (CA-009.02, CA-009.05)                                                                   | Soft delete visível na interface                                                |
 
 **Execução:** `npm run test:e2e` faz `next build` e sobe `next start` na porta 3100, contra o
 Supabase CLI local, nunca contra a Vercel ou os bancos remotos (`tests/e2e/support/env.js` recusa
@@ -290,6 +290,11 @@ e os remove ao final, como a suíte de RLS. Evidências no
 **Estado (2026-11-08):** ST-01 implementado (5 testes) e ST-02 implementado (4 testes, um por
 critério CA-013.01 a CA-013.04), ambos no CI, no job `rls` do `test.yml`, com o relatório HTML como
 artefato. A suíte soma 15 testes. ST-02 é do José; US-013 é do Marcus (dupla verificação, §9).
+
+**Estado (2026-11-15):** ST-04 implementado (`st-04-troca-usuario.spec.js`, 2 testes): troca de
+usuário na mesma aba sem recarregar (#76) e logout em outra aba (#67). Os dois falhavam antes da
+correção. A suíte soma 17 testes. Correção de defeito fora do escopo da disciplina, sem dupla
+verificação.
 
 **CI (recomendado pela P3):** um job headless no `test.yml` que reaproveita a subida do Supabase do
 job `rls`, faz `next build` e `next start` e roda a suíte E2E.
@@ -331,7 +336,7 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 67 testes, cobrindo #10/#21, #11, #24, #32, as rotas de `src/app/api/`, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 70 testes, cobrindo #10/#21, #11, #24, #32, #76, as rotas de `src/app/api/`, fuso horário em
 `formatDate`, nome de categoria deletada e propagação do tipo da categoria. Eles rodam só localmente
 (`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
 antes rodavam só localmente.
@@ -425,9 +430,9 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 360 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 67 regressão
+**Cobertura atual: 368 testes automatizados (236 unidade + 24 pg-mem + 21 Supabase local + 70 regressão
 
-- 11 E2E: 5 do ST-01 e 6 da auditoria de acessibilidade), conferidos em 2026-11-07.**
+- 17 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04 e 6 da auditoria de acessibilidade), conferidos em 2026-11-15.**
 
 Lacunas conhecidas, em ordem de prioridade: IT-03,
 IT-08 e IT-09 só com mock, IT-07 sem constraint (#78), US-003/US-012/US-015 sem integração nem E2E.
@@ -468,7 +473,7 @@ A separação por nível:
 | **Teste destrutivo apontado para banco com dados** | Alto. Em 2026-11-04 o `beforeEach` da integração apagou o Supabase local por causa de um `TEST_DATABASE_URL` no `.env.local`. | `db.js` recusa banco com contas com e-mail; a suíte RLS recusa URL não local; o E2E segue a mesma regra.             |
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
-| **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo (#76) e `AuthContext` sem `onAuthStateChange` (#67).                                       | ST-04 os exercita; correção junto com os testes de front-end.                                                        |
+| **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo (#76) e `AuthContext` sem `onAuthStateChange` (#67): corrigidos em 2026-11-15.             | ST-04 cobre os dois no navegador; a regressão da #76 cobre o service.                                                |
 | **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | FK composta `(category_id, type)` (IT-07, #78).                                                                      |
 | **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Regressão com mock cobre o 401; eliminar a `service_role` da aplicação (#75).                                        |
 | **Front-end fora da cobertura medida (#33)**       | Baixo para a P3. A cobertura de 100% vale só para `src/services/`.                                                            | E2E cobre o comportamento da interface; testes de componente depois da P3.                                           |

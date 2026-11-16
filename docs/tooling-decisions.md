@@ -730,7 +730,7 @@ services/
 ├── transactionService.js
 ├── profileService.js
 └── utils/
-    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase, clearSessionCache
+    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase
     ├── logger.js           # logger.error/warn/info (JSON, dev-only)
     ├── mappers.js          # categoryTypeMap, transactionTypeMap, profileTypeMap
     ├── validators.js       # 14 validadores centralizados
