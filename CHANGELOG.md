@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.3...v0.3.0) (2026-11-16)
+
+
+### Funcionalidades
+
+* sincroniza o AuthContext com mudanças de sessão de outras abas ([#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67)) ([54314f5](https://github.com/MViniciusCoffe/SpendSmart/commit/54314f52d26b59e27c91ea73de8b3e4ccb51d3bc))
+
+
+### Correções
+
+* remove o cache de sessão do baseService ([#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76)) ([39a1c04](https://github.com/MViniciusCoffe/SpendSmart/commit/39a1c04c2cb85e6c9cc478e8f39f82a7c6c62239))
+* traduz falha de rede nos services ([cacf443](https://github.com/MViniciusCoffe/SpendSmart/commit/cacf44337cad36ab89a41c181fe14c393699cf33))
+* troca de usuário na mesma aba e sessão sincronizada entre abas ([#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67), [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76), [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77)) ([cefcdef](https://github.com/MViniciusCoffe/SpendSmart/commit/cefcdef95aa2f4696ad075c4567d8b497fc3f7c9))
+
+
+### Refatoração
+
+* coloca o profileService no padrão dos services ([#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77)) ([083fce5](https://github.com/MViniciusCoffe/SpendSmart/commit/083fce57c7582d8d249cc8b77db96ade8476d740))
+
+
+### Documentação
+
+* registra a correção da sessão e o fechamento da [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67), [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76) e [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77) ([35b452f](https://github.com/MViniciusCoffe/SpendSmart/commit/35b452fdf5de1f2f000a27c1dbb5039cc8a4d012))
+* registra a fixação de sessão pela URL como defeito conhecido ([#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91)) ([006a1dd](https://github.com/MViniciusCoffe/SpendSmart/commit/006a1ddd19f21354df96a3f381280f1d5acc4262))
+
 ## [0.2.3](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.2...v0.2.3) (2026-11-08)
 
 
