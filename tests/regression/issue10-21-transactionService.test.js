@@ -7,7 +7,6 @@ jest.mock("@/lib/supabase", () => ({
 
 import { supabase } from "@/lib/supabase"
 import { transactionService } from "@/services/transactionService"
-import { clearSessionCache } from "@/services/utils/baseService"
 import { criarBuilder, comSessao } from "@/tests/helpers/supabase"
 import { linha } from "@/tests/helpers/fixtures"
 
@@ -16,7 +15,6 @@ import { linha } from "@/tests/helpers/fixtures"
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
-  clearSessionCache()
   supabase.auth.getSession.mockResolvedValue(comSessao)
 })
 

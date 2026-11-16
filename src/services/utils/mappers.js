@@ -4,6 +4,7 @@
 export const CATEGORY_COLUMNS = "id,name,type,description,color,deleted_at"
 export const TRANSACTION_COLUMNS =
   "id,title,amount,type,category_id,occurred_on,description,payment_method,deleted_at"
+export const PROFILE_COLUMNS = "id,full_name,birth_date,phone,created_at,updated_at,deleted_at"
 
 export const categoryTypeMap = cat => ({
   id: cat.id,

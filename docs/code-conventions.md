@@ -60,6 +60,12 @@ export const algumService = {
 - **Erros traduzidos** para português por `traduzirErroSupabase`/`handleSupabaseError`. Erros do Auth
   são traduzidos pelo `error.code`, não pela mensagem em inglês (ex.: `same_password` e
   `weak_password` em `profileService.updateProfile`, #11).
+- **Falha de rede também é traduzida.** O `postgrest-js` devolve falha de transporte como
+  `PostgrestError` com `code: ""` e mensagem `"FetchError: ..."`. Por isso o `withErrorHandling`
+  decide pela presença da propriedade (`error.code !== undefined`), não pelo valor: um
+  `if (error.code)` deixava o texto do fetch, em inglês, chegar à tela. Erro de validação é um
+  `Error` sem `code` e sobe com a própria mensagem. Teste:
+  `tests/regression/network-error-message.test.js`.
 - **Validação pelos validadores existentes** (`src/services/utils/validators.js`): `titulo`, `valor`,
   `tipo`, `categoriaId`, `data`, `descricao`, `formaPagamento`, `nome`, `email`, `senha`, `telefone`,
   `dataNascimento`, `cor`. Criar um novo só quando nenhum servir. O que dá para recusar no cliente

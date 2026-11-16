@@ -8,14 +8,13 @@ import { Button, Input, Label, Card, Badge } from "@/components/ui"
 import { ConfirmDialog } from "@/components/feedback"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/contexts/ToastContext"
-import { profileService } from "@/services/profileService"
 import { authService } from "@/services/authServices"
 import styles from "./page.module.css"
 
 function SettingsPage() {
   const router = useRouter()
-  // Log out through the context so the header and withAuth see it immediately
-  const { logout } = useAuth()
+  // Save and log out through the context so the header and withAuth see it immediately
+  const { logout, updateProfile } = useAuth()
   const { error: toastError, success: toastSuccess } = useToast()
 
   const [fullName, setFullName] = useState("")
@@ -31,7 +30,7 @@ function SettingsPage() {
     e.preventDefault()
 
     try {
-      await profileService.updateProfile({
+      await updateProfile({
         full_name: fullName,
         password: password,
         birth_date: birthDate,

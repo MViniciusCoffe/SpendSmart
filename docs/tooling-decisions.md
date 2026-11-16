@@ -194,7 +194,7 @@ avisar.
 
 ---
 
-## 9. `no-alert` e `react-hooks/exhaustive-deps` rebaixadas para aviso
+## 9. `no-alert` e `react-hooks/exhaustive-deps` rebaixadas para aviso (revertida em 2026-11-15)
 
 **Decisão.** Duas regras do `eslint-config-next` rebaixadas de `error` para `warn`, cada uma com
 comentário citando a issue que trata a causa.
@@ -220,6 +220,11 @@ mudança de código, não de configuração.
 são a rastreabilidade de #13 e #67 (a parte de sessão da antiga #24).
 
 **Reavaliar quando.** #13 e #67 forem fechadas, e a regra volta a `error`.
+
+**Revisão (2026-11-15).** Com a #13 e a #67 fechadas, o `eslint .` não acusa mais nenhuma das duas
+regras, nem com elas em `error`. O bloco de rebaixamento saiu do `eslint.config.js`, e as duas voltam
+à severidade do `eslint-config-next`. Manter o `warn` deixaria passar em silêncio um `alert` novo ou
+uma dependência esquecida num `useEffect`, justamente o tipo de defeito que a #67 tratou.
 
 ---
 
@@ -730,7 +735,7 @@ services/
 ├── transactionService.js
 ├── profileService.js
 └── utils/
-    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase, clearSessionCache
+    ├── baseService.js      # withSession, withErrorHandling, handleSupabaseError, obterSessao, traduzirErroSupabase
     ├── logger.js           # logger.error/warn/info (JSON, dev-only)
     ├── mappers.js          # categoryTypeMap, transactionTypeMap, profileTypeMap
     ├── validators.js       # 14 validadores centralizados

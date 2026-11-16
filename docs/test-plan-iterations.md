@@ -246,7 +246,8 @@ Cenário: Rota privada sem sessão
 > CT02.01 a CT02.04 são automatizados no nível de unidade (`tests/unit/authServices.test.js`, bloco
 > `loginUser`), que verifica a tradução de cada erro do Supabase Auth e os argumentos enviados ao
 > `signInWithPassword`. A navegação (redirecionamentos) é conferida na execução manual. CT02.07
-> verifica a proteção no cliente: a proteção no servidor ainda não existe (issue #67, separada da #24 em 2026-11-05).
+> verifica a proteção no cliente: a proteção no servidor não existe e ficou sem plano enquanto
+> nenhuma página buscar dado no servidor (issue #67, fechada em 2026-11-15).
 
 ### 6.2 US-016 — Consultar o dashboard (RF10 a RF15 agregados)
 

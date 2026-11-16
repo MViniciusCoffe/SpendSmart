@@ -14,13 +14,11 @@ import {
   semSessao,
   comSessao
 } from "../helpers/supabase"
-import { clearSessionCache } from "@/services/utils/baseService"
 
 // Antes ou depois de cada teste, podemos limpar os mocks para evitar interferência entre testes
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
-  clearSessionCache()
 })
 
 afterEach(() => {

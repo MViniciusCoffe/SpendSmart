@@ -142,28 +142,32 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | Testes de unidade                           | **237 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                              |
 | Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                                                                                                                            |
 | Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado)                                                                                                |
-| Testes de regressão                         | **9 suítes, 67 testes** (issues #10, #21, #11, #24, #32, rotas de API, data no fuso, categoria excluída/tipo)                                                                                                                   |
+| Testes de regressão                         | **11 suítes, 75 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rotas de API, fuso, categoria)                                                                                                                    |
 | `npm test`                                  | **Passa** — 210/210                                                                                                                                                                                                             |
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                            |
 | CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit`, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                              |
-| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login, 5 testes) e auditoria WCAG A/AA das 6 telas (axe), no CI; sem testes de componente (issue #33)                                                                            |
+| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário) e auditoria WCAG A/AA das 6 telas (axe), 17 testes, no CI; sem testes de componente (issue #33)                                |
 | Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                    |
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                                                                                              |
-| :------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Rotas privadas sem proteção no servidor (a sessão do Supabase fica no `localStorage`)                                                                 |
-| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | `AuthContext` não escuta mudanças de sessão; expiração só é detectada pelos serviços                                                                  |
-| [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76) | Cache de sessão (`baseService.js`) nunca é limpo: logout e login de outro usuário na mesma aba em até 5 min deixam os services com o `user_id` antigo |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                                               |
-| [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77) | `profileService` fora do padrão: sem `withSession`/`withErrorHandling`, sem filtro de `deleted_at`, sem `profileTypeMap`                              |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                                        |
+| #                                                             | Problema                                                                                                                         |
+| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
+| [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) | Cliente Supabase aceita sessão vinda da URL (`detectSessionInUrl` ligado sem uso): um link pode logar o navegador em outra conta |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                          |
+| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                   |
 
-Os quatro últimos foram encontrados por leitura de código (2026-11-03) e ficam para a frente de
-testes de front-end e sistema (P3), corrigidos junto com os testes que os cobrem. Os dois da [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)
-somem com a remoção das rotas privilegiadas (perfil criado por trigger no banco e exclusão por RPC).
+A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15. Os dois da #75 foram encontrados da mesma forma (2026-11-03) e somem com a remoção das rotas
+privilegiadas da [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) (perfil criado por
+trigger no banco e exclusão por RPC).
+
+Corrigidos na branch `fix/sessao-troca-user` (fecham com o PR): [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76)
+(cache de sessão que reaproveitava o `user_id` do usuário anterior na mesma aba), [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67)
+(`AuthContext` passou a ouvir o `onAuthStateChange`; a proteção das rotas no servidor ficou sem plano
+enquanto nenhuma página buscar dado no servidor) e [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77)
+(`profileService` no padrão dos services). Teste: `tests/e2e/st-04-troca-usuario.spec.js` e
+`tests/regression/issue76-session-cache.test.js`.
 Também aberta: [#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78), o tipo da transação garantido pelo banco (IT-07).
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
@@ -260,10 +264,9 @@ arquivos abaixo, em Markdown.
 
 Issues abertas, em ordem de dependência:
 
-| #                                                             | Assunto                       | Bloqueia |
-| :------------------------------------------------------------ | :---------------------------- | :------- |
-| [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67) | Proteção server-side e sessão | —        |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end        | —        |
+| #                                                             | Assunto                | Bloqueia |
+| :------------------------------------------------------------ | :--------------------- | :------- |
+| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end | —        |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.
 Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.

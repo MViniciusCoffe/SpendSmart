@@ -5,14 +5,14 @@ jest.mock("@/lib/supabase", () => ({
       signUp: jest.fn(),
       signInWithPassword: jest.fn(),
       getSession: jest.fn(),
-      signOut: jest.fn()
+      signOut: jest.fn(),
+      onAuthStateChange: jest.fn()
     }
   }
 }))
 
 import { supabase } from "@/lib/supabase"
 import { authService } from "@/services/authServices"
-import { clearSessionCache } from "@/services/utils/baseService"
 
 // Usuário fictício devolvido pelo Supabase Auth
 const usuario = { id: "u1", email: "joao@email.com" }
@@ -28,7 +28,6 @@ const respostaComErro = mensagem => ({
 
 beforeEach(() => {
   jest.clearAllMocks()
-  clearSessionCache()
   jest.spyOn(console, "error").mockImplementation(() => {})
   // Mock padrão para getSession (registerUser agora usa o token da sessão)
   supabase.auth.getSession.mockResolvedValue({
@@ -283,6 +282,33 @@ describe("getSession", () => {
 })
 
 // Testes para o método logoutUser do serviço de autenticação
+// Inscrição nas mudanças de sessão usada pelo AuthContext (#67)
+describe("onAuthChange", () => {
+  it("repassa evento e sessão ao callback", () => {
+    supabase.auth.onAuthStateChange.mockReturnValue({
+      data: { subscription: { unsubscribe: jest.fn() } }
+    })
+    const callback = jest.fn()
+
+    authService.onAuthChange(callback)
+    const [ouvinte] = supabase.auth.onAuthStateChange.mock.calls[0]
+    ouvinte("SIGNED_OUT", null)
+
+    expect(callback).toHaveBeenCalledWith("SIGNED_OUT", null)
+  })
+
+  it("devolve a função que cancela a inscrição", () => {
+    const unsubscribe = jest.fn()
+    supabase.auth.onAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe } } })
+
+    const cancelar = authService.onAuthChange(jest.fn())
+    expect(unsubscribe).not.toHaveBeenCalled()
+    cancelar()
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe("logoutUser", () => {
   it("encerra a sessao com sucesso", async () => {
     supabase.auth.signOut.mockResolvedValue({ error: null })

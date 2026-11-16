@@ -8,13 +8,11 @@ jest.mock("@/lib/supabase", () => ({
 import { supabase } from "@/lib/supabase"
 import { categoryService } from "@/services/categoryService"
 import { criarBuilder, linhaCategoria, comSessao } from "../helpers/supabase"
-import { clearSessionCache } from "@/services/utils/baseService"
 
 // Regressão: mudar o tipo da categoria deixava as transações com o tipo antigo
 describe("Regressão: tipo da categoria x tipo das transações", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    clearSessionCache()
     supabase.auth.getSession.mockResolvedValue(comSessao)
   })
 

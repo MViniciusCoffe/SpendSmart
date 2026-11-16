@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase"
 import { categoryService } from "@/services/categoryService"
-import { clearSessionCache } from "@/services/utils/baseService"
 import { createTestUser, createTestCategory, cleanupTestData } from "@/tests/helpers/factory"
 import { assertLocalSupabase } from "@/tests/helpers/localSupabase"
 
@@ -23,7 +22,6 @@ async function entrarComo(usuario) {
   await supabase.auth.signOut()
   const { error } = await supabase.auth.signInWithPassword(usuario)
   if (error) throw error
-  clearSessionCache()
 }
 
 beforeAll(async () => {
@@ -45,7 +43,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await supabase.auth.signOut()
-  clearSessionCache()
   await cleanupTestData(ids)
 })
 

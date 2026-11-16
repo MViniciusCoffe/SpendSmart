@@ -90,26 +90,41 @@ o que permite conferir o score sem rodar nada localmente.
 | Filtros e soft delete  | `8dcda35` |              198 |    506 |            42 | **92,34%** |
 | Bordas, cache e logger | `ce6d12b` |              208 |    531 |            17 | **96,90%** |
 | E-mail normalizado     | `0a4e4f7` |              210 |    535 |            16 | **97,10%** |
-| Senha (#11) e colunas  | (este)    |              237 |    540 |            16 | **97,12%** |
+| Senha (#11) e colunas  | `9b0e637` |              237 |    540 |            16 | **97,12%** |
+| Sessão sem cache (#76) | `083fce5` |              236 |    523 |            16 | **97,03%** |
+| Falha de rede          | (este)    |              237 |    524 |            16 | **97,04%** |
 
 548 mutantes nas três primeiras rodadas, 551 na quarta (o validador de e-mail ganhou uma checagem
 de tipo) e 556 na quinta (tradução dos erros de senha da #11 e as listas de colunas em `mappers.js`),
 sempre com 0 sem cobertura e 0 timeouts. Na quinta, `categoryService` e `transactionService` perderam
 mutantes porque as strings de colunas repetidas viraram uma constante só, em `mappers.js`.
 
+A sexta tem 539 mutantes (2026-11-15). O score caiu 0,09 ponto sem nenhum sobrevivente novo: os
+mesmos 16 equivalentes da §6 continuam, e o denominador diminuiu. Saíram os 17 mutantes do cache de
+sessão do `baseService` (#76), todos mortos, e o `profileService` (#77) passou a usar o
+`withSession`/`withErrorHandling` em vez de repetir a leitura da sessão. Um sobrevivente novo
+apareceu no caminho, `PROFILE_COLUMNS` → `""`: o teste comparava o `select` com a constante
+importada, que o Stryker também esvaziava. Ele passou a comparar com o texto literal, como os testes
+das outras listas de colunas.
+
+A sétima (540 mutantes) entra com a tradução da falha de rede no `withErrorHandling`, que passou a
+testar `error.code !== undefined`. Uma versão com `error?.code` deixava um sobrevivente novo
+(`OptionalChaining`), porque nada no código lança um valor que não seja objeto. O `?.` saiu, e o
+`baseService.js` voltou a 100%.
+
 ### 4.2 Score final por arquivo
 
 | Arquivo                          |  Mortos | Sobreviventes |      Score |
 | :------------------------------- | ------: | ------------: | ---------: |
-| `services/authServices.js`       |      64 |             2 |     96,97% |
+| `services/authServices.js`       |      67 |             2 |     97,10% |
 | `services/categoryService.js`    |      94 |             6 |     94,00% |
-| `services/profileService.js`     |      53 |             2 |     96,36% |
+| `services/profileService.js`     |      46 |             2 |     95,83% |
 | `services/transactionService.js` |      50 |             4 |     92,59% |
-| `services/utils/baseService.js`  |      42 |             0 |    100,00% |
+| `services/utils/baseService.js`  |      29 |             0 |    100,00% |
 | `services/utils/logger.js`       |      23 |             0 |    100,00% |
-| `services/utils/mappers.js`      |       8 |             0 |    100,00% |
+| `services/utils/mappers.js`      |       9 |             0 |    100,00% |
 | `services/utils/validators.js`   |     206 |             2 |     99,04% |
-| **Total**                        | **540** |        **16** | **97,12%** |
+| **Total**                        | **524** |        **16** | **97,04%** |
 
 ---
 
@@ -183,7 +198,7 @@ checagem documenta uma regra (mês e dia precisam bater) e o custo é zero.
 | Onde                                                                           | Mutação                                                                                                             |
 | :----------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
 | `categoryService.js` (6), `transactionService.js` (4), `profileService.js` (2) | Contexto passado a `withErrorHandling`/`handleSupabaseError` (`"getCategories"`, `"createTransaction"`, ...) → `""` |
-| `authServices.js:11`, `authServices.js:82`                                     | Rótulo do `console.error` (`"[Supabase Register Error]"`, `"[Supabase Logout Error]"`) → `""`                       |
+| `authServices.js:11`, `authServices.js:93`                                     | Rótulo do `console.error` (`"[Supabase Register Error]"`, `"[Supabase Logout Error]"`) → `""`                       |
 
 Essas strings só identificam a origem da mensagem no log de desenvolvimento (o `logger` não grava
 nada em produção). Não afetam o retorno, a mensagem ao usuário nem os dados. Testá-las seria testar

@@ -142,6 +142,8 @@ Eliminar as rotas privilegiadas: um trigger `SECURITY DEFINER` em `auth.users` c
 cadastro, e uma RPC `delete_own_account()` exclui a conta. O `/api/status` já não usa a chave.
 Feito isso, a aplicação volta a ser a Opção A pura, e `SUPABASE_SERVICE_ROLE_KEY` sai da Vercel.
 
-A sessão ainda vive no `localStorage` do navegador, sem proteção das rotas privadas no servidor
-(#67). Corrigir isso exige o cliente Supabase com cookies (`@supabase/ssr`) e a checagem no
-`src/proxy.js`, sem trocar de opção.
+A sessão ainda vive no `localStorage` do navegador, sem proteção das rotas privadas no servidor.
+Hoje nenhuma página busca dado no servidor (os dados carregam no navegador e o RLS protege), então
+isso ficou sem plano ao fechar a #67 (2026-11-15). Quando a primeira página buscar dado no servidor,
+a correção é o cliente Supabase com cookies (`@supabase/ssr`) e a checagem no `src/proxy.js`, sem
+trocar de opção.

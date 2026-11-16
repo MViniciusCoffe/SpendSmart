@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase"
 import { logger } from "@/services/utils/logger"
 import {
   obterSessao,
-  clearSessionCache,
   traduzirErroSupabase,
   handleSupabaseError,
   withSession,
@@ -26,7 +25,6 @@ jest.mock("@/services/utils/logger", () => ({
 describe("baseService", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    clearSessionCache()
   })
 
   describe("obterSessao", () => {
@@ -53,47 +51,18 @@ describe("baseService", () => {
       await expect(obterSessao()).rejects.toThrow("Usuário não autenticado.")
     })
 
-    it("usa cache quando forceRefresh e false", async () => {
-      const mockSession = { user: { id: "u1" }, access_token: "token123" }
-      supabase.auth.getSession.mockResolvedValue({ data: { session: mockSession }, error: null })
-
-      const session1 = await obterSessao(false)
-      const session2 = await obterSessao(false)
-
-      expect(supabase.auth.getSession).toHaveBeenCalledTimes(1)
-      expect(session2).toEqual(session1)
-    })
-
-    it("ignora cache quando forceRefresh true", async () => {
-      const mockSession1 = { user: { id: "u1" }, access_token: "token1" }
-      const mockSession2 = { user: { id: "u2" }, access_token: "token2" }
+    // Sem cache (issue #76): cada chamada pergunta ao cliente, que já sabe quem está logado agora
+    it("lê a sessão a cada chamada e devolve o usuário atual", async () => {
       supabase.auth.getSession
-        .mockResolvedValueOnce({ data: { session: mockSession1 }, error: null })
-        .mockResolvedValueOnce({ data: { session: mockSession2 }, error: null })
+        .mockResolvedValueOnce({ data: { session: { user: { id: "u1" } } }, error: null })
+        .mockResolvedValueOnce({ data: { session: { user: { id: "u2" } } }, error: null })
 
-      const session1 = await obterSessao(false)
-      const session2 = await obterSessao(true)
+      const primeira = await obterSessao()
+      const segunda = await obterSessao()
 
       expect(supabase.auth.getSession).toHaveBeenCalledTimes(2)
-      expect(session2).not.toEqual(session1)
-    })
-  })
-
-  describe("clearSessionCache", () => {
-    it("limpa o cache", async () => {
-      const mockSession = { user: { id: "u1" }, access_token: "token123" }
-      supabase.auth.getSession.mockResolvedValue({ data: { session: mockSession }, error: null })
-
-      await obterSessao()
-      clearSessionCache()
-
-      supabase.auth.getSession.mockResolvedValue({
-        data: { session: { user: { id: "u2" }, access_token: "new" } },
-        error: null
-      })
-      const session = await obterSessao()
-
-      expect(session.user.id).toBe("u2")
+      expect(primeira.user.id).toBe("u1")
+      expect(segunda.user.id).toBe("u2")
     })
   })
 
@@ -175,6 +144,23 @@ describe("baseService", () => {
       ).rejects.toThrow("Já existe")
     })
 
+    // Falha de rede: o postgrest-js devolve PostgrestError com code "" (issue sem número,
+    // encontrada por leitura de código em 2026-11-15)
+    it("traduz falha de rede, que chega com codigo vazio", async () => {
+      const error = { code: "", message: "FetchError: Failed to fetch" }
+
+      await expect(
+        withErrorHandling(
+          async () => {
+            throw error
+          },
+          "listar",
+          { generica: "Não foi possível carregar." }
+        )
+      ).rejects.toThrow("Não foi possível carregar.")
+      expect(logger.error).toHaveBeenCalledWith("listar", error)
+    })
+
     it("re-lanca erro sem codigo", async () => {
       const error = new Error("erro generico")
 
@@ -187,43 +173,6 @@ describe("baseService", () => {
           { generica: "Erro genérico" }
         )
       ).rejects.toThrow("erro generico")
-    })
-  })
-
-  // Expiração do cache de sessão (5 min), apontada pelos testes de mutação (#60)
-  describe("expiração do cache de sessão", () => {
-    const CINCO_MINUTOS = 5 * 60 * 1000
-    const inicio = 1_000_000
-
-    beforeEach(() => {
-      supabase.auth.getSession.mockResolvedValue({
-        data: { session: { user: { id: "u1" } } },
-        error: null
-      })
-    })
-
-    afterEach(() => {
-      jest.restoreAllMocks()
-    })
-
-    it("reaproveita a sessão até 1 ms antes de completar 5 minutos", async () => {
-      const agora = jest.spyOn(Date, "now").mockReturnValue(inicio)
-      await obterSessao()
-
-      agora.mockReturnValue(inicio + CINCO_MINUTOS - 1)
-      await obterSessao()
-
-      expect(supabase.auth.getSession).toHaveBeenCalledTimes(1)
-    })
-
-    it("busca a sessão de novo ao completar 5 minutos", async () => {
-      const agora = jest.spyOn(Date, "now").mockReturnValue(inicio)
-      await obterSessao()
-
-      agora.mockReturnValue(inicio + CINCO_MINUTOS)
-      await obterSessao()
-
-      expect(supabase.auth.getSession).toHaveBeenCalledTimes(2)
     })
   })
 })
