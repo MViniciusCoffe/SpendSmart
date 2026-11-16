@@ -91,7 +91,8 @@ o que permite conferir o score sem rodar nada localmente.
 | Bordas, cache e logger | `ce6d12b` |              208 |    531 |            17 | **96,90%** |
 | E-mail normalizado     | `0a4e4f7` |              210 |    535 |            16 | **97,10%** |
 | Senha (#11) e colunas  | `9b0e637` |              237 |    540 |            16 | **97,12%** |
-| Sessão sem cache (#76) | (este)    |              236 |    523 |            16 | **97,03%** |
+| Sessão sem cache (#76) | `083fce5` |              236 |    523 |            16 | **97,03%** |
+| Falha de rede          | (este)    |              237 |    524 |            16 | **97,04%** |
 
 548 mutantes nas três primeiras rodadas, 551 na quarta (o validador de e-mail ganhou uma checagem
 de tipo) e 556 na quinta (tradução dos erros de senha da #11 e as listas de colunas em `mappers.js`),
@@ -106,6 +107,11 @@ apareceu no caminho, `PROFILE_COLUMNS` → `""`: o teste comparava o `select` co
 importada, que o Stryker também esvaziava. Ele passou a comparar com o texto literal, como os testes
 das outras listas de colunas.
 
+A sétima (540 mutantes) entra com a tradução da falha de rede no `withErrorHandling`, que passou a
+testar `error.code !== undefined`. Uma versão com `error?.code` deixava um sobrevivente novo
+(`OptionalChaining`), porque nada no código lança um valor que não seja objeto. O `?.` saiu, e o
+`baseService.js` voltou a 100%.
+
 ### 4.2 Score final por arquivo
 
 | Arquivo                          |  Mortos | Sobreviventes |      Score |
@@ -114,11 +120,11 @@ das outras listas de colunas.
 | `services/categoryService.js`    |      94 |             6 |     94,00% |
 | `services/profileService.js`     |      46 |             2 |     95,83% |
 | `services/transactionService.js` |      50 |             4 |     92,59% |
-| `services/utils/baseService.js`  |      28 |             0 |    100,00% |
+| `services/utils/baseService.js`  |      29 |             0 |    100,00% |
 | `services/utils/logger.js`       |      23 |             0 |    100,00% |
 | `services/utils/mappers.js`      |       9 |             0 |    100,00% |
 | `services/utils/validators.js`   |     206 |             2 |     99,04% |
-| **Total**                        | **523** |        **16** | **97,03%** |
+| **Total**                        | **524** |        **16** | **97,04%** |
 
 ---
 

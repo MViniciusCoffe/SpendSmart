@@ -75,14 +75,14 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 
 | Nível                            | Pasta / artefato                        | Comando                             | Situação        |
 | :------------------------------- | :-------------------------------------- | :---------------------------------- | :-------------- |
-| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 236 testes      |
+| Unidade (services)               | `tests/unit/`                           | `npm test`                          | 237 testes      |
 | Mutação                          | `src/services/` (Stryker)               | `npm run test:mutation`             | 97,12%          |
 | Unidade de lógica do front-end   | `tests/unit/` (Jest)                    | `npm test`                          | Planejado       |
 | Componentes (#33)                | a definir                               | a definir                           | Adiado          |
 | Integração do front-end          | `tests/e2e/` (Playwright, rede mockada) | a definir na implementação          | Planejado       |
 | Integração (pg-mem)              | `tests/integration/postgres/`           | `npm run test:integration`          | 24 testes       |
 | Integração (RLS, Supabase local) | `tests/integration/supabase/`           | `npm run test:integration:supabase` | 21 testes       |
-| Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 70 testes       |
+| Regressão                        | `tests/regression/`                     | `npm run test:regression`           | 75 testes       |
 | Sistema (E2E automatizado)       | `tests/e2e/` (Playwright)               | `npm run test:e2e`                  | P3              |
 | Sistema (instrumental por IA)    | sessão registrada no relatório da P3    | —                                   | P3              |
 | Aceitação (manual)               | `docs/acceptance-test-report-*.md`      | —                                   | Iterações 1 a 3 |
@@ -142,7 +142,7 @@ supabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: "u1"
 
 O mesmo vale para `global.fetch`, que `authServices` e `profileService` chamam direto.
 
-**Estado atual:** 236 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
+**Estado atual:** 237 testes em `tests/unit/`, com 100% de cobertura de linhas, ramos e funções em
 `src/services/`. A suíte antiga, que cobria só o código morto `categoriaService.js`, foi substituída
 (issue [#26](https://github.com/MViniciusCoffe/SpendSmart/issues/26)).
 
@@ -336,7 +336,7 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 70 testes, cobrindo #10/#21, #11, #24, #32, #76, as rotas de `src/app/api/`, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 75 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, as rotas de `src/app/api/`, fuso horário em
 `formatDate`, nome de categoria deletada e propagação do tipo da categoria. Eles rodam só localmente
 (`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
 antes rodavam só localmente.
@@ -430,7 +430,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 368 testes automatizados (236 unidade + 24 pg-mem + 21 Supabase local + 70 regressão
+**Cobertura atual: 374 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 75 regressão
 
 - 17 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04 e 6 da auditoria de acessibilidade), conferidos em 2026-11-15.**
 

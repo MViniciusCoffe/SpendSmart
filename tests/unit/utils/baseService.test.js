@@ -144,6 +144,23 @@ describe("baseService", () => {
       ).rejects.toThrow("Já existe")
     })
 
+    // Falha de rede: o postgrest-js devolve PostgrestError com code "" (issue sem número,
+    // encontrada por leitura de código em 2026-11-15)
+    it("traduz falha de rede, que chega com codigo vazio", async () => {
+      const error = { code: "", message: "FetchError: Failed to fetch" }
+
+      await expect(
+        withErrorHandling(
+          async () => {
+            throw error
+          },
+          "listar",
+          { generica: "Não foi possível carregar." }
+        )
+      ).rejects.toThrow("Não foi possível carregar.")
+      expect(logger.error).toHaveBeenCalledWith("listar", error)
+    })
+
     it("re-lanca erro sem codigo", async () => {
       const error = new Error("erro generico")
 

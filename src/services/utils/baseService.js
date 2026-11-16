@@ -34,10 +34,13 @@ export const withErrorHandling = async (operation, contexto, mensagens) => {
   try {
     return await operation()
   } catch (error) {
-    if (error.code) {
+    // A presença da propriedade decide, não o valor: uma falha de rede chega do postgrest-js como
+    // PostgrestError com code "" e mensagem "FetchError: ..." em inglês, e um `if (error.code)`
+    // deixava esse texto cru chegar à tela. Erro de validação é um Error sem code e continua
+    // subindo original, porque a mensagem dele já é a que o usuário deve ler.
+    if (error.code !== undefined) {
       handleSupabaseError(error, mensagens, contexto)
     }
-    // Erro sem código (validacao, mock, network) -> re-lanca original
     throw error
   }
 }
