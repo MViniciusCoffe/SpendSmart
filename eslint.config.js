@@ -27,14 +27,6 @@ module.exports = [
     }
   },
   {
-    rules: {
-      // #13 vai trocar alert por toast. Rebaixado para nao travar a suite.
-      "no-alert": "warn",
-      // #24: withAuth nao escuta onAuthStateChange e isso e um defeito real.
-      "react-hooks/exhaustive-deps": "warn"
-    }
-  },
-  {
     files: ["tests/**/*.js"],
     languageOptions: {
       globals: {
