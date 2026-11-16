@@ -1,28 +1,56 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { authService } from "@/services/authServices"
 import { profileService } from "@/services/profileService"
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUserState] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Id de quem está no estado agora, lido pelo listener sem depender de re-render
+  const currentUserId = useRef(null)
+  // Número da busca de perfil mais recente: só ela pode gravar o usuário. No cadastro, o signUp
+  // avisa SIGNED_IN antes de o perfil existir; sem isso, essa busca (sem nome) poderia terminar
+  // depois da busca do register e apagar o nome no Header.
+  const latestLoad = useRef(0)
+
+  const setUser = useCallback(next => {
+    currentUserId.current = next?.id ?? null
+    setUserState(next)
+  }, [])
+
+  // Invalida as buscas em andamento e esvazia o usuário (logout aqui ou em outra aba)
+  const clearUser = useCallback(() => {
+    latestLoad.current += 1
+    setUser(null)
+  }, [setUser])
+
+  // Junta o usuário do Auth com o perfil. Se o perfil falhar, o usuário entra sem o nome
+  const loadUser = useCallback(
+    async authUser => {
+      const load = ++latestLoad.current
+      let userData = authUser
+      try {
+        const profile = await profileService.getProfile()
+        userData = { ...authUser, ...profile }
+      } catch (profileErr) {
+        console.warn("Failed to fetch profile:", profileErr.message)
+      }
+      if (load === latestLoad.current) setUser(userData)
+      return userData
+    },
+    [setUser]
+  )
 
   const fetchUser = useCallback(async () => {
     try {
       const session = await authService.getSession()
       if (session?.user) {
-        let userData = session.user
-        try {
-          const profile = await profileService.getProfile()
-          userData = { ...session.user, ...profile }
-        } catch (profileErr) {
-          console.warn("Failed to fetch profile:", profileErr.message)
-        }
-        setUser(userData)
+        await loadUser(session.user)
       } else {
         setUser(null)
       }
@@ -32,62 +60,75 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loadUser, setUser])
 
   // Initial fetch - run once on mount
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadInitialUser = async () => {
       await fetchUser()
     }
-    loadUser()
+    loadInitialUser()
   }, [fetchUser])
 
-  const login = useCallback(async (email, password) => {
-    setError(null)
-    try {
-      const user = await authService.loginUser({ email, password })
-      try {
-        const profile = await profileService.getProfile()
-        setUser({ ...user, ...profile })
-      } catch (profileErr) {
-        console.warn("Failed to fetch profile after login:", profileErr.message)
-        setUser(user)
-      }
-      return user
-    } catch (err) {
-      setError(err.message)
-      throw err
-    }
-  }, [])
+  // Mudanças de sessão vindas de fora deste fluxo: logout ou login de outro usuário em outra aba,
+  // sessão encerrada pelo servidor. O INITIAL_SESSION fica com o fetchUser acima; login e cadastro
+  // desta aba gravam o usuário eles mesmos, antes de a página navegar.
+  useEffect(
+    () =>
+      authService.onAuthChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          clearUser()
+          return
+        }
+        if (event === "INITIAL_SESSION") return
+        const authUser = session?.user
+        if (authUser && authUser.id !== currentUserId.current) {
+          // Fora do callback: buscar o perfil lá dentro travaria o cliente do Supabase
+          setTimeout(() => loadUser(authUser), 0)
+        }
+      }),
+    [clearUser, loadUser]
+  )
 
-  const register = useCallback(async userData => {
-    setError(null)
-    try {
-      const user = await authService.registerUser(userData)
+  const login = useCallback(
+    async (email, password) => {
+      setError(null)
       try {
-        const profile = await profileService.getProfile()
-        setUser({ ...user, ...profile })
-      } catch (profileErr) {
-        console.warn("Failed to fetch profile after register:", profileErr.message)
-        setUser(user)
+        const user = await authService.loginUser({ email, password })
+        await loadUser(user)
+        return user
+      } catch (err) {
+        setError(err.message)
+        throw err
       }
-      return user
-    } catch (err) {
-      setError(err.message)
-      throw err
-    }
-  }, [])
+    },
+    [loadUser]
+  )
+
+  const register = useCallback(
+    async userData => {
+      setError(null)
+      try {
+        const user = await authService.registerUser(userData)
+        await loadUser(user)
+        return user
+      } catch (err) {
+        setError(err.message)
+        throw err
+      }
+    },
+    [loadUser]
+  )
 
   const logout = useCallback(async () => {
     try {
       await authService.logoutUser()
-      setUser(null)
     } catch (err) {
       console.error("Logout error:", err)
-      setUser(null)
     }
-  }, [])
+    clearUser()
+  }, [clearUser])
 
   const updateProfile = useCallback(
     async profileData => {
@@ -103,7 +144,7 @@ export function AuthProvider({ children }) {
         throw err
       }
     },
-    [user]
+    [user, setUser]
   )
 
   const value = useMemo(

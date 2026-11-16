@@ -76,6 +76,17 @@ export const authService = {
     return data.session
   },
 
+  // Avisa a cada mudança de sessão, inclusive as vindas de outra aba (logout, login de outro
+  // usuário, token renovado). Devolve a função que cancela a inscrição. O callback não pode esperar
+  // outra chamada do Supabase dentro dele: o cliente segura um lock enquanto avisa, e a chamada
+  // travaria. Quem precisa buscar algo agenda a busca para depois.
+  onAuthChange(callback) {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => callback(event, session))
+    return () => subscription.unsubscribe()
+  },
+
   async logoutUser() {
     const { error } = await supabase.auth.signOut()
     if (error) {
