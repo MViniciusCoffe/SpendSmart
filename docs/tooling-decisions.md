@@ -891,6 +891,16 @@ precisar de um terceiro ambiente remoto (basta um novo `--target` e um novo `.en
   `glob`, `minimatch`) estão só nas ferramentas de desenvolvimento do Jest/cobertura, e a correção
   exige atualização major. Bloquear o CI por elas pararia todo PR sem ganho de segurança para a
   produção (`npm audit --omit=dev`: 0).
+- **Desde 2026-11-17, só as dependências de produção bloqueiam** (`npm audit --omit=dev
+--audit-level=high`). Nesse dia saiu um aviso _high_ no `picomatch`
+  ([GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), ReDoS) que vale para
+  **todas** as versões, sem correção publicada, e todo PR (inclusive o de release) ficou vermelho.
+  Ele só chega por ferramentas de desenvolvimento (Jest, `eslint-config-next`, `lint-staged`,
+  `commitizen`), que não vão para o navegador nem para a Vercel; o `npm audit fix --force` só
+  oferecia rebaixar Jest, Stryker e `lint-staged`. Um segundo passo roda a auditoria completa com
+  `continue-on-error`, para o aviso continuar no log, e o Dependabot abre o PR quando houver
+  correção. Alternativas descartadas: uma lista de exceções (`audit-ci`, dependência a mais e uma
+  entrada para lembrar de apagar) e esperar a correção (CI parado sem prazo).
 - **Dependabot** semanal, minor/patch agrupados (produção e desenvolvimento separados). Ignora
   major do `eslint` (§2 do AGENTS: o 10 quebra o `eslint-config-next`), da
   `sonarqube-scan-action` e do `actions/checkout` (§20).
