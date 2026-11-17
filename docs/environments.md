@@ -48,7 +48,7 @@ banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca
 | -------------------------------------- | ------------------------------------------------------- | ------------------------ | ------------------------ | ------------------------ | -------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`             | `src/lib/supabase.js`, rotas de `src/app/api/`          | `http://127.0.0.1:54321` | URL do `spsm-preview`    | URL do `spsm-prod`       | Não                        |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `src/lib/supabase.js`, rotas de `src/app/api/`          | `supabase status`        | chave do `spsm-preview`  | chave do `spsm-prod`     | Não (vai para o navegador) |
-| `SUPABASE_SERVICE_ROLE_KEY`            | só os testes (`tests/helpers/`, `tests/e2e/support/`)   | `supabase status`        | **remover da Vercel**    | **remover da Vercel**    | **Sim**                    |
+| `SUPABASE_SERVICE_ROLE_KEY`            | só os testes (`tests/helpers/`, `tests/e2e/support/`)   | `supabase status`        | não existe (removida)    | não existe (removida)    | **Sim**                    |
 | `DATABASE_URL`                         | só `scripts/db-migrations.js`, via `.env.<alvo>.remote` | —                        | **não existe na Vercel** | **não existe na Vercel** | **Sim**                    |
 | `TEST_DATABASE_URL`                    | `tests/integration/db.js` (opcional, ver §6)            | não definir por padrão   | —                        | —                        | Não (banco local)          |
 
@@ -63,8 +63,8 @@ banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca
   criam e apagam usuários do Supabase local com ela.
 - **Ordem da troca (#75):** aplicar a migration na Preview (`migrations:push -- --target preview
 --apply`) antes de testar o cadastro no deploy da branch, que já não tem as rotas; na Produção o
-  `deploy.yml` aplica a migration antes do deploy. Depois do deploy de Produção, apagar a variável da
-  Vercel nos dois escopos.
+  `deploy.yml` aplica a migration antes do deploy. Depois do deploy de Produção, a variável foi
+  apagada da Vercel nos dois escopos (2026-11-17).
 - **Janela da troca (aceita em 2026-11-17).** Entre a migration aplicada e o código novo no ar, o
   `/api/createProfile` antigo ainda roda: o trigger já criou o perfil, o insert da rota falha com
   `23505` e o rollback da #25 apaga o usuário recém-cadastrado. Na Produção a janela é o intervalo

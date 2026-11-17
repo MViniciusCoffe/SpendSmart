@@ -133,24 +133,24 @@ As demais convenções de código, com o motivo de cada uma, estão em
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                                                                                                                                                                      |
-| :------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                                 |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                            |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                                          |
-| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                                 |
-| Excluir conta                               | Funcionando                                                                                                                                                                                                                                 |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                                         |
-| Testes de unidade                           | **241 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                                          |
-| Testes de integração (pg-mem)               | **4 suítes, 24 testes** (constraints, FK, unicidade)                                                                                                                                                                                        |
-| Testes de integração (Supabase/RLS)         | **2 suítes, 21 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado)                                                                                                            |
-| Testes de regressão                         | **11 suítes, 75 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rotas de API, fuso, categoria)                                                                                                                                |
-| `npm test`                                  | **Passa** — 210/210                                                                                                                                                                                                                         |
-| Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                                        |
-| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                                          |
-| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA + `heading-order` das 6 telas (axe), 18 testes, no CI; sem testes de componente (issue #33)  |
-| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                                |
+| Item                                        | Estado                                                                                                                                                                                                                                                                                  |
+| :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                                                                             |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                                                                        |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                                                                                      |
+| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                                                                             |
+| Excluir conta                               | Funcionando                                                                                                                                                                                                                                                                             |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                                                                                     |
+| Testes de unidade                           | **241 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                                                                                      |
+| Testes de integração (pg-mem)               | **4 suítes, 27 testes** (constraints, FK, unicidade, FK composta de tipo e dono)                                                                                                                                                                                                        |
+| Testes de integração (Supabase/RLS)         | **3 suítes, 36 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado; `account.test.js`: trigger de perfil, RPC de exclusão e privilégios)                                                                                   |
+| Testes de regressão                         | **9 suítes, 65 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rota de status, fuso, categoria deletada)                                                                                                                                                                  |
+| `npm test`                                  | **Passa** — 241/241                                                                                                                                                                                                                                                                     |
+| Build de produção (`next build`)            | **Passa** — 17 rotas                                                                                                                                                                                                                                                                    |
+| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal                                             |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                                                                                      |
+| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA + `heading-order` das 6 telas (axe), 18 testes, no CI; sem testes de componente (#33 fechada como _not planned_: o E2E cobre o objetivo) |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                                                                            |
 
 ### Defeitos conhecidos
 
@@ -160,24 +160,20 @@ As demais convenções de código, com o motivo de cada uma, estão em
 
 A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15.
 
-Corrigidos na branch `feat/#75-sem-service-role` (fecham com o PR): a página de configurações
-chamava `/api/deleteAccount` direto, sem passar por um service, e o `/api/createProfile` gravava com a
-chave de serviço sem passar pelos validadores. As duas rotas saíram: o perfil nasce do trigger
-`on_auth_user_created` na mesma transação do cadastro (falha no perfil não deixa conta no Auth, #25)
-e a exclusão usa a RPC `delete_own_account()` pelo `profileService`.
+Corrigidos e fechados (histórico em [`CHANGELOG.md`](CHANGELOG.md)):
 
-Corrigidos na branch `fix/sessao-troca-user` (fecham com o PR): [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76)
-(cache de sessão que reaproveitava o `user_id` do usuário anterior na mesma aba), [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67)
-(`AuthContext` passou a ouvir o `onAuthStateChange`; a proteção das rotas no servidor ficou sem plano
-enquanto nenhuma página buscar dado no servidor) e [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77)
-(`profileService` no padrão dos services). Teste: `tests/e2e/st-04-troca-usuario.spec.js` e
-`tests/regression/issue76-session-cache.test.js`.
-Corrigida na branch `fix/#78-fk-tipo-categoria` (fecha com o PR): [#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78). A FK composta `(category_id, user_id, type)` garante que a transação tem o tipo e o dono da categoria (IT-07); antes, só o service protegia isso.
-
-Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
-componentizadas), #13 (toasts no lugar de `alert`), #22
-(navbar duplicada), #23 (rotas públicas), #32 (valor com vírgula e separador de milhar) e #43
-(senha mínima no cadastro). Na branch `chore/tech-debt`: #8, #11, #20, #24 e #66.
+- **PR #96** (#75): a chave de serviço saiu da aplicação. O perfil nasce do trigger
+  `on_auth_user_created` na mesma transação do cadastro (falha no perfil não deixa conta no Auth,
+  #25) e a exclusão de conta usa a RPC `delete_own_account()` pelo `profileService`.
+- **PR #92** (#67, #76, #77): o cache de sessão reaproveitava o `user_id` do usuário anterior na
+  mesma aba; o `AuthContext` passou a ouvir o `onAuthStateChange` (a proteção das rotas no servidor
+  ficou sem plano enquanto nenhuma página buscar dado no servidor); `profileService` no padrão dos
+  services. Testes: `tests/e2e/st-04-troca-usuario.spec.js` e
+  `tests/regression/issue76-session-cache.test.js`.
+- **PR #99** (#78): a FK composta `(category_id, user_id, type)` garante que a transação tem o tipo e
+  o dono da categoria (IT-07); antes, só o service protegia isso.
+- **PR #68** (`chore/tech-debt`): #8, #11, #20, #24, #48 a #54, #56 e #66.
+- **PR #59** (front-end): #6, #7, #13, #22, #23, #32 e #43.
 
 ### Sobre o RLS
 
@@ -266,11 +262,15 @@ arquivos abaixo, em Markdown.
 
 ## Trabalho acadêmico em andamento
 
-Issues abertas, em ordem de dependência:
+Issues abertas:
 
-| #                                                             | Assunto                | Bloqueia |
-| :------------------------------------------------------------ | :--------------------- | :------- |
-| [#33](https://github.com/MViniciusCoffe/SpendSmart/issues/33) | Cobertura de front-end | —        |
+| #                                                             | Assunto                                                                | Prioridade |
+| :------------------------------------------------------------ | :--------------------------------------------------------------------- | :--------- |
+| [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) | Fixação de sessão por link (sessão na URL)                             | Alta       |
+| [#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82) | Achados restantes da auditoria de acessibilidade (fecha com o PR #101) | Média      |
+| [#9](https://github.com/MViniciusCoffe/SpendSmart/issues/9)   | Exibição de histórico temporal                                         | Baixa      |
+| [#5](https://github.com/MViniciusCoffe/SpendSmart/issues/5)   | Sincronia de estado (SWR/React Query)                                  | Baixa      |
+| [#4](https://github.com/MViniciusCoffe/SpendSmart/issues/4)   | Paginação e infinite scroll                                            | Baixa      |
 
 Resolvidos pela frente de testes, CI e SonarQube: #2, #10, #15, #16, #17, #18, #19, #21, #25, #26, #29, #30, #31.
 Resolvidos pela frente de front-end: #6, #7, #13, #22, #23, #32, #43.
