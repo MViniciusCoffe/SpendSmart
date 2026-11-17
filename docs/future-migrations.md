@@ -3,8 +3,8 @@
 Propostas de mudança de schema que **não foram aplicadas**. Este arquivo é uma especificação
 escrita, não uma migration executável: nada aqui roda sozinho.
 
-> **Estado em 2026-11-04.** As Propostas 1 e 2 já foram aplicadas (ver cada seção); só a
-> Proposta 3 continua em aberto. O bloqueio que impedia criar migrations — `npm run dev` aplicava
+> **Estado em 2026-11-17.** As três propostas foram resolvidas. A 3 virou uma FK composta em vez do
+> trigger proposto (#78, `20261117164421_transactions_category_type_fk.sql`). O bloqueio que impedia criar migrations — `npm run dev` aplicava
 > tudo no banco de produção — deixou de existir com a separação de ambientes (issue
 > [#20](https://github.com/MViniciusCoffe/SpendSmart/issues/20)). Uma proposta vira migration pelo
 > fluxo de [environments.md §5.2](environments.md#52-fluxo-de-uma-mudança-de-schema).
@@ -146,6 +146,12 @@ Nenhum. O trigger age no servidor; nenhuma chamada no frontend precisa mudar.
 
 ## Proposta 3 — Garantir que `transactions.type` bate com `categories.type`
 
+> **Resolvida na #78 (2026-11-17) com uma FK composta, não com o trigger da Opção A:**
+> `(category_id, user_id, type) → categories(id, user_id, type)` com `ON UPDATE CASCADE`. A FK não
+> precisa de plpgsql, propaga a mudança de tipo e ainda impede transação na categoria de outro
+> usuário. O texto abaixo fica como registro da análise; o estado atual está em
+> [database-schema.md](database-schema.md#publictransactions).
+
 Rastreabilidade: RF12 do plano de testes (IT-07) e o registro em
 [Plano de testes](test-plan.md#6-riscos-e-contingencias).
 
@@ -217,10 +223,7 @@ Se a consulta devolver linhas, a migration falha até que elas sejam corrigidas.
 
 ## Ordem sugerida
 
-Só a **Proposta 3** continua pendente. Ela bloqueia dado corrompido e tem reversível simples.
-Atenção: desde a CA-008.03, mudar o tipo de uma categoria propaga o tipo às transações
-(`categoryService.updateCategory` com `updateTransactionsType`), o que precisa ser coerente com o
-trigger proposto.
+Nenhuma proposta pendente: a Proposta 3 foi resolvida pela #78.
 
 ---
 

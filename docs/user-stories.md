@@ -266,8 +266,8 @@ Funcionalidade: US-007 — Listar categorias
 | CA-008.03 | Dado uma categoria com transações vinculadas, quando tento mudar o tipo, então a aplicação impede ou explica o impacto |
 
 > CA-008.03 atendido: ao mudar o tipo de uma categoria com transações, um diálogo explica o
-> impacto e, se confirmado, as transações passam ao novo tipo (`categoryService.updateCategory`
-> com `updateTransactionsType`).
+> impacto e, se confirmado, as transações passam ao novo tipo. Quem propaga é o banco (FK composta
+> com `ON UPDATE CASCADE`, #78), na mesma operação que muda a categoria.
 
 **Cenários formais (Gherkin):**
 

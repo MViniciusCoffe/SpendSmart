@@ -117,8 +117,8 @@ A separação de responsabilidades adotada:
 6. **Nunca concatenar input em SQL.**
 7. **Exclusão é lógica (`deleted_at`).** Uma categoria com transações pode ser excluída (US-009):
    as transações continuam no histórico e no dashboard, exibindo a categoria como "Nome (deletada)",
-   e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação
-   e propaga o tipo às transações (CA-008.03).
+   e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação;
+   o banco propaga o tipo às transações (FK composta com `ON UPDATE CASCADE`, #78, CA-008.03).
 8. **Sem `alert`/`confirm`.** Feedback por toast e confirmações pelo `ConfirmDialog`.
 9. **Sem chave secreta na aplicação** (#75). O que precisa de privilégio fica numa função
    `SECURITY DEFINER` do banco (`handle_new_user`, `delete_own_account`), chamada com a sessão do
@@ -172,7 +172,7 @@ Corrigidos na branch `fix/sessao-troca-user` (fecham com o PR): [#76](https://gi
 enquanto nenhuma página buscar dado no servidor) e [#77](https://github.com/MViniciusCoffe/SpendSmart/issues/77)
 (`profileService` no padrão dos services). Teste: `tests/e2e/st-04-troca-usuario.spec.js` e
 `tests/regression/issue76-session-cache.test.js`.
-Também aberta: [#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78), o tipo da transação garantido pelo banco (IT-07).
+Corrigida na branch `fix/#78-fk-tipo-categoria` (fecha com o PR): [#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78). A FK composta `(category_id, user_id, type)` garante que a transação tem o tipo e o dono da categoria (IT-07); antes, só o service protegia isso.
 
 Corrigidos no código atual (podem ser fechados no GitHub): #6 e #7 (páginas unificadas e
 componentizadas), #13 (toasts no lugar de `alert`), #22
