@@ -213,7 +213,7 @@ Consequências da organização:
 | IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                             |
 | IT-05 | Unicidade de categoria por (usuário, nome, tipo)     | Depende da constraint `23505`.                                                  | pg-mem (`categoryConstraints.test.js`)                                                             |
 | IT-06 | `amount` não negativo e não zero                     | Depende do `CHECK (amount > 0)`.                                                | pg-mem (CT10.02, CT13.02)                                                                          |
-| IT-07 | `transactions.type` deve bater com `categories.type` | Invariante que hoje não existe no banco. Ver §6.                                | **Sem teste e sem constraint** (#78)                                                               |
+| IT-07 | `transactions.type` deve bater com `categories.type` | FK composta `(category_id, user_id, type)` (#78).                               | pg-mem (`categoryConstraints.test.js`) e Supabase local, com a cascata (`categoryService.test.js`) |
 | IT-08 | Cadastro cria Auth e perfil numa operação só         | Depende do trigger em `auth.users` (#75).                                       | `account.test.js`: perfil dos metadados; sem nome ou com data inválida, nenhuma conta fica no Auth |
 | IT-09 | `delete_own_account()` só apaga a conta do token     | Depende do `GRANT EXECUTE` e de `auth.uid()` (#75).                             | `account.test.js`: sem sessão → `42501`; a conta de outro usuário não é tocada                     |
 | IT-10 | Migrations aplicam do zero sem erro                  | Verifica o guard `to_regclass` e a ordem de execução.                           | Implícito: o pg-mem monta o schema a partir dos `.sql` e o job `rls` do CI roda `supabase start`   |
@@ -340,10 +340,16 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 75 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, as rotas de `src/app/api/`, fuso horário em
-`formatDate`, nome de categoria deletada e propagação do tipo da categoria. Eles rodam só localmente
+`issue10-21-transactionService.test.js`). Hoje são 65 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, o `/api/status`, fuso horário em
+`formatDate` e nome de categoria deletada. Eles rodam só localmente
 (`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
 antes rodavam só localmente.
+
+**Exceção (2026-11-17, #78):** quando só o banco real mostra o defeito, a regressão fica em
+`tests/integration/supabase/`, com a issue no nome do teste, e roda no job `rls` do CI. Um mock em
+`tests/regression/` repetiria o teste unitário sem ver o defeito. Caso atual: a propagação do tipo
+da categoria às transações (CA-008.03), que vem do `ON UPDATE CASCADE` da FK composta, em
+`categoryService.test.js` ("regressão da CA-008.03, #78").
 
 Os fluxos E2E de §2.3.1 também cumprem papel de regressão para os defeitos de interface já corrigidos
 (#10, #21, #22, #23, #43).
@@ -422,7 +428,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 | US-005 Privacidade       |     | IT-01, IT-02   | ST-04 |        | IT-01/IT-02 comparam o conjunto exato (#66)                                                                           |
 | US-006 Criar categoria   | x   | IT-05          | ST-03 |        |                                                                                                                       |
 | US-007 Listar categorias | x   | IT-01, service | ST-03 | ?      | `categoryService` real no Supabase local, com estado vazio (CA-007.02); sem relatório de aceitação próprio em `docs/` |
-| US-008 Alterar categoria | x   |                |       |        | CA-008.03 atendido (diálogo e propagação do tipo)                                                                     |
+| US-008 Alterar categoria | x   | IT-07          |       |        | CA-008.03: diálogo na tela, propagação do tipo pelo banco (`ON UPDATE CASCADE`, #78)                                  |
 | US-009 Excluir categoria | x   | IT-04          | ST-05 |        | Soft delete; CA-009.03 com contagem real                                                                              |
 | US-010 Registrar receita | x   | IT-06          | ST-03 | x      | #10 e #21 resolvidos (PR #42)                                                                                         |
 | US-011 Listar receitas   | x   | IT-01          | ST-03 |        |                                                                                                                       |
@@ -430,16 +436,16 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 | US-013 Registrar despesa | x   | IT-06          | ST-02 | x      | #21 resolvido (PR #42)                                                                                                |
 | US-014 Listar despesas   | x   | IT-01          | ST-02 |        |                                                                                                                       |
 | US-015 Excluir despesa   | x   |                |       |        |                                                                                                                       |
-| US-016 Dashboard         |     | IT-07          | ST-03 | x      | Agregação no cliente; IT-07 sem constraint nem teste                                                                  |
+| US-016 Dashboard         |     | IT-07          | ST-03 | x      | Agregação no cliente; o tipo de cada lançamento é garantido pela FK composta (IT-07)                                  |
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 380 testes automatizados (239 unidade + 24 pg-mem + 33 Supabase local + 66 regressão
+**Cobertura atual: 384 testes automatizados (238 unidade + 27 pg-mem + 36 Supabase local + 65 regressão
 
 - 18 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04, 1 da US-004 e 6 da auditoria de acessibilidade),
   conferidos em 2026-11-17.**
 
-Lacunas conhecidas, em ordem de prioridade: IT-07 sem constraint (#78), US-003/US-012/US-015 sem
+Lacunas conhecidas, em ordem de prioridade: US-003/US-012/US-015 sem
 integração nem E2E.
 
 ---
@@ -479,7 +485,7 @@ A separação por nível:
 | **Fluxo E2E instável (flaky)**                     | Médio. Esperas por tempo fixo e dados compartilhados entre execuções geram falso negativo.                                    | Usuário próprio por execução, seletores por papel/rótulo acessível e espera por estado, nunca por tempo.             |
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
 | **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo (#76) e `AuthContext` sem `onAuthStateChange` (#67): corrigidos em 2026-11-15.             | ST-04 cobre os dois no navegador; a regressão da #76 cobre o service.                                                |
-| **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | FK composta `(category_id, type)` (IT-07, #78).                                                                      |
+| **Invariante `type` não verificada**               | Resolvido (#78). Despesa em categoria de receita, ou transação na categoria de outro usuário, corrompia o dashboard.          | FK composta `(category_id, user_id, type)`; IT-07 no pg-mem e no Supabase local.                                     |
 | **Funções `SECURITY DEFINER` (IT-08, IT-09)**      | Médio. Trigger e RPC rodam com o dono e ignoram o RLS; um erro nelas alcança outras contas.                                   | `search_path = ''`, `EXECUTE` explícito e `account.test.js` com duas contas (#75).                                   |
 | **Front-end fora da cobertura medida (#33)**       | Baixo para a P3. A cobertura de 100% vale só para `src/services/`.                                                            | E2E cobre o comportamento da interface; testes de componente depois da P3.                                           |
 

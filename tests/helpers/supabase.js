@@ -7,7 +7,8 @@ export const METODOS = [
   "order",
   "single",
   "maybeSingle",
-  "is"
+  "is",
+  "not"
 ]
 
 export const criarBuilder = resultado => {

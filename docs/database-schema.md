@@ -11,6 +11,7 @@ As migrações correspondentes estão em `supabase/migrations/`:
 | `20261106031517_restrict_table_grants.sql`                         | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
 | `20261106150417_add_health_check.sql`                              | Cria a função `public.health_check()`, que o `/api/status` chama com a chave pública (`EXECUTE` para `anon`).                     |
 | `20261117144356_create_profile_trigger_and_delete_own_account.sql` | Cria o trigger `on_auth_user_created` (perfil a partir dos metadados do cadastro) e a RPC `public.delete_own_account()` (#75).    |
+| `20261117164421_transactions_category_type_fk.sql`                 | Troca a FK `transactions_category_fk` pela composta `(category_id, user_id, type)`, com `ON UPDATE CASCADE` (#78, IT-07).         |
 
 Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
 [environments.md §5](environments.md#5-migrations).
@@ -130,7 +131,7 @@ Um lançamento financeiro. A coluna `type` diferencia entrada e saída:
 | :--------------- | :-------------- | :------------------------------------ |
 | `id`             | `bigint`        | PK gerada pelo banco.                 |
 | `user_id`        | `uuid`          | FK para `auth.users.id`, obrigatório. |
-| `category_id`    | `bigint`        | FK para `categories.id`, obrigatório. |
+| `category_id`    | `bigint`        | FK composta com `user_id` e `type`.   |
 | `type`           | `text`          | `income` ou `expense`.                |
 | `amount`         | `numeric(12,2)` | Maior que zero.                       |
 | `title`          | `text`          | Nome ou fonte do lançamento.          |
@@ -147,7 +148,27 @@ check (type in ('income', 'expense'))
 check (amount > 0)
 ```
 
-A aplicação deve garantir que `transactions.type` seja igual ao tipo da categoria escolhida.
+O banco garante que a transação tem o tipo e o dono da categoria (#78): a FK `transactions_category_fk`
+é composta, `(category_id, user_id, type) → categories(id, user_id, type)`, sobre a restrição
+`categories_id_user_type_key UNIQUE (id, user_id, type)`.
+
+```sql
+foreign key (category_id, user_id, type) references categories (id, user_id, type)
+  on update cascade on delete restrict
+```
+
+- **Tipo:** despesa em categoria de receita (ou o contrário) é recusada com `23503`, por qualquer
+  caminho (service, SQL Editor, script). O service traduz para "Categoria não encontrada.".
+- **Dono:** uma transação não pode apontar para a categoria de outro usuário. O RLS sozinho não
+  barrava isso: o `WITH CHECK` olha o `user_id` da transação, e a checagem de FK ignora o RLS.
+- **`ON UPDATE CASCADE`:** mudar o tipo da categoria muda o das transações dela na mesma operação,
+  inclusive as excluídas (soft delete), que também precisam cumprir a regra. É o que atende a
+  CA-008.03; o `categoryService` não faz mais a segunda escrita. Como as excluídas também mudam, o
+  diálogo de confirmação da tela de categorias conta as duas (`countTransactions(id, { deleted:
+true })`) e cita as excluídas à parte.
+- **`ON DELETE RESTRICT`**, como antes (IT-04).
+- O pg-mem não implementa `ON UPDATE CASCADE` (recusa o `UPDATE` da categoria): a propagação é
+  testada só no Supabase local (`tests/integration/supabase/categoryService.test.js`).
 
 ## Diagrama entidade-relacionamento
 
@@ -210,7 +231,7 @@ erDiagram
   `authenticated`. Testada em `tests/integration/supabase/account.test.js` (IT-03).
 - A exclusão de categoria pela aplicação é lógica (`deleted_at`), mesmo com transações vinculadas; `on delete restrict` impede apenas o `DELETE` físico, então transações nunca são apagadas silenciosamente.
 - **Soft delete:** exclusão de perfil, categoria ou transação define `deleted_at = now()`; registros permanecem no histórico, somas e dashboards. Listagens e dropdowns filtram `deleted_at IS NULL`. Purge real ocorre via job noturno (`deleted_at > 30 dias`).
-- A aplicação deve validar que categoria e transação pertencem ao mesmo usuário e possuem o mesmo tipo.
+- Categoria e transação têm o mesmo dono e o mesmo tipo, garantido pela FK composta (#78).
 
 ## Esquema Relacional (3FN)
 
@@ -304,7 +325,6 @@ Registrados aqui para que ninguém os descubra em produção:
 | :---------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
 | O RLS só é criado se `auth.users` existir.                        | No PostgreSQL local (Docker Compose) **nunca** é aplicado. Um banco local tem zero isolamento entre usuários.                             |
 | O isolamento entre dois usuários é testado **apenas localmente**. | Existe `tests/integration/supabase/rls.test.js` (12 testes) que valida IT-01/IT-02 contra Supabase CLI local. Não roda no CI (issue #30). |
-| `transactions.type` não é validado contra `categories.type`.      | Um lançamento pode apontar para categoria de tipo oposto e corromper o _dashboard_.                                                       |
 | `profiles` usa português; as outras duas, inglês.                 | Inconsistência de nomenclatura. Issue [#8](https://github.com/MViniciusCoffe/SpendSmart/issues/8).                                        |
 
 As pendências acima têm script pronto em [Future Migrations](future-migrations.md).
@@ -313,6 +333,11 @@ As pendências acima têm script pronto em [Future Migrations](future-migrations
 
 - `updated_at` não tinha _trigger_ → implementado via trigger `update_updated_at_column()` nas 3 tabelas.
 - Soft delete não existia → implementado via coluna `deleted_at` + índices parciais `*_active` + filtro `deleted_at IS NULL` nos services.
+
+**Resolvido (#78, 2026-11-17):**
+
+- `transactions.type` não era validado contra `categories.type` → FK composta
+  `(category_id, user_id, type)`, que também impede transação na categoria de outro usuário.
 
 **Resolvido (Fase 4):**
 

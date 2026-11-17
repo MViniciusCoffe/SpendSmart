@@ -58,16 +58,20 @@ export const categoryService = {
     })
   },
 
-  async countTransactions(categoryId) {
+  // Active transactions by default. `deleted: true` counts the soft-deleted ones: a type change
+  // moves them too (ON UPDATE CASCADE, #78), so the confirmation dialog mentions them
+  async countTransactions(categoryId, { deleted = false } = {}) {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
-          const { count, error } = await supabase
+          const query = supabase
             .from("transactions")
             .select("id", { count: "exact", head: true })
             .eq("category_id", categoryId)
             .eq("user_id", session.user.id)
-            .is("deleted_at", null)
+          const { count, error } = await (deleted
+            ? query.not("deleted_at", "is", null)
+            : query.is("deleted_at", null))
           if (error) throw error
           return count ?? 0
         },
@@ -77,8 +81,9 @@ export const categoryService = {
     })
   },
 
-  // updateTransactionsType keeps the category's transactions on the same type
-  async updateCategory({ id, name, type, description, color, updateTransactionsType = false }) {
+  // A type change reaches the category's transactions through the database: the composite FK
+  // (category_id, user_id, type) has ON UPDATE CASCADE (#78), so there is no second write here
+  async updateCategory({ id, name, type, description, color }) {
     return withSession(async session => {
       return withErrorHandling(
         async () => {
@@ -100,17 +105,6 @@ export const categoryService = {
             .select(CATEGORY_COLUMNS)
             .single()
           if (error) throw error
-
-          if (updateTransactionsType) {
-            const { error: txError } = await supabase
-              .from("transactions")
-              .update({ type: validType })
-              .eq("category_id", id)
-              .eq("user_id", session.user.id)
-              .is("deleted_at", null)
-            if (txError) throw txError
-          }
-
           return categoryTypeMap(data)
         },
         "updateCategory",

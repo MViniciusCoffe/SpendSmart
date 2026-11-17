@@ -351,6 +351,21 @@ describe("countTransactions", () => {
     expect(resultado).toBe(2)
   })
 
+  it("conta só as excluídas com { deleted: true }, ainda filtrando pelo usuário (#78)", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+
+    const builder = criarBuilder({ count: 1, error: null })
+    supabase.from.mockReturnValue(builder)
+
+    const resultado = await categoryService.countTransactions(7, { deleted: true })
+
+    expect(builder.eq).toHaveBeenCalledWith("category_id", 7)
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1")
+    expect(builder.not).toHaveBeenCalledWith("deleted_at", "is", null)
+    expect(builder.is).not.toHaveBeenCalled()
+    expect(resultado).toBe(1)
+  })
+
   it("devolve 0 quando count vem nulo", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
     supabase.from.mockReturnValue(criarBuilder({ count: null, error: null }))
@@ -370,55 +385,19 @@ describe("countTransactions", () => {
   })
 })
 
-describe("updateCategory com updateTransactionsType", () => {
-  it("não toca em transactions por padrão", async () => {
+// A propagação do tipo às transações é do banco (FK composta com ON UPDATE CASCADE, #78), testada
+// em tests/integration/supabase/categoryService.test.js
+describe("updateCategory e as transações da categoria", () => {
+  it("só escreve em categories, mesmo mudando o tipo", async () => {
     supabase.auth.getSession.mockResolvedValue(comSessao)
-    supabase.from.mockReturnValue(criarBuilder({ data: linhaCategoria(), error: null }))
+    const builder = criarBuilder({ data: linhaCategoria({ type: "income" }), error: null })
+    supabase.from.mockReturnValue(builder)
 
     await categoryService.updateCategory({ id: 1, name: "X", type: "income" })
 
-    expect(supabase.from).not.toHaveBeenCalledWith("transactions")
-  })
-
-  it("atualiza o tipo das transações da categoria do usuário", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
-    const categoryBuilder = criarBuilder({ data: linhaCategoria({ type: "income" }), error: null })
-    const txBuilder = criarBuilder({ error: null })
-    supabase.from.mockImplementation(table =>
-      table === "transactions" ? txBuilder : categoryBuilder
-    )
-
-    await categoryService.updateCategory({
-      id: 1,
-      name: "X",
-      type: "income",
-      updateTransactionsType: true
-    })
-
-    expect(txBuilder.update).toHaveBeenCalledWith({ type: "income" })
-    expect(txBuilder.eq).toHaveBeenCalledWith("category_id", 1)
-    expect(txBuilder.eq).toHaveBeenCalledWith("user_id", "u1")
-    expect(txBuilder.is).toHaveBeenCalledWith("deleted_at", null)
-  })
-
-  it("traduz erro ao atualizar as transações", async () => {
-    supabase.auth.getSession.mockResolvedValue(comSessao)
-
-    const categoryBuilder = criarBuilder({ data: linhaCategoria(), error: null })
-    const txBuilder = criarBuilder({ error: { code: "08006", message: "timeout" } })
-    supabase.from.mockImplementation(table =>
-      table === "transactions" ? txBuilder : categoryBuilder
-    )
-
-    await expect(
-      categoryService.updateCategory({
-        id: 1,
-        name: "X",
-        type: "income",
-        updateTransactionsType: true
-      })
-    ).rejects.toThrow("Não foi possível atualizar a categoria.")
+    expect(supabase.from).toHaveBeenCalledTimes(1)
+    expect(supabase.from).toHaveBeenCalledWith("categories")
+    expect(builder.update).toHaveBeenCalledWith(expect.objectContaining({ type: "income" }))
   })
 })
 
