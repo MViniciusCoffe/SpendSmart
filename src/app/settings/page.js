@@ -8,13 +8,12 @@ import { Button, Input, Label, Card, Badge } from "@/components/ui"
 import { ConfirmDialog } from "@/components/feedback"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/contexts/ToastContext"
-import { authService } from "@/services/authServices"
 import styles from "./page.module.css"
 
 function SettingsPage() {
   const router = useRouter()
   // Save and log out through the context so the header and withAuth see it immediately
-  const { logout, updateProfile } = useAuth()
+  const { logout, deleteAccount, updateProfile } = useAuth()
   const { error: toastError, success: toastSuccess } = useToast()
 
   const [fullName, setFullName] = useState("")
@@ -51,25 +50,14 @@ function SettingsPage() {
 
   const handleDeleteConfirm = async () => {
     try {
-      const response = await fetch("/api/deleteAccount", {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${(await authService.getSession()).access_token}`
-        }
-      })
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Não foi possível excluir a conta.")
-      }
+      // The context also logs out, so the header and withAuth see the account is gone
+      await deleteAccount()
     } catch (error) {
       toastError(error.message)
       return
     }
 
     toastSuccess("Conta excluída com sucesso.")
-
-    // The context logout never throws: the account is already gone either way
-    await logout()
     router.replace("/login")
   }
 

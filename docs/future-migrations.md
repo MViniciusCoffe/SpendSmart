@@ -83,11 +83,11 @@ COMMIT;
 
 ### Impacto no código
 
-| Arquivo                              | Mudança necessária                                                                         |
-| ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `src/services/profileService.js`     | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`                   |
-| `src/app/api/createProfile/route.js` | o corpo recebido de `register.js` usa os nomes em português; precisa de tradução explícita |
-| `src/app/settings/page.js`           | se o form mantém os nomes em português, a tradução fica no service                         |
+| Arquivo                          | Mudança necessária                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `src/services/profileService.js` | `select` e `insert`/`update` passam a `full_name`, `birth_date`, `phone`             |
+| `supabase/migrations/` (trigger) | `public.handle_new_user()` lê `full_name`, `birth_date`, `phone` dos metadados (#75) |
+| `src/app/settings/page.js`       | se o form mantém os nomes em português, a tradução fica no service                   |
 
 ### O que verificar depois
 

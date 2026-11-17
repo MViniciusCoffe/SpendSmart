@@ -26,7 +26,7 @@ Só a versão em produção (branch `main`, publicada na Vercel). Não há vers�
 | Dentro do escopo                                                            | Fora do escopo                                                |
 | :-------------------------------------------------------------------------- | :------------------------------------------------------------ |
 | Acesso a dados de outro usuário (falha de RLS, de filtro ou de rota de API) | Vulnerabilidades do Supabase ou da Vercel em si               |
-| Uso indevido da chave de serviço pelas rotas de `src/app/api/`              | Ataques que exigem acesso físico ao dispositivo da vítima     |
+| Funções `SECURITY DEFINER` do banco alcançando outra conta                  | Ataques que exigem acesso físico ao dispositivo da vítima     |
 | XSS, contorno da CSP, injeção                                               | Negação de serviço por volume de requisições                  |
 | Segredo exposto no repositório ou no bundle do navegador                    | Relatórios automáticos de scanner sem demonstração de impacto |
 

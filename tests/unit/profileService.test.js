@@ -5,7 +5,8 @@ jest.mock("@/lib/supabase", () => ({
       getSession: jest.fn(),
       updateUser: jest.fn()
     },
-    from: jest.fn()
+    from: jest.fn(),
+    rpc: jest.fn()
   }
 }))
 
@@ -231,6 +232,36 @@ describe("getProfile", () => {
 
     await expect(profileService.getProfile()).rejects.toThrow(
       "Não foi possível carregar os dados do perfil."
+    )
+  })
+})
+
+// Exclusão da própria conta pela RPC delete_own_account (#75): sem rota de API nem chave de serviço
+describe("deleteAccount", () => {
+  it("recusa sem sessão, sem chamar o banco", async () => {
+    supabase.auth.getSession.mockResolvedValue(semSessao)
+
+    await expect(profileService.deleteAccount()).rejects.toThrow("Usuário não autenticado.")
+    expect(supabase.rpc).not.toHaveBeenCalled()
+  })
+
+  it("chama a RPC sem parâmetros: quem é excluído vem do token, nunca do cliente", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.rpc.mockResolvedValue({ data: null, error: null })
+
+    await expect(profileService.deleteAccount()).resolves.toBe(true)
+    expect(supabase.rpc).toHaveBeenCalledWith("delete_own_account")
+  })
+
+  it("traduz o erro do banco na mensagem própria", async () => {
+    supabase.auth.getSession.mockResolvedValue(comSessao)
+    supabase.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "42501", message: "permission denied for function delete_own_account" }
+    })
+
+    await expect(profileService.deleteAccount()).rejects.toThrow(
+      "Não foi possível excluir a conta."
     )
   })
 })

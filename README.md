@@ -10,9 +10,10 @@ O projeto atende a disciplina de **Testes de Software** do Bacharelado em Sistem
 ## Sobre este repositório
 
 O SpendSmart é um **monolito fullstack Next.js (App Router) com Supabase**, sem servidor HTTP
-próprio. As rotas de API são funções serverless em `src/app/api/` (`createProfile`, `deleteAccount`,
-`health`, `status`), e não há código de assinatura ou validação de token: a sessão é inteira do
-Supabase Auth.
+próprio. As rotas de API são funções serverless públicas em `src/app/api/` (`health`, `status`), e
+não há código de assinatura ou validação de token: a sessão é inteira do Supabase Auth. A aplicação
+não usa a chave secreta do Supabase (#75): o perfil é criado por trigger no cadastro e a conta é
+excluída pela RPC `delete_own_account()`.
 
 Um backend Node.js/Express existiu até o commit `2599ad9` e foi removido; o front-end migrou de
 `pages/` (Pages Router) para `src/app/` (App Router). Tudo aqui descreve o código atual.
@@ -58,8 +59,9 @@ O nome da chave pública é `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — o Supabas
 `anon` para `publishable`, e `ANON_KEY` não é mais válido.
 
 `SUPABASE_SERVICE_ROLE_KEY` **não pode** ter prefixo `NEXT_PUBLIC_`. Com esse prefixo ela vira
-parte do bundle enviado ao navegador e qualquer visitante ganha acesso à conta inteira. Ela só é
-lida dentro de `src/app/api/`.
+parte do bundle enviado ao navegador e qualquer visitante ganha acesso à conta inteira. Desde a #75
+nenhum arquivo de `src/` a lê (o `check-agents.js` bloqueia); no `.env.local` ela serve só aos
+testes, que criam e apagam usuários no Supabase local.
 
 ---
 
@@ -70,7 +72,7 @@ SpendSmart/
   src/
     app/            páginas (App Router): dashboard, transactions, categories, settings,
                     login, register, about, contact, status
-      api/          rotas serverless: createProfile, deleteAccount, health, status
+      api/          rotas serverless públicas: health, status
     components/
       ui/           design system: Button, Input, Card, Table, Tabs, Dropdown, ChartContainer...
       forms/        TransactionForm, CategoryForm
@@ -89,14 +91,14 @@ SpendSmart/
 
 A separação de responsabilidades adotada:
 
-| Camada       | Arquivo               | Responsabilidade                                                                |
-| :----------- | :-------------------- | :------------------------------------------------------------------------------ |
-| Interface    | `src/app/`            | React, validação de formulário, chamada ao service                              |
-| Componentes  | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`               |
-| Sessão       | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`)            |
-| Negócio      | `src/services/`       | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
-| Cliente      | `src/lib/supabase.js` | Instância única do `createClient`                                               |
-| Privilegiado | `src/app/api/`        | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                                  |
+| Camada      | Arquivo               | Responsabilidade                                                                |
+| :---------- | :-------------------- | :------------------------------------------------------------------------------ |
+| Interface   | `src/app/`            | React, validação de formulário, chamada ao service                              |
+| Componentes | `src/components/`     | UI reutilizável; CSS Modules com os tokens de `design-tokens.css`               |
+| Sessão      | `src/contexts/`       | `AuthContext` é a fonte única do usuário logado (Header, `withAuth`)            |
+| Negócio     | `src/services/`       | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente     | `src/lib/supabase.js` | Instância única do `createClient`                                               |
+| API         | `src/app/api/`        | Rotas públicas de monitoramento (`health`, `status`), só com a chave pública    |
 
 ---
 
@@ -118,9 +120,9 @@ A separação de responsabilidades adotada:
    e a categoria pode ser restaurada. Mudar o tipo de uma categoria com transações pede confirmação
    e propaga o tipo às transações (CA-008.03).
 8. **Sem `alert`/`confirm`.** Feedback por toast e confirmações pelo `ConfirmDialog`.
-9. **`SUPABASE_SERVICE_ROLE_KEY` só no servidor**, sem prefixo `NEXT_PUBLIC_`, lida apenas por
-   `src/app/api/_lib/supabaseAdmin.js` e na requisição. Rota de API valida o token antes e nunca
-   devolve a mensagem de erro interna ao cliente.
+9. **Sem chave secreta na aplicação** (#75). O que precisa de privilégio fica numa função
+   `SECURITY DEFINER` do banco (`handle_new_user`, `delete_own_account`), chamada com a sessão do
+   usuário. Rota de API nunca devolve a mensagem de erro interna ao cliente.
 10. **Colunas explícitas nos services** (nem `select("*")` nem `.select()` vazio) e nada carregado de
     outra origem no navegador (a CSP com nonce bloqueia).
 
@@ -147,7 +149,7 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | Build de produção (`next build`)            | **Passa** — 15 rotas                                                                                                                                                                                                            |
 | CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit`, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                              |
-| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário) e auditoria WCAG A/AA das 6 telas (axe), 17 testes, no CI; sem testes de componente (issue #33)                                |
+| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA das 6 telas (axe), 18 testes, no CI; sem testes de componente (issue #33)        |
 | Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                    |
 
 ### Defeitos conhecidos
@@ -155,12 +157,14 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | #                                                             | Problema                                                                                                                         |
 | :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
 | [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) | Cliente Supabase aceita sessão vinda da URL (`detectSessionInUrl` ligado sem uso): um link pode logar o navegador em outra conta |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `src/app/settings/page.js` chama `/api/deleteAccount` direto, sem passar por um service                                          |
-| [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) | `/api/createProfile` grava com a chave de serviço sem passar pelos validadores                                                   |
 
-A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15. Os dois da #75 foram encontrados da mesma forma (2026-11-03) e somem com a remoção das rotas
-privilegiadas da [#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75) (perfil criado por
-trigger no banco e exclusão por RPC).
+A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15.
+
+Corrigidos na branch `feat/#75-sem-service-role` (fecham com o PR): a página de configurações
+chamava `/api/deleteAccount` direto, sem passar por um service, e o `/api/createProfile` gravava com a
+chave de serviço sem passar pelos validadores. As duas rotas saíram: o perfil nasce do trigger
+`on_auth_user_created` na mesma transação do cadastro (falha no perfil não deixa conta no Auth, #25)
+e a exclusão usa a RPC `delete_own_account()` pelo `profileService`.
 
 Corrigidos na branch `fix/sessao-troca-user` (fecham com o PR): [#76](https://github.com/MViniciusCoffe/SpendSmart/issues/76)
 (cache de sessão que reaproveitava o `user_id` do usuário anterior na mesma aba), [#67](https://github.com/MViniciusCoffe/SpendSmart/issues/67)

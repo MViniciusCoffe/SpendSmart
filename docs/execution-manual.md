@@ -147,11 +147,11 @@ cp .env.local.example .env.local  # cria o arquivo de variáveis
 
 Preencha o `.env.local` com a saída do `npm run infra:status`:
 
-| Variável                               | Valor                                           | Sensível?                         |
-| :------------------------------------- | :---------------------------------------------- | :-------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `http://127.0.0.1:54321`                        | Não                               |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave `anon`/`publishable` do `supabase status` | Não (vai para o navegador)        |
-| `SUPABASE_SERVICE_ROLE_KEY`            | Chave `service_role` do `supabase status`       | **Sim**. Nunca com `NEXT_PUBLIC_` |
+| Variável                               | Valor                                           | Sensível?                        |
+| :------------------------------------- | :---------------------------------------------- | :------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `http://127.0.0.1:54321`                        | Não                              |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave `anon`/`publishable` do `supabase status` | Não (vai para o navegador)       |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Chave `service_role` do `supabase status`       | **Sim**. Só para os testes (#75) |
 
 > **Só o `.env.local`.** Não crie `.env.development`: o Next.js o carregaria como fallback, e o
 > `npm run dev` se recusa a iniciar se ele existir. Arquivos `.env*` reais nunca são commitados; só os

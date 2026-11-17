@@ -3,13 +3,14 @@
 Este documento descreve o modelo de dados do SpendSmart com Supabase Auth e Supabase PostgreSQL.
 As migrações correspondentes estão em `supabase/migrations/`:
 
-| Migration                                                  | O que faz                                                                                                                         |
-| :--------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `1790304277000_create_financial_schema.sql`                | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS.   |
-| `1790304277043_add-rbac-permissions.sql`                   | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                                 |
-| `1791833057050_add_soft_delete_and_updated_at_trigger.sql` | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.           |
-| `20261106031517_restrict_table_grants.sql`                 | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
-| `20261106150417_add_health_check.sql`                      | Cria a função `public.health_check()`, que o `/api/status` chama com a chave pública (`EXECUTE` para `anon`).                     |
+| Migration                                                          | O que faz                                                                                                                         |
+| :----------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `1790304277000_create_financial_schema.sql`                        | Cria as três tabelas de domínio, restrições (_constraints_), índices, chaves estrangeiras para `auth.users` e as políticas RLS.   |
+| `1790304277043_add-rbac-permissions.sql`                           | Concede `GRANT` a `service_role` e `authenticated` sobre as tabelas e sequências.                                                 |
+| `1791833057050_add_soft_delete_and_updated_at_trigger.sql`         | Adiciona `deleted_at` (soft delete), índices parciais de registros ativos e o trigger de `updated_at` nas três tabelas.           |
+| `20261106031517_restrict_table_grants.sql`                         | Troca o `GRANT ALL` por `SELECT, INSERT, UPDATE, DELETE` para `authenticated` e `service_role`, e tira todo privilégio do `anon`. |
+| `20261106150417_add_health_check.sql`                              | Cria a função `public.health_check()`, que o `/api/status` chama com a chave pública (`EXECUTE` para `anon`).                     |
+| `20261117144356_create_profile_trigger_and_delete_own_account.sql` | Cria o trigger `on_auth_user_created` (perfil a partir dos metadados do cadastro) e a RPC `public.delete_own_account()` (#75).    |
 
 Todas são aplicadas pelo Supabase CLI (local, Preview, Produção e o Postgres do compose); ver
 [environments.md §5](environments.md#5-migrations).
@@ -79,6 +80,18 @@ Perfil complementar da conta autenticada. Não armazena senha.
 | `updated_at`      | `timestamptz` | Padrão `now()`.                                                  |
 
 O `profiles.id` recebe o UUID criado pelo Supabase Auth. Ele não possui UUID aleatório automático.
+
+**Criado pelo banco (#75).** O trigger `on_auth_user_created` (`AFTER INSERT ON auth.users`) chama
+`public.handle_new_user()`, que insere o perfil com `full_name`, `birth_date` e `phone` de
+`raw_user_meta_data` (os `options.data` do `signUp`) na mesma transação do usuário do Auth. Sem
+`full_name` (ausente ou em branco) a função lança erro `23502` e o cadastro inteiro é recusado: toda
+conta tem perfil, e não existe conta órfã no Auth (#25). `birth_date` e `phone` vazios viram `null`.
+Isso vale para qualquer criação de usuário, inclusive o "Add user" do Studio e o
+`auth.admin.createUser` dos testes, que precisam mandar `user_metadata: { full_name }`.
+
+Os metadados são só a entrada do cadastro: o trigger os lê uma vez, e a edição em configurações muda
+apenas `profiles`. Depois do cadastro, `raw_user_meta_data` pode divergir do perfil; a fonte da
+verdade é `profiles`.
 
 > `profiles` é a única tabela com colunas de domínio em português. `categories` e `transactions`
 > usam inglês. A padronização proposta está em
@@ -191,7 +204,10 @@ erDiagram
 - Uma conta pode possuir várias categorias.
 - Uma conta pode possuir várias transações.
 - Uma categoria pode classificar várias transações.
-- A exclusão da conta usa `on delete cascade` para seus dados privados (Supabase).
+- A exclusão da conta usa `on delete cascade` para seus dados privados (Supabase). Ela é física de
+  propósito (LGPD) e feita pela RPC `public.delete_own_account()` (#75): `SECURITY DEFINER`, apaga só
+  `auth.users where id = auth.uid()`, recusa a chamada sem sessão (`42501`) e tem `EXECUTE` só para
+  `authenticated`. Testada em `tests/integration/supabase/account.test.js` (IT-03).
 - A exclusão de categoria pela aplicação é lógica (`deleted_at`), mesmo com transações vinculadas; `on delete restrict` impede apenas o `DELETE` físico, então transações nunca são apagadas silenciosamente.
 - **Soft delete:** exclusão de perfil, categoria ou transação define `deleted_at = now()`; registros permanecem no histórico, somas e dashboards. Listagens e dropdowns filtram `deleted_at IS NULL`. Purge real ocorre via job noturno (`deleted_at > 30 dias`).
 - A aplicação deve validar que categoria e transação pertencem ao mesmo usuário e possuem o mesmo tipo.
@@ -249,8 +265,12 @@ ambientes (antes dependiam dos privilégios padrão de cada projeto Supabase):
 | Papel           | `profiles`, `categories`, `transactions` | Quem usa                                              |
 | :-------------- | :--------------------------------------- | :---------------------------------------------------- |
 | `anon`          | nenhum (`42501 permission denied`)       | Visitante sem sessão; nenhuma página pública consulta |
-| `authenticated` | `SELECT, INSERT, UPDATE, DELETE` + RLS   | O app, com a sessão do usuário                        |
-| `service_role`  | `SELECT, INSERT, UPDATE, DELETE`         | Rotas de `src/app/api/` (ignora RLS)                  |
+| `authenticated` | `SELECT, INSERT, UPDATE, DELETE` + RLS   | O app, com a sessão do usuário (exceto `profiles`)    |
+| `service_role`  | `SELECT, INSERT, UPDATE, DELETE`         | Só os testes, no Supabase local (ignora RLS)          |
+
+**`profiles` (#75):** o `authenticated` tem só `SELECT` e `UPDATE (full_name, birth_date, phone)`.
+O perfil nasce do trigger e some com a conta; sem `INSERT`, `DELETE` e `UPDATE` em `deleted_at`, o
+usuário não fica com conta sem perfil. Testado em `tests/integration/supabase/account.test.js`.
 
 O privilégio decide se o papel pode tocar na tabela; o RLS decide quais linhas. O `anon` é barrado
 pelos dois. O teste "Anon (sem sessão)" de `tests/integration/supabase/rls.test.js` cobre isso.
@@ -259,6 +279,11 @@ A única coisa que o `anon` pode chamar é `public.health_check()` (`20261106150
 usada pelo `/api/status`. Ela confirma pelo catálogo (`to_regclass`) que as três tabelas existem, sem
 ler nenhuma linha, e roda como `SECURITY INVOKER`: não precisa de privilégio em tabela, então não
 abre nada além de "o banco responde e o schema está lá".
+
+**Funções `SECURITY DEFINER`** (`handle_new_user`, `delete_own_account`) rodam com o dono
+(`postgres`), por isso usam `search_path = ''` e nomes totalmente qualificados. O corpo é `plpgsql`,
+que só resolve nomes ao executar: no Postgres puro não há `auth.users` nem `auth.uid()`, e uma função
+`sql` falharia no `CREATE`. Quem pode chamar é dito explicitamente (`REVOKE ... FROM PUBLIC`).
 
 **Tabela nova:** a migration traz `REVOKE ALL ... FROM anon` e o `GRANT` explícito para
 `authenticated`/`service_role` (dentro da guarda de `auth.users`). O padrão do schema `public` no

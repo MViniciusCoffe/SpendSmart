@@ -50,16 +50,14 @@ async function deleteRunUsers(admin) {
 // Conta pronta (Auth + perfil) criada pela API admin, sem passar pela tela: dá a cada teste os
 // próprios dados, para ele rodar sozinho (sem depender de outro teste ter cadastrado antes)
 async function createAccount(admin, { email, password, name = "Pessoa E2E" }) {
+  // O perfil nasce do trigger on_auth_user_created, com o nome dos metadados (#75)
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password,
-    email_confirm: true
+    email_confirm: true,
+    user_metadata: { full_name: name }
   })
   if (error) throw error
-  const { error: perfilError } = await admin
-    .from("profiles")
-    .insert({ id: data.user.id, full_name: name })
-  if (perfilError) throw perfilError
   return data.user
 }
 

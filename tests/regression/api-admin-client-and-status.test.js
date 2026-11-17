@@ -2,7 +2,8 @@
 //
 // 1. createProfile, deleteAccount e status criavam o cliente admin no carregamento do módulo. Sem
 //    SUPABASE_SERVICE_ROLE_KEY o import lançava "supabaseKey is required", e o `next build` falhava
-//    (Preview, 2026-11-04).
+//    (Preview, 2026-11-04). As duas primeiras rotas foram removidas na #75 (perfil por trigger e
+//    exclusão pela RPC delete_own_account); o /api/status continua tendo de carregar sem a chave.
 // 2. /api/status buscava `${NEXT_PUBLIC_APP_URL}/api/health`, variável que não existe: o fetch com
 //    URL relativa lançava no servidor e o "API Gateway" aparecia sempre "degraded" em produção, e
 //    "operational" em desenvolvimento, escondendo a falha. A checagem de CDN também devolvia
@@ -12,7 +13,6 @@
 //    o banco e /auth/v1/health para o Auth; Realtime e Storage saíram (o app não usa). O ?fail= fica
 //    desligado em Produção.
 
-const ROUTES = ["createProfile", "deleteAccount", "status"]
 const ENV_KEYS = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -48,25 +48,9 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-describe("Regressão — cliente admin criado na requisição, não no import", () => {
-  it.each(ROUTES)("a rota %s carrega sem SUPABASE_SERVICE_ROLE_KEY", name => {
-    expect(() => loadRoute(name)).not.toThrow()
-  })
-
-  it.each([
-    ["createProfile", "POST"],
-    ["deleteAccount", "DELETE"]
-  ])("%s responde 503 quando o servidor está sem a chave", async (name, method) => {
-    const handler = loadRoute(name)[method]
-    const request = new Request("https://app.test/api/x", {
-      method,
-      headers: { authorization: "Bearer token-qualquer" },
-      body: method === "POST" ? JSON.stringify({ full_name: "X" }) : undefined
-    })
-
-    const response = await handler(request)
-
-    expect(response.status).toBe(503)
+describe("Regressão — rota carrega sem a chave de serviço", () => {
+  it("o /api/status carrega sem SUPABASE_SERVICE_ROLE_KEY", () => {
+    expect(() => loadRoute("status")).not.toThrow()
   })
 })
 
