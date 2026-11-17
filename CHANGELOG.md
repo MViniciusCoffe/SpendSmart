@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.0...v0.4.1) (2026-11-17)
+
+
+### Correções
+
+* garante no banco o tipo e o dono da categoria na transação ([#78](https://github.com/MViniciusCoffe/SpendSmart/issues/78)) ([b7a505d](https://github.com/MViniciusCoffe/SpendSmart/commit/b7a505d1dd532062d493e73bab9da5791f2bd9fa))
+
 ## [0.4.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.3.0...v0.4.0) (2026-11-17)
 
 
