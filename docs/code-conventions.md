@@ -98,6 +98,10 @@ export const algumService = {
 - **Valores e datas** exibidos com `formatCurrency`/`formatDate` e lidos com `parseAmount`
   (`src/lib/utils/format.js`).
 - **Campos do formulário** batem com os parâmetros do service (defeitos #10 e #21).
+- **Acessibilidade (#82):** `aria-label` e textos para leitor de tela em português, como a página
+  (`lang="pt-BR"`). Títulos sem salto de nível: depois do `h1` da página vem `h2`, mesmo que o texto
+  seja pequeno (o tamanho vem da classe, não da tag). Formulário com `noValidate` e mensagem do app:
+  erro de um campo fica junto dele, ligado por `aria-describedby`, com `aria-invalid` no campo.
 
 ## Headers de segurança e CSP (#24)
 
