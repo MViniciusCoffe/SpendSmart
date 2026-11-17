@@ -93,7 +93,7 @@ export function CategoryForm({
     <Card variant="default" className={`${styles.root} ${className}`} {...props}>
       <form onSubmit={handleSubmit} noValidate>
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>{title}</h3>
+          <h2 className={styles.sectionTitle}>{title}</h2>
 
           <div className={styles.row}>
             <div className={styles.field}>

@@ -9,6 +9,9 @@ const { adminClient, emailFor, deleteRunUsers, findUsersByEmail } = require("./s
 const { register, login, expectDashboard } = require("./support/pages")
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"]
+// Boa prática fora das tags WCAG, incluída pela #82: título sem salto de nível (h1 seguido de h3).
+// Só esta regra: as outras de best-practice não foram avaliadas pela equipe.
+const BEST_PRACTICE_RULES = ["heading-order"]
 
 const admin = adminClient()
 const conta = { name: "Bia A11y", email: emailFor("a11y") }
@@ -20,8 +23,10 @@ test.afterAll(async () => {
 async function audit(page, testInfo, tela) {
   // Em dev o Next.js pode recarregar a página na primeira compilação; analisa só com a tela parada
   await page.waitForLoadState("networkidle")
-  const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
-  const resumo = results.violations.map(v => ({
+  const wcag = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
+  const boasPraticas = await new AxeBuilder({ page }).withRules(BEST_PRACTICE_RULES).analyze()
+  const violations = [...wcag.violations, ...boasPraticas.violations]
+  const resumo = violations.map(v => ({
     regra: v.id,
     impacto: v.impact,
     criterios: v.tags.filter(t => /^wcag\d{3,4}$/.test(t)),
@@ -31,7 +36,7 @@ async function audit(page, testInfo, tela) {
     detalhes: v.nodes.slice(0, 5).map(n => n.any.map(c => c.message).join("; "))
   }))
   await testInfo.attach(`axe-${tela}`, {
-    body: JSON.stringify(results.violations, null, 2),
+    body: JSON.stringify(violations, null, 2),
     contentType: "application/json"
   })
   fs.mkdirSync("test-results", { recursive: true })

@@ -105,7 +105,7 @@ function TransactionTableCard({
     <Card variant="default">
       <div className={styles.table_card_header}>
         <div className={styles.table_heading}>
-          <h3 className={styles.table_title}>{title}</h3>
+          <h2 className={styles.table_title}>{title}</h2>
           <Badge variant={variant}>{rows.length}</Badge>
         </div>
         {rows.length > 0 && (
