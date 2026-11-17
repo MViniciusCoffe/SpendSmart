@@ -34,11 +34,14 @@ export async function createTestUser(email, password = "123456") {
   let user = usersData.users.find(u => u.email === email)
 
   if (!user) {
-    const { data: created } = await admin.auth.admin.createUser({
+    // O trigger on_auth_user_created cria o perfil e recusa conta sem nome (#75)
+    const { data: created, error } = await admin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true
+      email_confirm: true,
+      user_metadata: { full_name: `User ${email.split("@")[0]}` }
     })
+    if (error) throw error
     user = created.user
   }
   return user
