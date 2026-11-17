@@ -131,6 +131,13 @@ export function AuthProvider({ children }) {
     clearUser()
   }, [clearUser])
 
+  // Depois da exclusão o token ainda é válido até vencer: o logout limpa a sessão guardada e o
+  // estado, para o Header e o withAuth verem a saída na hora
+  const deleteAccount = useCallback(async () => {
+    await profileService.deleteAccount()
+    await logout()
+  }, [logout])
+
   const updateProfile = useCallback(
     async profileData => {
       setError(null)
@@ -156,11 +163,12 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      deleteAccount,
       updateProfile,
       isAuthenticated: !!user,
       clearError: () => setError(null)
     }),
-    [user, loading, error, login, register, logout, updateProfile]
+    [user, loading, error, login, register, logout, deleteAccount, updateProfile]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

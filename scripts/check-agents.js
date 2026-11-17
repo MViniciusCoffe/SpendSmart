@@ -81,6 +81,15 @@ function checkFile(file) {
         `${file}:${lineNum}: .select() sem colunas em service - use CATEGORY_COLUMNS/TRANSACTION_COLUMNS (mappers.js)`
       )
     }
+
+    // 7. The app never reads the secret key (#75): profile by trigger, deletion by RPC. Only the
+    //    test helpers use it, against the local Supabase
+    const inSrc = path.relative(ROOT, file).split(path.sep)[0] === "src"
+    if (inSrc && /SUPABASE_SERVICE_ROLE_KEY/.test(line)) {
+      violations.push(
+        `${file}:${lineNum}: SUPABASE_SERVICE_ROLE_KEY em src/ - a aplicação não usa a chave secreta (#75)`
+      )
+    }
   })
 
   return violations

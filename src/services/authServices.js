@@ -1,10 +1,21 @@
 import { supabase } from "@/lib/supabase"
+import validators from "@/services/utils/validators"
 
 export const authService = {
+  // O perfil vai nos metadados do signUp e é criado pelo trigger on_auth_user_created, na mesma
+  // transação do usuário do Auth (#75): se o perfil falhar, a conta também não é criada. Por isso
+  // os campos são validados aqui, antes do signUp; o trigger grava o que receber.
   async registerUser({ email, password, full_name, birth_date, phone }) {
+    const profile = {
+      full_name: validators.nome(full_name),
+      birth_date: validators.dataNascimento(birth_date),
+      phone: validators.telefone(phone)
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: { data: profile }
     })
 
     if (authError) {
@@ -16,31 +27,9 @@ export const authService = {
       throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
     }
 
-    const {
-      data: { session }
-    } = await supabase.auth.getSession()
-    if (!session) throw new Error("Sessão não iniciada após cadastro.")
-    const accessToken = session.access_token
-
-    const response = await fetch("/api/createProfile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: accessToken ? `Bearer ${accessToken}` : ""
-      },
-      body: JSON.stringify({
-        full_name,
-        birth_date,
-        phone
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(
-        errorData.message || "Conta criada, mas houve um problema ao salvar dados adicionais"
-      )
-    }
+    // Com confirmação de e-mail ligada o signUp não abre sessão: a conta e o perfil já existem, e a
+    // página de cadastro manda para o login
+    if (!authData.session) throw new Error("Sessão não iniciada após cadastro.")
 
     return authData.user
   },

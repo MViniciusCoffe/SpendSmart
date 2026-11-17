@@ -17,81 +17,69 @@ import { authService } from "@/services/authServices"
 // Usuário fictício devolvido pelo Supabase Auth
 const usuario = { id: "u1", email: "joao@email.com" }
 
-// Resposta de fetch bem-sucedida. O serviço só lê "ok", então só isso é necessário
-const respostaOk = { ok: true }
+// signUp bem-sucedido com sessão aberta (confirmação de e-mail desligada)
+const cadastroOk = { data: { user: usuario, session: { access_token: "token123" } }, error: null }
 
-// Resposta de fetch com erro. O método "json" precisa ser função que devolve promessa
-const respostaComErro = mensagem => ({
-  ok: false,
-  json: () => Promise.resolve({ message: mensagem })
-})
+// Dados válidos do formulário de cadastro
+const cadastro = {
+  email: "joao@email.com",
+  password: "senha123",
+  full_name: "Joao Silva",
+  birth_date: "1990-01-01",
+  phone: "11999999999"
+}
 
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(console, "error").mockImplementation(() => {})
-  // Mock padrão para getSession (registerUser agora usa o token da sessão)
-  supabase.auth.getSession.mockResolvedValue({
-    data: { session: { access_token: "token123" } },
-    error: null
-  })
-
-  // O fetch é mockado aqui para que todo teste já o tenha disponível
-  jest.spyOn(global, "fetch").mockResolvedValue(respostaOk)
+  supabase.auth.signUp.mockResolvedValue(cadastroOk)
 })
 
 afterEach(() => {
   jest.restoreAllMocks()
 })
 
-// Testes para o método registerUser do serviço de autenticação
+// Testes para o método registerUser do serviço de autenticação. O perfil é criado pelo trigger do
+// banco a partir dos metadados do signUp (#75), então não há segunda chamada depois do cadastro
 describe("registerUser", () => {
-  it("envia Authorization vazio quando a sessão não tem access_token", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
-    supabase.auth.getSession.mockResolvedValue({ data: { session: {} }, error: null })
-
-    await authService.registerUser({ email: "joao@email.com", password: "senha123" })
-
-    const [, opcoes] = global.fetch.mock.calls[0]
-    expect(opcoes.headers.Authorization).toBe("")
+  it("cria a conta e devolve o usuario", async () => {
+    await expect(authService.registerUser(cadastro)).resolves.toEqual(usuario)
   })
 
-  it("cria a conta e devolve o usuario", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
-
-    const resultado = await authService.registerUser({
-      email: "joao@email.com",
-      password: "senha123"
+  it("envia o perfil validado nos metadados do signUp", async () => {
+    await authService.registerUser({
+      ...cadastro,
+      full_name: "  Joao Silva  ",
+      phone: "(11) 99999-9999"
     })
 
-    expect(resultado).toEqual(usuario)
-  })
-
-  it("envia o perfil para /api/createProfile com o id do usuario recem-criado", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
-
-    await authService.registerUser({
+    expect(supabase.auth.signUp).toHaveBeenCalledWith({
       email: "joao@email.com",
       password: "senha123",
-      full_name: "Joao Silva",
-      birth_date: "1990-01-01",
-      phone: "11999999999"
+      options: {
+        data: { full_name: "Joao Silva", birth_date: "1990-01-01", phone: "11999999999" }
+      }
     })
+  })
 
-    // Verifica se o fetch foi chamado com a URL correta e o método POST
-    const [, opcoes] = global.fetch.mock.calls[0]
+  it("omite data de nascimento e telefone vazios, que o trigger grava como null", async () => {
+    await authService.registerUser({ ...cadastro, birth_date: "", phone: "" })
 
-    // Verifica se o corpo da requisição contém os dados corretos,
-    // incluindo o id do usuário recem-criado
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/createProfile",
-      expect.objectContaining({ method: "POST" })
-    )
-    expect(JSON.parse(opcoes.body)).toEqual({
+    const [{ options }] = supabase.auth.signUp.mock.calls[0]
+    expect(options.data).toEqual({
       full_name: "Joao Silva",
-      birth_date: "1990-01-01",
-      phone: "11999999999"
+      birth_date: undefined,
+      phone: undefined
     })
-    expect(opcoes.headers.Authorization).toBe("Bearer token123")
+  })
+
+  it.each([
+    ["nome vazio", { full_name: "  " }, "Nome é obrigatório"],
+    ["telefone inválido", { phone: "abc" }, "Telefone inválido"],
+    ["idade fora da faixa", { birth_date: "2025-01-01" }, "Idade deve ser entre 13 e 120 anos"]
+  ])("recusa %s antes do signUp", async (_caso, campo, mensagem) => {
+    await expect(authService.registerUser({ ...cadastro, ...campo })).rejects.toThrow(mensagem)
+    expect(supabase.auth.signUp).not.toHaveBeenCalled()
   })
 
   it("traduz 'already registered' em e-mail ja cadastrado", async () => {
@@ -100,109 +88,26 @@ describe("registerUser", () => {
       error: { message: "User already registered" }
     })
 
-    await expect(
-      authService.registerUser({ email: "joao@email.com", password: "senha123" })
-    ).rejects.toThrow("E-mail já cadastrado")
+    await expect(authService.registerUser(cadastro)).rejects.toThrow("E-mail já cadastrado")
   })
 
-  it("traduz qualquer outro erro de cadastro", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: null, error: { message: "Password too weak" } })
-
-    await expect(
-      authService.registerUser({ email: "joao@email.com", password: "123" })
-    ).rejects.toThrow("Erro ao registrar usuário. Verifique os dados e tente novamente")
-  })
-
-  it("repassa mensagem de erro real do /api/createProfile", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
-    global.fetch.mockResolvedValue(respostaComErro("sem token"))
-
-    await expect(
-      authService.registerUser({ email: "joao@email.com", password: "senha123" })
-    ).rejects.toThrow("sem token")
-  })
-
-  it("lança erro se getSession retornar null após signUp (email confirmation on)", async () => {
-    // Arrange: signUp OK, mas getSession retorna null
+  it("traduz a falha do trigger de perfil no erro genérico, sem a mensagem do banco", async () => {
     supabase.auth.signUp.mockResolvedValue({
-      data: { user: { id: "u1", email: "a@b.com" } },
-      error: null
-    })
-    supabase.auth.getSession.mockResolvedValue({ data: { session: null } })
-    // não deve ser chamado
-    global.fetch.mockResolvedValue({ ok: true })
-
-    // Act & Assert
-    await expect(
-      authService.registerUser({
-        email: "a@b.com",
-        password: "senha123",
-        full_name: "João",
-        birth_date: "2000-01-01",
-        phone: "11999999999"
-      })
-    ).rejects.toThrow("Sessão não iniciada após cadastro.")
-
-    // fetch NÃO deve ter sido chamado
-    expect(global.fetch).not.toHaveBeenCalled()
-  })
-
-  it("lança erro se /api/createProfile falhar", async () => {
-    supabase.auth.signUp.mockResolvedValue({
-      data: { user: { id: "u1" } },
-      error: null
-    })
-    supabase.auth.getSession.mockResolvedValue({
-      data: { session: { user: { id: "u1" }, access_token: "token123" } }
-    })
-    global.fetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.resolve({ message: "Erro no banco" })
+      data: null,
+      error: { message: "Database error saving new user", status: 500 }
     })
 
-    await expect(
-      authService.registerUser({
-        email: "a@b.com",
-        password: "senha123",
-        full_name: "João",
-        birth_date: "2000-01-01",
-        phone: "11999999999"
-      })
-    ).rejects.toThrow("Erro no banco")
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/createProfile",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          Authorization: "Bearer token123"
-        })
-      })
+    await expect(authService.registerUser(cadastro)).rejects.toThrow(
+      "Erro ao registrar usuário. Verifique os dados e tente novamente"
     )
   })
 
-  it("usa mensagem padrão quando a resposta de createProfile não é JSON", async () => {
-    supabase.auth.signUp.mockResolvedValue({
-      data: { user: { id: "u1" } },
-      error: null
-    })
-    supabase.auth.getSession.mockResolvedValue({
-      data: { session: { user: { id: "u1" }, access_token: "token123" } }
-    })
-    global.fetch.mockResolvedValue({
-      ok: false,
-      json: () => Promise.reject(new SyntaxError("resposta inválida"))
-    })
+  it("avisa que a sessão não abriu quando o signUp não devolve sessão (confirmação de e-mail)", async () => {
+    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario, session: null }, error: null })
 
-    await expect(
-      authService.registerUser({
-        email: "a@b.com",
-        password: "senha123",
-        full_name: "João",
-        birth_date: "2000-01-01",
-        phone: "11999999999"
-      })
-    ).rejects.toThrow("Conta criada, mas houve um problema ao salvar dados adicionais")
+    await expect(authService.registerUser(cadastro)).rejects.toThrow(
+      "Sessão não iniciada após cadastro."
+    )
   })
 })
 
@@ -324,21 +229,8 @@ describe("logoutUser", () => {
   })
 })
 
-// Argumentos enviados ao Supabase Auth e ao /api/createProfile (testes de mutação, #60)
+// Argumentos enviados ao Supabase Auth (testes de mutação, #60)
 describe("argumentos enviados pelo authService", () => {
-  it("registerUser repassa e-mail e senha ao signUp e envia o corpo como JSON", async () => {
-    supabase.auth.signUp.mockResolvedValue({ data: { user: usuario }, error: null })
-
-    await authService.registerUser({ email: "joao@email.com", password: "senha123" })
-
-    expect(supabase.auth.signUp).toHaveBeenCalledWith({
-      email: "joao@email.com",
-      password: "senha123"
-    })
-    const [, opcoes] = global.fetch.mock.calls[0]
-    expect(opcoes.headers["Content-Type"]).toBe("application/json")
-  })
-
   it("loginUser repassa e-mail e senha ao signInWithPassword", async () => {
     supabase.auth.signInWithPassword.mockResolvedValue({ data: { user: usuario }, error: null })
 

@@ -68,5 +68,22 @@ export const profileService = {
         { generica: "Não foi possível atualizar os dados do perfil." }
       )
     })
+  },
+
+  // Exclusão física de propósito (LGPD, #3). A função do banco apaga só a linha de auth.uid() em
+  // auth.users e as FKs ON DELETE CASCADE levam perfil, categorias e transações (#75). Não recebe
+  // id: quem é excluído sai do token da sessão, nunca de um parâmetro.
+  async deleteAccount() {
+    return withSession(async () => {
+      return withErrorHandling(
+        async () => {
+          const { error } = await supabase.rpc("delete_own_account")
+          if (error) throw error
+          return true
+        },
+        "deleteAccount",
+        { generica: "Não foi possível excluir a conta." }
+      )
+    })
   }
 }
