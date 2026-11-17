@@ -12,6 +12,7 @@ import {
 //
 //   IT-04 — Exclusão de categoria em uso é rejeitada (ON DELETE RESTRICT, 23503)
 //   IT-05 — Unicidade de categoria por (usuário, nome, tipo) (23505)
+//   IT-07 — Transação com o tipo e o dono da categoria (FK composta, #78)
 //
 // O service traduz esses códigos para mensagens em português
 // (services/categoryService.js:53,93) — os testes de unidade cobrem o mapa,
@@ -25,13 +26,19 @@ const USUARIO_B = "22222222-2222-2222-2222-222222222222"
 const inserirCategoria = (opcoes = {}) =>
   inserirCategoriaNoBanco(db.client, { userId: USUARIO_A, ...opcoes })
 
-const inserirTransacao = categoriaId =>
+const inserirTransacao = (categoriaId, { userId = USUARIO_A, tipo = "expense" } = {}) =>
   db.client.query(
     `INSERT INTO transactions
        (user_id, category_id, type, amount, title, occurred_on, payment_method)
-     VALUES ($1, $2, 'expense', 150.00, 'Compras do mês', '2026-10-01', 'pix')`,
-    [USUARIO_A, categoriaId]
+     VALUES ($1, $2, $3, 150.00, 'Compras do mês', '2026-10-01', 'pix')
+     RETURNING id`,
+    [userId, categoriaId, tipo]
   )
+
+const tipoDaTransacao = async id => {
+  const { rows } = await db.client.query("SELECT type FROM transactions WHERE id = $1", [id])
+  return rows[0].type
+}
 
 // Captura o erro rejeitado para inspecionar código e mensagem. O pg-mem não
 // preenche `code` em violações de chave estrangeira (o 23503 só aparece no
@@ -118,4 +125,45 @@ describe("IT-04 — exclusão de categoria em uso é rejeitada", () => {
     expect(erro.message).toMatch(/violates foreign key constraint/i)
     esperarCodigoPg(erro, "23503", db.modo)
   })
+})
+
+// Antes da #78 a FK era só category_id -> categories(id): uma despesa numa categoria de receita, ou
+// uma transação na categoria de outro usuário (a checagem de FK ignora o RLS), entravam no banco.
+describe("IT-07 — transação com o tipo e o dono da categoria (#78)", () => {
+  it("rejeita transação com tipo diferente do da categoria", async () => {
+    const { rows } = await inserirCategoria({ tipo: "income" })
+
+    const erro = await capturarErro(inserirTransacao(rows[0].id, { tipo: "expense" }))
+
+    expect(erro.message).toMatch(/violates foreign key constraint/i)
+    esperarCodigoPg(erro, "23503", db.modo)
+  })
+
+  it("rejeita transação na categoria de outro usuário", async () => {
+    const { rows } = await inserirCategoria({ userId: USUARIO_B })
+    await inserirCategoria({ userId: USUARIO_A, nome: "Outra" })
+
+    const erro = await capturarErro(inserirTransacao(rows[0].id, { userId: USUARIO_A }))
+
+    expect(erro.message).toMatch(/violates foreign key constraint/i)
+    esperarCodigoPg(erro, "23503", db.modo)
+  })
+
+  it("rejeita mudar só o tipo da transação, deixando o da categoria", async () => {
+    const { rows } = await inserirCategoria({ tipo: "expense" })
+    const transacao = await inserirTransacao(rows[0].id)
+
+    const erro = await capturarErro(
+      db.client.query("UPDATE transactions SET type = 'income' WHERE id = $1", [
+        transacao.rows[0].id
+      ])
+    )
+
+    expect(erro.message).toMatch(/violates foreign key constraint/i)
+    expect(await tipoDaTransacao(transacao.rows[0].id)).toBe("expense")
+  })
+
+  // ON UPDATE CASCADE: o pg-mem não implementa (recusa o UPDATE da categoria em vez de propagar,
+  // verificado em 2026-11-17). A propagação é testada no Supabase local, pelo categoryService, em
+  // tests/integration/supabase/categoryService.test.js.
 })
