@@ -174,7 +174,7 @@ export function ChartContainer({
     <div className={`${styles.wrapper} ${className}`} style={{ height }} {...props}>
       <canvas ref={canvasRef} className={styles.canvas} />
       {showLegend && legendData.length > 0 && (
-        <div className={styles.legend} role="list" aria-label="Chart legend">
+        <div className={styles.legend} role="list" aria-label="Legenda do gráfico">
           {legendData.map((item, index) => (
             <div key={index} className={styles.legendItem} role="listitem">
               <span

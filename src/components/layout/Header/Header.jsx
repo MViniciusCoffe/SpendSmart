@@ -52,7 +52,7 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className={styles.desktopNav} aria-label="Main navigation">
+        <nav className={styles.desktopNav} aria-label="Navegação principal">
           <ul className={styles.navList} role="list">
             {navLinks.map(link => (
               <li key={link.href}>

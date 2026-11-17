@@ -31,7 +31,7 @@ test.afterAll(async () => {
 
 async function abrirCategoriasPeloMenu(page) {
   await page
-    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("navigation", { name: "Navegação principal" })
     .getByRole("link", { name: "Categorias" })
     .click()
   await expect(page).toHaveURL(/\/categories$/)
