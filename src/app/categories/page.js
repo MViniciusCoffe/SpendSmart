@@ -88,9 +88,9 @@ function CategoriesPage() {
     if (ok) setAddFormKey(key => key + 1)
   }
 
-  const saveEdit = async (formData, updateTransactionsType = false) => {
+  const saveEdit = async formData => {
     const ok = await runAction(
-      () => categoryService.updateCategory({ ...formData, id: editId, updateTransactionsType }),
+      () => categoryService.updateCategory({ ...formData, id: editId }),
       "Categoria atualizada com sucesso",
       "Não foi possível atualizar a categoria"
     )
@@ -100,9 +100,13 @@ function CategoriesPage() {
   const handleEdit = async formData => {
     if (formData.type !== editCategory.type) {
       try {
-        const transactionCount = await categoryService.countTransactions(editId)
-        if (transactionCount > 0) {
-          setPendingTypeChange({ formData, transactionCount })
+        // The deleted ones change type too (ON UPDATE CASCADE, #78), so the dialog counts them
+        const [activeCount, deletedCount] = await Promise.all([
+          categoryService.countTransactions(editId),
+          categoryService.countTransactions(editId, { deleted: true })
+        ])
+        if (activeCount + deletedCount > 0) {
+          setPendingTypeChange({ formData, activeCount, deletedCount })
           return
         }
       } catch (err) {
@@ -116,7 +120,8 @@ function CategoriesPage() {
   const confirmTypeChange = async () => {
     const { formData } = pendingTypeChange
     setPendingTypeChange(null)
-    await saveEdit(formData, true)
+    // The database moves the transactions to the new type with the category (#78)
+    await saveEdit(formData)
   }
 
   const selectDeleteCategory = async id => {
@@ -341,18 +346,26 @@ function CategoriesPage() {
         onConfirm={confirmTypeChange}
         onCancel={() => setPendingTypeChange(null)}
       >
-        {pendingTypeChange && (
-          <p>
-            Esta categoria tem {pendingTypeChange.transactionCount}{" "}
-            {pendingTypeChange.transactionCount === 1 ? "transação" : "transações"}. Para manter os
-            totais corretos, {pendingTypeChange.transactionCount === 1 ? "ela" : "elas"} também
-            passar{pendingTypeChange.transactionCount === 1 ? "á" : "ão"} a ser{" "}
-            {TYPE_LABELS[pendingTypeChange.formData.type].toLowerCase()}.
-          </p>
-        )}
+        {pendingTypeChange && <p>{typeChangeMessage(pendingTypeChange)}</p>}
       </ConfirmDialog>
     </PageContainer>
   )
+}
+
+// Type-change warning. Deleted transactions are named apart: they are out of the totals, but the
+// database moves them to the new type as well (#78)
+function typeChangeMessage({ formData, activeCount, deletedCount }) {
+  const total = activeCount + deletedCount
+  const one = total === 1
+  const newType = TYPE_LABELS[formData.type].toLowerCase()
+  const consequence = `${one ? "ela" : "elas"} também passar${one ? "á" : "ão"} a ser ${newType}.`
+
+  if (activeCount === 0) {
+    return `Esta categoria tem ${total} ${one ? "transação excluída" : "transações excluídas"}. Para manter os dados coerentes, ${consequence}`
+  }
+  const deletedNote =
+    deletedCount > 0 ? ` (${deletedCount} ${deletedCount === 1 ? "excluída" : "excluídas"})` : ""
+  return `Esta categoria tem ${total} ${one ? "transação" : "transações"}${deletedNote}. Para manter os totais corretos, ${consequence}`
 }
 
 export default withAuth(CategoriesPage)
