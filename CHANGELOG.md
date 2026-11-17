@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.3.0...v0.4.0) (2026-11-17)
+
+
+### Funcionalidades
+
+* **db:** cria o perfil por trigger e exclui a conta pela RPC delete_own_account ([#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)) ([0dbfe77](https://github.com/MViniciusCoffe/SpendSmart/commit/0dbfe776b326bc331bfbcb4a226e2cc433a366a6))
+* elimina a SUPABASE_SERVICE_ROLE_KEY da aplicação ([#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)) ([7a22131](https://github.com/MViniciusCoffe/SpendSmart/commit/7a221315e7ffe01a347fbfb33cf50e573e75322b))
+
+
+### Refatoração
+
+* remove as rotas privilegiadas e a chave secreta da aplicação ([#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)) ([40834de](https://github.com/MViniciusCoffe/SpendSmart/commit/40834dea9586bf3baf357afa6fd11e95b649df00))
+
+
+### Documentação
+
+* registra o fim da chave secreta na aplicação ([#75](https://github.com/MViniciusCoffe/SpendSmart/issues/75)) ([dba03a7](https://github.com/MViniciusCoffe/SpendSmart/commit/dba03a76a6977f52558533fc82c7fa64bcbe32e7))
+
 ## [0.3.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.2.3...v0.3.0) (2026-11-16)
 
 

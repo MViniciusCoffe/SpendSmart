@@ -1,6 +1,6 @@
 {
   "name": "spendsmart",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Aplicacao web pessoal de controle financeiro: receitas, despesas, categorias e dashboard.",
   "private": true,
   "scripts": {
