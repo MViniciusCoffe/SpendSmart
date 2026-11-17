@@ -46,8 +46,9 @@ detalhamento por iteração, em [test-plan-iterations.md](test-plan-iterations.m
 - Os 16 Requisitos Funcionais (RF01 a RF16).
 - Os 7 Requisitos Não Funcionais (RNF01 a RNF07) — ver §3.
 - A camada de serviço (`src/services/`), que concentra as regras de negócio e a tradução de domínio.
-- As rotas serverless privilegiadas de `src/app/api/` (`createProfile`, `deleteAccount`), que usam a
-  `service_role`. As rotas `health` e `status` são públicas e só leem estado.
+- O trigger de perfil (`on_auth_user_created`) e a RPC `delete_own_account()`, que substituíram as
+  rotas privilegiadas `createProfile` e `deleteAccount` (#75). As rotas `health` e `status` de
+  `src/app/api/` são públicas e só leem estado.
 - As políticas RLS de `profiles`, `categories` e `transactions`.
 - As migrations de `supabase/migrations/`.
 - **(P3)** Os fluxos ponta a ponta pela interface (`src/app/`), executados num navegador real contra
@@ -204,22 +205,21 @@ Consequências da organização:
 
 **Casos que só a integração revela:**
 
-| #     | Caso                                                 | Por que só a integração                                                         | Situação                                                                                            |
-| :---- | :--------------------------------------------------- | :------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------- |
-| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`: conjunto exato de linhas; falha com o RLS desligado (verificado em 2026-11-05)       |
-| IT-02 | Isolamento de escrita entre dois usuários            | Depende do `WITH CHECK` das políticas.                                          | `rls.test.js`                                                                                       |
-| IT-03 | Deleção de conta remove tudo em cascata              | Depende das chaves estrangeiras para `auth.users`.                              | **Sem teste**                                                                                       |
-| IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                              |
-| IT-05 | Unicidade de categoria por (usuário, nome, tipo)     | Depende da constraint `23505`.                                                  | pg-mem (`categoryConstraints.test.js`)                                                              |
-| IT-06 | `amount` não negativo e não zero                     | Depende do `CHECK (amount > 0)`.                                                | pg-mem (CT10.02, CT13.02)                                                                           |
-| IT-07 | `transactions.type` deve bater com `categories.type` | Invariante que hoje não existe no banco. Ver §6.                                | **Sem teste e sem constraint** (#78)                                                                |
-| IT-08 | `/api/createProfile` rejeita requisição sem token    | Depende do `getUser(token)` na rota.                                            | Parcial: token inválido → 401 em regressão com mock (`api-error-responses.test.js`); sem integração |
-| IT-09 | `/api/deleteAccount` rejeita token inválido com 401  | Idem.                                                                           | Parcial: idem (`api-error-responses.test.js`); sem integração                                       |
-| IT-10 | Migrations aplicam do zero sem erro                  | Verifica o guard `to_regclass` e a ordem de execução.                           | Implícito: o pg-mem monta o schema a partir dos `.sql` e o job `rls` do CI roda `supabase start`    |
+| #     | Caso                                                 | Por que só a integração                                                         | Situação                                                                                           |
+| :---- | :--------------------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------- |
+| IT-01 | Isolamento de leitura entre dois usuários            | Depende das políticas RLS, que vivem no banco. Nenhum mock em JS reproduz isso. | `rls.test.js`: conjunto exato de linhas; falha com o RLS desligado (verificado em 2026-11-05)      |
+| IT-02 | Isolamento de escrita entre dois usuários            | Depende do `WITH CHECK` das políticas.                                          | `rls.test.js`                                                                                      |
+| IT-03 | Deleção de conta remove tudo em cascata              | Depende das chaves estrangeiras para `auth.users`.                              | `account.test.js`: Auth, perfil, categorias e transações somem; a outra conta fica intacta         |
+| IT-04 | Exclusão de categoria em uso é rejeitada             | Depende de `ON DELETE RESTRICT`.                                                | pg-mem (`categoryConstraints.test.js`)                                                             |
+| IT-05 | Unicidade de categoria por (usuário, nome, tipo)     | Depende da constraint `23505`.                                                  | pg-mem (`categoryConstraints.test.js`)                                                             |
+| IT-06 | `amount` não negativo e não zero                     | Depende do `CHECK (amount > 0)`.                                                | pg-mem (CT10.02, CT13.02)                                                                          |
+| IT-07 | `transactions.type` deve bater com `categories.type` | Invariante que hoje não existe no banco. Ver §6.                                | **Sem teste e sem constraint** (#78)                                                               |
+| IT-08 | Cadastro cria Auth e perfil numa operação só         | Depende do trigger em `auth.users` (#75).                                       | `account.test.js`: perfil dos metadados; sem nome ou com data inválida, nenhuma conta fica no Auth |
+| IT-09 | `delete_own_account()` só apaga a conta do token     | Depende do `GRANT EXECUTE` e de `auth.uid()` (#75).                             | `account.test.js`: sem sessão → `42501`; a conta de outro usuário não é tocada                     |
+| IT-10 | Migrations aplicam do zero sem erro                  | Verifica o guard `to_regclass` e a ordem de execução.                           | Implícito: o pg-mem monta o schema a partir dos `.sql` e o job `rls` do CI roda `supabase start`   |
 
-Se a chave `service_role` for eliminada da aplicação (issue #75: trigger
-de criação de perfil e RPC `delete_own_account()`), IT-08 e IT-09 passam a ser testes do trigger e da
-RPC no Supabase local.
+Até a #75, IT-08 e IT-09 eram as rotas `/api/createProfile` e `/api/deleteAccount`, cobertas só com
+mock. Desde a remoção das rotas são testes do trigger e da RPC no Supabase local.
 
 **Ambiente:** os dois modos estão em [environments.md §6](environments.md#6-testes).
 
@@ -295,6 +295,10 @@ artefato. A suíte soma 15 testes. ST-02 é do José; US-013 é do Marcus (dupla
 usuário na mesma aba sem recarregar (#76) e logout em outra aba (#67). Os dois falhavam antes da
 correção. A suíte soma 17 testes. Correção de defeito fora do escopo da disciplina, sem dupla
 verificação.
+
+**Estado (2026-11-17):** exclusão de conta pela tela (`us-004-excluir-conta.spec.js`, 1 teste,
+CA-004.01 e CA-004.02), escrito na #75 porque a página de configurações passou a excluir pela RPC. A
+suíte soma 18 testes.
 
 **CI (recomendado pela P3):** um job headless no `test.yml` que reaproveita a subida do Supabase do
 job `rls`, faz `next build` e `next start` e roda a suíte E2E.
@@ -377,7 +381,7 @@ teste ou a inspeção que cobre cada um.
 | ID    | Requisito não funcional                                                                                                                             | Como verificar                               |
 | :---- | :-------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------- |
 | RNF01 | Roda sobre Node.js, sem servidor HTTP próprio. As únicas rotas server-side são as funções serverless em `src/app/api/`.                             | Inspecionar `package.json` e `src/app/api/`  |
-| RNF02 | Toda comunicação é JSON: o cliente fala com o Supabase via PostgREST, e as rotas serverless recebem e devolvem JSON.                                | IT-08, IT-09 (**sem teste hoje**)            |
+| RNF02 | Toda comunicação é JSON: o cliente fala com o Supabase via PostgREST, e as rotas serverless recebem e devolvem JSON.                                | `api-admin-client-and-status.test.js`        |
 | RNF03 | Persistência em PostgreSQL, com constraints e índices aplicados por migration.                                                                      | IT-10, IT-04, IT-05, IT-06                   |
 | RNF04 | Sessão gerenciada pelo Supabase Auth e nenhum dado de um usuário visível a outro.                                                                   | IT-01, IT-02, IT-08, IT-09, CA-002.02, ST-04 |
 | RNF05 | O acesso do navegador ao Supabase depende da configuração de CORS feita no painel do projeto, não no código.                                        | Configuração do projeto Supabase             |
@@ -409,33 +413,34 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 (§2.3.1), "Aceit." = aceitação manual. O detalhamento por critério de aceitação está em
 [user-stories.md](user-stories.md).
 
-| US                       | Un. | Int.            | E2E   | Aceit. | Observação                                                                                                            |
-| :----------------------- | :-- | :-------------- | :---- | :----- | :-------------------------------------------------------------------------------------------------------------------- |
-| US-001 Criar conta       | x   | pg-mem (perfil) | ST-01 | x      | Rollback resolvido (#25, PR #47); IT-08 parcial (regressão com mock)                                                  |
-| US-002 Entrar            | x   |                 | ST-01 | x      | Mapeamento de erro é 100% cliente                                                                                     |
-| US-003 Perfil            | x   |                 |       |        | Senha idêntica sem tratamento (#11)                                                                                   |
-| US-004 Excluir conta     | x   | IT-03, IT-09    | ST-03 |        | IT-03 sem teste; IT-09 parcial                                                                                        |
-| US-005 Privacidade       |     | IT-01, IT-02    | ST-04 |        | IT-01/IT-02 comparam o conjunto exato (#66)                                                                           |
-| US-006 Criar categoria   | x   | IT-05           | ST-03 |        |                                                                                                                       |
-| US-007 Listar categorias | x   | IT-01, service  | ST-03 | ?      | `categoryService` real no Supabase local, com estado vazio (CA-007.02); sem relatório de aceitação próprio em `docs/` |
-| US-008 Alterar categoria | x   |                 |       |        | CA-008.03 atendido (diálogo e propagação do tipo)                                                                     |
-| US-009 Excluir categoria | x   | IT-04           | ST-05 |        | Soft delete; CA-009.03 com contagem real                                                                              |
-| US-010 Registrar receita | x   | IT-06           | ST-03 | x      | #10 e #21 resolvidos (PR #42)                                                                                         |
-| US-011 Listar receitas   | x   | IT-01           | ST-03 |        |                                                                                                                       |
-| US-012 Excluir receita   | x   |                 |       |        |                                                                                                                       |
-| US-013 Registrar despesa | x   | IT-06           | ST-02 | x      | #21 resolvido (PR #42)                                                                                                |
-| US-014 Listar despesas   | x   | IT-01           | ST-02 |        |                                                                                                                       |
-| US-015 Excluir despesa   | x   |                 |       |        |                                                                                                                       |
-| US-016 Dashboard         |     | IT-07           | ST-03 | x      | Agregação no cliente; IT-07 sem constraint nem teste                                                                  |
+| US                       | Un. | Int.           | E2E   | Aceit. | Observação                                                                                                            |
+| :----------------------- | :-- | :------------- | :---- | :----- | :-------------------------------------------------------------------------------------------------------------------- |
+| US-001 Criar conta       | x   | IT-08          | ST-01 | x      | Perfil por trigger, sem rollback (#75; #25 coberto no IT-08)                                                          |
+| US-002 Entrar            | x   |                | ST-01 | x      | Mapeamento de erro é 100% cliente                                                                                     |
+| US-003 Perfil            | x   |                |       |        | Senha idêntica sem tratamento (#11)                                                                                   |
+| US-004 Excluir conta     | x   | IT-03, IT-09   | x     |        | RPC `delete_own_account()` (#75); E2E em `us-004-excluir-conta.spec.js`                                               |
+| US-005 Privacidade       |     | IT-01, IT-02   | ST-04 |        | IT-01/IT-02 comparam o conjunto exato (#66)                                                                           |
+| US-006 Criar categoria   | x   | IT-05          | ST-03 |        |                                                                                                                       |
+| US-007 Listar categorias | x   | IT-01, service | ST-03 | ?      | `categoryService` real no Supabase local, com estado vazio (CA-007.02); sem relatório de aceitação próprio em `docs/` |
+| US-008 Alterar categoria | x   |                |       |        | CA-008.03 atendido (diálogo e propagação do tipo)                                                                     |
+| US-009 Excluir categoria | x   | IT-04          | ST-05 |        | Soft delete; CA-009.03 com contagem real                                                                              |
+| US-010 Registrar receita | x   | IT-06          | ST-03 | x      | #10 e #21 resolvidos (PR #42)                                                                                         |
+| US-011 Listar receitas   | x   | IT-01          | ST-03 |        |                                                                                                                       |
+| US-012 Excluir receita   | x   |                |       |        |                                                                                                                       |
+| US-013 Registrar despesa | x   | IT-06          | ST-02 | x      | #21 resolvido (PR #42)                                                                                                |
+| US-014 Listar despesas   | x   | IT-01          | ST-02 |        |                                                                                                                       |
+| US-015 Excluir despesa   | x   |                |       |        |                                                                                                                       |
+| US-016 Dashboard         |     | IT-07          | ST-03 | x      | Agregação no cliente; IT-07 sem constraint nem teste                                                                  |
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 374 testes automatizados (237 unidade + 24 pg-mem + 21 Supabase local + 75 regressão
+**Cobertura atual: 380 testes automatizados (239 unidade + 24 pg-mem + 33 Supabase local + 66 regressão
 
-- 17 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04 e 6 da auditoria de acessibilidade), conferidos em 2026-11-15.**
+- 18 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04, 1 da US-004 e 6 da auditoria de acessibilidade),
+  conferidos em 2026-11-17.**
 
-Lacunas conhecidas, em ordem de prioridade: IT-03,
-IT-08 e IT-09 só com mock, IT-07 sem constraint (#78), US-003/US-012/US-015 sem integração nem E2E.
+Lacunas conhecidas, em ordem de prioridade: IT-07 sem constraint (#78), US-003/US-012/US-015 sem
+integração nem E2E.
 
 ---
 
@@ -475,7 +480,7 @@ A separação por nível:
 | **Teste instrumental por IA não é reprodutível**   | Médio. Duas sessões com o mesmo prompt podem seguir caminhos diferentes.                                                      | Registrar prompt, passos e evidências; usar o instrumental para exploração e diagnóstico, e o script para regressão. |
 | **Defeitos de sessão no front-end**                | Médio. Cache de sessão nunca limpo (#76) e `AuthContext` sem `onAuthStateChange` (#67): corrigidos em 2026-11-15.             | ST-04 cobre os dois no navegador; a regressão da #76 cobre o service.                                                |
 | **Invariante `type` não verificada**               | Médio. Um lançamento pode apontar para categoria de tipo oposto, corrompendo o dashboard.                                     | FK composta `(category_id, type)` (IT-07, #78).                                                                      |
-| **Rotas privilegiadas sem teste (IT-08, IT-09)**   | Médio. A validação de token das rotas com `service_role` não é verificada automaticamente.                                    | Regressão com mock cobre o 401; eliminar a `service_role` da aplicação (#75).                                        |
+| **Funções `SECURITY DEFINER` (IT-08, IT-09)**      | Médio. Trigger e RPC rodam com o dono e ignoram o RLS; um erro nelas alcança outras contas.                                   | `search_path = ''`, `EXECUTE` explícito e `account.test.js` com duas contas (#75).                                   |
 | **Front-end fora da cobertura medida (#33)**       | Baixo para a P3. A cobertura de 100% vale só para `src/services/`.                                                            | E2E cobre o comportamento da interface; testes de componente depois da P3.                                           |
 
 Riscos já mitigados: asserções vacuamente verdadeiras no RLS (#66, as leituras comparam o conjunto

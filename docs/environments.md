@@ -44,24 +44,33 @@ banco de **Preview**. Desde a separação, isso expõe só dados de teste, nunca
 
 ## 2. Variáveis de ambiente
 
-| Variável                               | Lida em                                                 | Local (`.env.local`)     | Preview (Vercel)         | Produção (Vercel)        | Sensível?                    |
-| -------------------------------------- | ------------------------------------------------------- | ------------------------ | ------------------------ | ------------------------ | ---------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `src/lib/supabase.js`, rotas de `src/app/api/`          | `http://127.0.0.1:54321` | URL do `spsm-preview`    | URL do `spsm-prod`       | Não                          |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `src/lib/supabase.js`, rotas de `src/app/api/`          | `supabase status`        | chave do `spsm-preview`  | chave do `spsm-prod`     | Não (vai para o navegador)   |
-| `SUPABASE_SERVICE_ROLE_KEY`            | `src/app/api/createProfile`, `deleteAccount`, `status`  | `supabase status`        | secret do `spsm-preview` | secret do `spsm-prod`    | **Sim** — marcar _Sensitive_ |
-| `DATABASE_URL`                         | só `scripts/db-migrations.js`, via `.env.<alvo>.remote` | —                        | **não existe na Vercel** | **não existe na Vercel** | **Sim**                      |
-| `TEST_DATABASE_URL`                    | `tests/integration/db.js` (opcional, ver §6)            | não definir por padrão   | —                        | —                        | Não (banco local)            |
+| Variável                               | Lida em                                                 | Local (`.env.local`)     | Preview (Vercel)         | Produção (Vercel)        | Sensível?                  |
+| -------------------------------------- | ------------------------------------------------------- | ------------------------ | ------------------------ | ------------------------ | -------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `src/lib/supabase.js`, rotas de `src/app/api/`          | `http://127.0.0.1:54321` | URL do `spsm-preview`    | URL do `spsm-prod`       | Não                        |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `src/lib/supabase.js`, rotas de `src/app/api/`          | `supabase status`        | chave do `spsm-preview`  | chave do `spsm-prod`     | Não (vai para o navegador) |
+| `SUPABASE_SERVICE_ROLE_KEY`            | só os testes (`tests/helpers/`, `tests/e2e/support/`)   | `supabase status`        | **remover da Vercel**    | **remover da Vercel**    | **Sim**                    |
+| `DATABASE_URL`                         | só `scripts/db-migrations.js`, via `.env.<alvo>.remote` | —                        | **não existe na Vercel** | **não existe na Vercel** | **Sim**                    |
+| `TEST_DATABASE_URL`                    | `tests/integration/db.js` (opcional, ver §6)            | não definir por padrão   | —                        | —                        | Não (banco local)          |
 
 - **Chave pública:** chama-se `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. O Supabase renomeou a antiga
   `anon` para `publishable` (troca no commit `e70e163`); `ANON_KEY` não é lido.
 - **Chave secreta:** `SUPABASE_SERVICE_ROLE_KEY` **nunca** leva prefixo `NEXT_PUBLIC_` — com ele, ela
-  seria embutida no bundle do navegador. Só é lida em `src/app/api/`, no servidor.
-- **A chave secreta só é exigida em runtime.** Até 2026-11-06 as três rotas criavam o cliente admin
-  no topo do módulo, e o `next build` falhava sem a variável (`supabaseKey is required`, Preview em
-  2026-11-04). Hoje o cliente nasce na requisição (`src/app/api/_lib/supabaseAdmin.js`): sem a chave
-  o build passa e `createProfile`/`deleteAccount` respondem 503. O `/api/status` não usa a chave
-  (só a pública, com a RPC `health_check()`). Na Vercel ela continua necessária para o cadastro e a
-  exclusão de conta funcionarem.
+  seria embutida no bundle do navegador.
+- **A aplicação não usa a chave secreta** (#75). O perfil é criado pelo trigger
+  `on_auth_user_created` e a exclusão de conta pela RPC `delete_own_account()`
+  (`20261117144356_create_profile_trigger_and_delete_own_account.sql`); o `check-agents.js` recusa a
+  variável em `src/`. No `.env.local` e no job `rls` do CI ela continua: os testes de integração e E2E
+  criam e apagam usuários do Supabase local com ela.
+- **Ordem da troca (#75):** aplicar a migration na Preview (`migrations:push -- --target preview
+--apply`) antes de testar o cadastro no deploy da branch, que já não tem as rotas; na Produção o
+  `deploy.yml` aplica a migration antes do deploy. Depois do deploy de Produção, apagar a variável da
+  Vercel nos dois escopos.
+- **Janela da troca (aceita em 2026-11-17).** Entre a migration aplicada e o código novo no ar, o
+  `/api/createProfile` antigo ainda roda: o trigger já criou o perfil, o insert da rota falha com
+  `23505` e o rollback da #25 apaga o usuário recém-cadastrado. Na Produção a janela é o intervalo
+  entre os dois passos do `deploy.yml` (se o deploy falhar, o cadastro fica quebrado até corrigir);
+  na Preview, qualquer deploy de outra branch com o código antigo perde todo cadastro depois do
+  `--apply`. Por isso: não usar Previews antigas depois de aplicar a migration na Preview.
 - **`DATABASE_URL` não vai para a Vercel.** Nenhum código da aplicação a lê; mantê-la no painel só
   guardaria uma senha de banco (que ignora o RLS) num lugar que não precisa dela.
 
@@ -240,9 +249,8 @@ projetos remotos: Preview e Produção têm as mesmas 3 tabelas e as mesmas 3 po
 
 ### Pendências conhecidas
 
-- **Chave secreta só para duas rotas** — `createProfile` e `deleteAccount` poderiam virar trigger em
-  `auth.users` e RPC `SECURITY DEFINER`, eliminando a `SUPABASE_SERVICE_ROLE_KEY` da Vercel (ver
-  [architecture-options.md](architecture-options.md#próximo-passo-previsto)).
+- **Remover a `SUPABASE_SERVICE_ROLE_KEY` da Vercel** depois do deploy de Produção da #75 (as rotas
+  que a usavam saíram; ver §2).
 
 ---
 

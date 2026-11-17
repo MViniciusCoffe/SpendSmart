@@ -8,19 +8,29 @@ gerais (autenticação, dinheiro, `type`, soft delete) estão em
 
 ## Camadas
 
-| Camada           | Diretório                                 | Responsabilidade                                                                |
-| :--------------- | :---------------------------------------- | :------------------------------------------------------------------------------ |
-| Interface        | `src/app/`                                | React, validação de formulário, chamada ao service, redirecionamento            |
-| API privilegiada | `src/app/api/`                            | Único lugar que lê `SUPABASE_SERVICE_ROLE_KEY`                                  |
-| Negócio          | `src/services/`                           | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
-| Cliente          | `src/lib/supabase.js`                     | Instância única do `createClient` usada pelo navegador                          |
-| Componentes      | `src/components/`                         | Design system, formulários, `Header`, `ConfirmDialog`, guarda `withAuth`        |
-| Sessão           | `src/contexts/`                           | `AuthContext` é a fonte única do usuário logado                                 |
-| Segurança        | `src/proxy.js`, `src/lib/security/csp.js` | CSP com nonce por requisição                                                    |
+| Camada      | Diretório                                 | Responsabilidade                                                                |
+| :---------- | :---------------------------------------- | :------------------------------------------------------------------------------ |
+| Interface   | `src/app/`                                | React, validação de formulário, chamada ao service, redirecionamento            |
+| API         | `src/app/api/`                            | Rotas públicas de monitoramento (`health`, `status`), só com a chave pública    |
+| Negócio     | `src/services/`                           | Regra de negócio, validação, mapeamento para DTO, mensagem de erro em português |
+| Cliente     | `src/lib/supabase.js`                     | Instância única do `createClient` usada pelo navegador                          |
+| Componentes | `src/components/`                         | Design system, formulários, `Header`, `ConfirmDialog`, guarda `withAuth`        |
+| Sessão      | `src/contexts/`                           | `AuthContext` é a fonte única do usuário logado                                 |
+| Segurança   | `src/proxy.js`, `src/lib/security/csp.js` | CSP com nonce por requisição                                                    |
 
 As páginas não chamam `supabase.auth` nem as rotas de `src/app/api/` direto para decisões de
-negócio: passam pelos services. (Exceção conhecida: `src/app/settings/page.js` chama
-`/api/deleteAccount`; ver [Defeitos conhecidos](../README.md#defeitos-conhecidos).)
+negócio: passam pelos services (ou pelo `AuthContext`, que chama os services).
+
+**Sem chave secreta na aplicação (#75).** Nenhum arquivo de `src/` lê a `SUPABASE_SERVICE_ROLE_KEY`
+(regra no `scripts/check-agents.js`). Operação que precisa de privilégio vira função `SECURITY
+DEFINER` no banco, com `search_path = ''` e `GRANT EXECUTE` só para quem pode chamar:
+
+- **Cadastro:** `authService.registerUser` valida nome, data de nascimento e telefone e manda os três
+  em `signUp({ options: { data } })`; o trigger `on_auth_user_created` cria o `profiles` na mesma
+  transação. Conta sem `full_name` nos metadados é recusada (inclusive no Studio e na API admin dos
+  testes, que passam `user_metadata: { full_name }`).
+- **Exclusão:** `profileService.deleteAccount()` chama `supabase.rpc("delete_own_account")`, sem
+  parâmetro: a conta apagada é sempre a do token.
 
 ## Services (`src/services/`)
 
@@ -107,12 +117,14 @@ no-store` nas rotas privadas) ficam em `next.config.js`.
 
 ## Rotas de API (`src/app/api/`)
 
+Hoje só existem `/api/health` e `/api/status`, públicas. As rotas privilegiadas `createProfile` e
+`deleteAccount` saíram na #75. Se uma rota com sessão voltar a existir:
+
 - **Token primeiro.** Validar o token com o cliente público (`supabase.auth.getUser(token)`) antes de
   qualquer ação; sem token ou com token inválido, `401`.
-- **Cliente admin só na requisição**, por `getSupabaseAdmin()` de `src/app/api/_lib/supabaseAdmin.js`
-  (o único arquivo que lê a chave). Criado no topo do módulo, ele quebrava o `next build` sem a
-  variável. Sem a chave, a rota responde `503` com `adminUnavailableResponse()`.
 - **`user_id` vem do token**, nunca do corpo.
+- **Sem cliente admin.** Privilégio vai para uma função do banco (ver Camadas), não para a chave
+  secreta.
 - **Só mensagens próprias na resposta.** O erro do Postgres ou do Auth (`error.message`, nome de
   constraint) vai para o log do servidor, não para o cliente. Corpo inválido responde `400`.
 - **Respostas em JSON** com o status certo: `400`, `401`, `405`, `500`, `503`.

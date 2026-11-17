@@ -141,6 +141,7 @@ autenticação, RLS no banco e nenhum backend separado. O que mudou desde 2026-0
 Eliminar as rotas privilegiadas: um trigger `SECURITY DEFINER` em `auth.users` cria o perfil no
 cadastro, e uma RPC `delete_own_account()` exclui a conta. O `/api/status` já não usa a chave.
 Feito isso, a aplicação volta a ser a Opção A pura, e `SUPABASE_SERVICE_ROLE_KEY` sai da Vercel.
+**Implementado na #75 (2026-11-17)**; falta só apagar a variável da Vercel depois do deploy.
 
 A sessão ainda vive no `localStorage` do navegador, sem proteção das rotas privadas no servidor.
 Hoje nenhuma página busca dado no servidor (os dados carregam no navegador e o RLS protege), então
