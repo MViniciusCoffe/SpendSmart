@@ -77,10 +77,15 @@ test.describe("US-001 — Criar conta", () => {
 
     await register(page, { email, password: "12345" })
 
-    // O navegador barra o envio (minLength=6) e a dica orienta o tamanho mínimo
+    // A página barra o envio com a própria mensagem, em português, presa ao campo (#82): o leitor
+    // de tela lê a dica e o erro ao focar a senha, e não o balão do navegador
     const senha = page.getByLabel("Senha")
-    expect(await senha.evaluate(el => el.validity.tooShort)).toBe(true)
-    await expect(page.getByText("Mínimo de 6 caracteres")).toBeVisible()
+    await expect(appAlerts(page)).toHaveText("A senha deve ter pelo menos 6 caracteres")
+    await expect(senha).toHaveAttribute("aria-invalid", "true")
+    await expect(senha).toHaveAccessibleDescription(
+      "Mínimo de 6 caracteres A senha deve ter pelo menos 6 caracteres"
+    )
+    await expect(senha).toBeFocused()
     await expect(page).toHaveURL(/\/register$/)
     expect(chamadasDeCadastro).toHaveLength(0)
     expect(await findUsersByEmail(admin, email)).toHaveLength(0)

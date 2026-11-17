@@ -73,7 +73,17 @@ describe("registerUser", () => {
     })
   })
 
+  it("envia o e-mail normalizado ao signUp", async () => {
+    await authService.registerUser({ ...cadastro, email: "  Joao@Email.com " })
+
+    const [{ email, password }] = supabase.auth.signUp.mock.calls[0]
+    expect(email).toBe("joao@email.com")
+    expect(password).toBe("senha123")
+  })
+
   it.each([
+    ["e-mail inválido", { email: "joao@" }, "E-mail inválido"],
+    ["senha curta", { password: "12345" }, "Senha deve ter no mínimo 6 caracteres"],
     ["nome vazio", { full_name: "  " }, "Nome é obrigatório"],
     ["telefone inválido", { phone: "abc" }, "Telefone inválido"],
     ["idade fora da faixa", { birth_date: "2025-01-01" }, "Idade deve ser entre 13 e 120 anos"]
@@ -89,6 +99,8 @@ describe("registerUser", () => {
     })
 
     await expect(authService.registerUser(cadastro)).rejects.toThrow("E-mail já cadastrado")
+    // Caso esperado, com mensagem própria: sem ruído no console (#82)
+    expect(console.error).not.toHaveBeenCalled()
   })
 
   it("traduz a falha do trigger de perfil no erro genérico, sem a mensagem do banco", async () => {
@@ -99,6 +111,10 @@ describe("registerUser", () => {
 
     await expect(authService.registerUser(cadastro)).rejects.toThrow(
       "Erro ao registrar usuário. Verifique os dados e tente novamente"
+    )
+    expect(console.error).toHaveBeenCalledWith(
+      "[Supabase Register Error]",
+      "Database error saving new user"
     )
   })
 

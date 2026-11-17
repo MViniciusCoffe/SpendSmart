@@ -4,8 +4,13 @@ import validators from "@/services/utils/validators"
 export const authService = {
   // O perfil vai nos metadados do signUp e é criado pelo trigger on_auth_user_created, na mesma
   // transação do usuário do Auth (#75): se o perfil falhar, a conta também não é criada. Por isso
-  // os campos são validados aqui, antes do signUp; o trigger grava o que receber.
+  // os campos são validados aqui, antes do signUp; o trigger grava o que receber. E-mail e senha
+  // também, para a regra não depender só da página (#82): o Auth teria outra mensagem, em inglês.
   async registerUser({ email, password, full_name, birth_date, phone }) {
+    const credentials = {
+      email: validators.email(email),
+      password: validators.senha(password)
+    }
     const profile = {
       full_name: validators.nome(full_name),
       birth_date: validators.dataNascimento(birth_date),
@@ -13,17 +18,16 @@ export const authService = {
     }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+      ...credentials,
       options: { data: profile }
     })
 
     if (authError) {
-      console.error("[Supabase Register Error]", authError.message)
-
+      // E-mail já cadastrado é caso esperado, com mensagem própria: não vai para o console (#82)
       if (authError.message.includes("already registered")) {
         throw new Error("E-mail já cadastrado")
       }
+      console.error("[Supabase Register Error]", authError.message)
       throw new Error("Erro ao registrar usuário. Verifique os dados e tente novamente")
     }
 
