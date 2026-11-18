@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.2](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.1...v0.4.2) (2026-11-18)
+
+
+### Correções
+
+* achados restantes da auditoria de acessibilidade ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([d96c82f](https://github.com/MViniciusCoffe/SpendSmart/commit/d96c82fbc157cd4b8e5ed7c4254e4a536d3b2b50))
+* corrige o nível dos títulos do rodapé nas páginas públicas ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([059cfdb](https://github.com/MViniciusCoffe/SpendSmart/commit/059cfdb42f53efaf419262be79ad5ab8199f19f4))
+* liga ao campo o erro de senha curta do cadastro ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([c41f837](https://github.com/MViniciusCoffe/SpendSmart/commit/c41f837cdf7a9f64bbb3b7025a54a97d17ebf95b))
+* remove saltos de nível de título nas telas privadas ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([6a44422](https://github.com/MViniciusCoffe/SpendSmart/commit/6a44422985d6ccf5a884602bdb1464ed632b11e1))
+* traduz para português os rótulos de acessibilidade ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([356b31e](https://github.com/MViniciusCoffe/SpendSmart/commit/356b31e8838943fe8b53c498b44e9d15f3e07ce6))
+
+
+### Documentação
+
+* alinha o estado do projeto e as issues abertas com o GitHub ([9a0ada5](https://github.com/MViniciusCoffe/SpendSmart/commit/9a0ada5e98aa09a009d3735154151441fe9fd214))
+* registra as convenções de acessibilidade e a regra heading-order ([#82](https://github.com/MViniciusCoffe/SpendSmart/issues/82)) ([6713f97](https://github.com/MViniciusCoffe/SpendSmart/commit/6713f97e40b5d9a9d1ef883fa6451eb725e5f7ea))
+
 ## [0.4.1](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.0...v0.4.1) (2026-11-17)
 
 
