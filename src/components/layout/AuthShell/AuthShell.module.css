@@ -374,6 +374,11 @@
   color: var(--color-text-secondary);
 }
 
+.fieldError {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+}
+
 .error {
   padding: var(--space-3);
   font-size: var(--text-sm);

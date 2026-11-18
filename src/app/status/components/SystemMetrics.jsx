@@ -40,7 +40,7 @@ export function SystemMetrics({ metrics }) {
           </Link>
         </div>
       </div>
-      <div className={styles.grid} role="list" aria-label="System metrics">
+      <div className={styles.grid} role="list" aria-label="Métricas do sistema">
         {metricConfig.map((config, index) => (
           <article
             key={config.key}

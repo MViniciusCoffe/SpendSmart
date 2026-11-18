@@ -93,11 +93,21 @@ export function AuthError({ children }) {
   )
 }
 
-export function AuthField({ children, hint }) {
+// hintId e errorId deixam o campo apontar para a dica e o erro com aria-describedby (#82)
+export function AuthField({ children, hint, hintId, error, errorId }) {
   return (
     <div className={styles.field}>
       {children}
-      {hint && <span className={styles.hint}>{hint}</span>}
+      {hint && (
+        <span id={hintId} className={styles.hint}>
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={errorId} className={styles.fieldError} role="alert">
+          {error}
+        </span>
+      )}
     </div>
   )
 }

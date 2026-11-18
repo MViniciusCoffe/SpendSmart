@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { AuthShell, AuthError, AuthField, AuthForm, AuthRow } from "@/components/layout"
 import { Button, Input, Label } from "@/components/ui"
 import { useAuth } from "@/contexts/AuthContext"
@@ -19,6 +19,10 @@ export default function RegisterPage() {
   const [birthDate, setBirthDate] = useState("")
   const [phone, setPhone] = useState("")
 
+  const passwordRef = useRef(null)
+  // Erro da senha fica junto do campo (aria-describedby), não no alerta geral do formulário (#82)
+  const [passwordError, setPasswordError] = useState("")
+
   const [errorMessage, setErrorMessage] = useState("")
   // E-mail já cadastrado: tentar de novo não resolve, então o erro oferece o caminho para entrar
   const [emailTaken, setEmailTaken] = useState(false)
@@ -32,8 +36,11 @@ export default function RegisterPage() {
       return
     }
 
+    // O form tem noValidate: sem isso o minLength mostrava o balão do navegador, no idioma dele
     if (password.length < 6) {
-      setErrorMessage("A senha deve ter pelo menos 6 caracteres")
+      setErrorMessage("")
+      setPasswordError("A senha deve ter pelo menos 6 caracteres")
+      passwordRef.current?.focus()
       return
     }
 
@@ -110,7 +117,12 @@ export default function RegisterPage() {
           />
         </AuthField>
 
-        <AuthField hint="Mínimo de 6 caracteres">
+        <AuthField
+          hint="Mínimo de 6 caracteres"
+          hintId="password-hint"
+          error={passwordError}
+          errorId="password-error"
+        >
           <Label htmlFor="password" required>
             Senha
           </Label>
@@ -120,10 +132,17 @@ export default function RegisterPage() {
             name="password"
             autoComplete="new-password"
             placeholder="Crie uma senha"
+            ref={passwordRef}
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={e => {
+              setPassword(e.target.value)
+              setPasswordError("")
+            }}
             minLength={6}
             required
+            error={Boolean(passwordError)}
+            aria-invalid={passwordError ? true : undefined}
+            aria-describedby={passwordError ? "password-hint password-error" : "password-hint"}
           />
         </AuthField>
 

@@ -18,7 +18,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className={styles.title}>Navegação</h4>
+            <h2 className={styles.title}>Navegação</h2>
             <ul className={styles.navList}>
               {siteConfig.publicNav.map(item => (
                 <li key={item.href}>
@@ -31,7 +31,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className={styles.title}>GitHub & Tecnologias</h4>
+            <h2 className={styles.title}>GitHub & Tecnologias</h2>
             <a
               href={siteConfig.links.github}
               target="_blank"

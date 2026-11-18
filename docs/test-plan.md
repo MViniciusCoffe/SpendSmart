@@ -375,7 +375,9 @@ autodescrição), combinando a inspeção do agente de IA com a revisão crític
 | Achados restantes | Viram issues no repositório do projeto, com o critério WCAG ou a heurística correspondente                |
 
 Com `@axe-core/playwright`, a verificação de acessibilidade entra nos próprios fluxos de §2.3.1, para
-que uma regressão de acessibilidade falhe o CI.
+que uma regressão de acessibilidade falhe o CI. Além das regras WCAG A/AA, `a11y-audit.spec.js` roda
+a boa prática `heading-order` (título sem salto de nível, #82); as demais regras `best-practice` do
+axe não foram avaliadas pela equipe e ficam fora.
 
 ---
 
@@ -440,7 +442,7 @@ Cobertura de US por nível. "Un." = unidade, "Int." = integração, "E2E" = sist
 
 **Total: 16 User Stories, 10 casos de integração (IT), 2 fluxos E2E obrigatórios e 3 opcionais (ST).**
 
-**Cobertura atual: 384 testes automatizados (238 unidade + 27 pg-mem + 36 Supabase local + 65 regressão
+**Cobertura atual: 387 testes automatizados (241 unidade + 27 pg-mem + 36 Supabase local + 65 regressão
 
 - 18 E2E: 5 do ST-01, 4 do ST-02, 2 do ST-04, 1 da US-004 e 6 da auditoria de acessibilidade),
   conferidos em 2026-11-17.**

@@ -18,7 +18,7 @@ function DoughnutCard({ title, data, emptyTitle, emptyDescription, emptyIcon }) 
 
   return (
     <Card variant="default">
-      <h3 className={styles.chart_title}>{title}</h3>
+      <h2 className={styles.chart_title}>{title}</h2>
       <div className={styles.chart_body}>
         {data ? (
           <ChartContainer
@@ -311,7 +311,7 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3 className={styles.summary_label}>Saldo Atual</h3>
+              <h2 className={styles.summary_label}>Saldo Atual</h2>
               <p className={styles.summary_value}>
                 {hasTransactions ? formatCurrency(summary.balance) : "Sem dados"}
               </p>
@@ -334,7 +334,7 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3 className={styles.summary_label}>Total de Receitas</h3>
+              <h2 className={styles.summary_label}>Total de Receitas</h2>
               <p className={styles.summary_value_income}>
                 {incomes.length > 0 ? formatCurrency(summary.totalIncome) : "Sem dados"}
               </p>
@@ -357,7 +357,7 @@ function DashboardContent() {
               </svg>
             </div>
             <div>
-              <h3 className={styles.summary_label}>Total de Despesas</h3>
+              <h2 className={styles.summary_label}>Total de Despesas</h2>
               <p className={styles.summary_value_expense}>
                 {expenses.length > 0 ? formatCurrency(summary.totalExpenses) : "Sem dados"}
               </p>
@@ -452,7 +452,7 @@ function DashboardContent() {
       </div>
 
       <Card variant="default">
-        <h3 className={styles.chart_heading}>Top 10 Transações (Receitas e Despesas)</h3>
+        <h2 className={styles.chart_heading}>Top 10 Transações (Receitas e Despesas)</h2>
         <div className={styles.line_chart_body}>
           {lineData ? (
             <ChartContainer type="line" data={lineData} />

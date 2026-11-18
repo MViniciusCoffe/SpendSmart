@@ -957,7 +957,8 @@ o projeto passar a ter mais de um aprovador disponível para o environment.
   colisão com o `npm run dev`. Custo: ~1 min de build por execução local.
 - **No mesmo job do RLS** (`test.yml`, job `rls`): reaproveita a subida do Supabase local (~2 min).
 - **Auditoria como teste**: `a11y-audit.spec.js` falha se surgir violação WCAG A/AA. É a guarda da
-  correção de contraste da P3.
+  correção de contraste da P3. Desde a #82, também com a regra `heading-order` (boa prática, fora
+  das tags WCAG), numa segunda análise só com ela.
 - `check-agents.js` ignora `playwright-report/` e `test-results/`, que trazem JS gerado pelo
   Playwright (o visualizador de trace).
 
