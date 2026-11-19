@@ -6,7 +6,12 @@
 
 const { CHECK_TIMEOUT_MS } = require("@/lib/health/checks")
 
-const ENV_KEYS = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+const ENV_KEYS = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "APP_COMMIT_SHA",
+  "VERCEL_GIT_COMMIT_SHA"
+]
 const SUPABASE_URL = "http://127.0.0.1:54321"
 const PUBLISHABLE_KEY = "sb_publishable_teste"
 const savedEnv = Object.fromEntries(ENV_KEYS.map(k => [k, process.env[k]]))
@@ -51,6 +56,8 @@ const callHealth = async () => {
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = PUBLISHABLE_KEY
+  delete process.env.APP_COMMIT_SHA
+  delete process.env.VERCEL_GIT_COMMIT_SHA
 })
 
 afterEach(() => {
@@ -139,6 +146,36 @@ describe("/health — prontidão", () => {
     expect(text).not.toContain("health_check")
     expect(text).not.toContain("fetch failed")
     expect(text).not.toContain(PUBLISHABLE_KEY)
-    expect(Object.keys(body).sort()).toEqual(["checks", "status", "timestamp", "version"])
+    expect(Object.keys(body).sort()).toEqual(["checks", "commit", "status", "timestamp", "version"])
+  })
+
+  describe("commit da versão que respondeu (o smoke test compara com o que publicou)", () => {
+    it("usa o APP_COMMIT_SHA do deploy de produção, mesmo com o da Vercel definido", async () => {
+      process.env.APP_COMMIT_SHA = "aaaa1111"
+      process.env.VERCEL_GIT_COMMIT_SHA = "bbbb2222"
+      mockSupabase()
+
+      const { body } = await callHealth()
+
+      expect(body.commit).toBe("aaaa1111")
+    })
+
+    it("cai no VERCEL_GIT_COMMIT_SHA nos Previews montados pela Vercel", async () => {
+      process.env.VERCEL_GIT_COMMIT_SHA = "bbbb2222"
+      mockSupabase()
+
+      const { body } = await callHealth()
+
+      expect(body.commit).toBe("bbbb2222")
+    })
+
+    it("devolve null quando nenhum dos dois existe, também com o serviço fora", async () => {
+      mockSupabase({ db: "throw" })
+
+      const { response, body } = await callHealth()
+
+      expect(response.status).toBe(503)
+      expect(body.commit).toBeNull()
+    })
   })
 })

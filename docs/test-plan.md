@@ -345,7 +345,7 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 75 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, o `/api/status`, a prontidão do `/health`, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 78 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, o `/api/status`, a prontidão do `/health`, fuso horário em
 `formatDate` e nome de categoria deletada. Eles rodam só localmente
 (`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
 antes rodavam só localmente.

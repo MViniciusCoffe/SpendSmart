@@ -137,9 +137,14 @@ ar), `/api/status` (página de status) e `/health` (prontidão, em `src/app/heal
   `/auth/v1/health`. O `?fail=` (simulação de falha) fica desligado com `VERCEL_ENV=production`.
 - **`/health` é a prontidão e o alvo do smoke test pós-deploy:** `200` só com banco e Auth
   respondendo, `503` se qualquer um falhar, estourar o prazo (3 s) ou faltar configuração. Corpo
-  `{ status, checks: { database, auth }, version, timestamp }` com `"ok"`/`"fail"`, sem mensagem de
-  erro, `Cache-Control: no-store`, sem `?fail=`. Fica fora do `src/proxy.js` (JSON não precisa de
+  `{ status, checks: { database, auth }, version, commit, timestamp }` com `"ok"`/`"fail"`, sem
+  mensagem de erro, `Cache-Control: no-store`, sem `?fail=`. Fica fora do `src/proxy.js` (JSON não precisa de
   CSP). É pública de propósito: cada requisição só lê o catálogo do banco.
+- **`commit` identifica a versão que respondeu:** `APP_COMMIT_SHA` (passado pelo `deploy.yml` no
+  `vercel deploy --env`), senão `VERCEL_GIT_COMMIT_SHA` (Previews), senão `null`. O smoke test só
+  passa com o commit que acabou de publicar: depois de um Instant Rollback a Vercel para de mover o
+  domínio de produção para os deploys novos, e sem essa comparação o pipeline validaria a versão
+  antiga. Motivos completos: [tooling-decisions.md §31](tooling-decisions.md#31-smoke-test-pós-deploy-no-health-conferindo-o-commit-publicado).
 - **As checagens de banco e Auth ficam em `src/lib/health/checks.js`**, usadas pelo `/api/status` e
   pelo `/health`, para as duas rotas não divergirem. O `/api/status` responde `200` mesmo com o banco
   fora (#103); monitoramento por código HTTP usa o `/health`.
