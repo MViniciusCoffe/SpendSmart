@@ -276,11 +276,16 @@ outras branches continuam automáticas.
 
 Num push para a `main` (ou manualmente, em _Actions → Deploy de produção → Run workflow_):
 
-1. **`verify`:** testes unitários, pg-mem e regressão.
+1. **CI completa** (`lint`, `tests`, `sonar`): os mesmos workflows que o PR exige, chamados pelo
+   `deploy.yml` no commit da `main` (`workflow_call`): ESLint, Prettier e `check-agents`; unitários,
+   pg-mem e regressão; `npm audit`; RLS e E2E contra o Supabase local; Quality Gate do SonarQube.
+   Qualquer falha impede o deploy.
 2. **`production`:** espera a **aprovação** de um revisor do environment `production` do GitHub.
    Aprovado, roda `supabase db push --dry-run` (lista no log o que vai ser aplicado), aplica as
-   migrations e só então faz `vercel deploy --prod`. Se a migration falhar, o deploy não acontece e a
-   Produção continua com o código anterior.
+   migrations e só então faz `vercel deploy --prod --env APP_COMMIT_SHA=<commit>`. Se a migration
+   falhar, o deploy não acontece e a Produção continua com o código anterior.
+3. **`smoke-test`:** chama `https://spend-smart-lilac.vercel.app/health` até 6 vezes, com 10 s entre
+   as tentativas, e só passa com HTTP 200 **e** o `commit` igual ao publicado (§10.2).
 
 **A Preview não muda:** deploy automático por branch, com as variáveis do escopo _Preview_ da
 Vercel, e migrations aplicadas à mão (`npm run migrations:push -- --target preview --apply`, §5.2).
@@ -320,3 +325,45 @@ anula as exceções `!.env.*.example` que vêm antes).
 
 A `SUPABASE_PROD_DB_URL` ignora o RLS, como a `DATABASE_URL`: fica só no environment protegido, e
 continua fora da Vercel. Os runners do GitHub alcançam a porta 5432 (o bloqueio é da rede da UFRN).
+
+### 10.2 Smoke test e rollback manual
+
+O `smoke-test` confere que a Produção está saudável (banco e Auth no ar) e que é a versão que o
+pipeline acabou de publicar. Motivos: [tooling-decisions.md §31](tooling-decisions.md#31-smoke-test-pós-deploy-no-health-conferindo-o-commit-publicado).
+O log mostra o código HTTP, o commit e o corpo de cada tentativa.
+
+**Se falhar, o pipeline fica vermelho e nada é desfeito sozinho.** As migrations já foram aplicadas
+antes do deploy, e voltar o código por reflexo deixaria a versão antiga sobre o schema novo. Antes de
+voltar:
+
+1. Ler o corpo no log: `checks.database`/`checks.auth` em `"fail"` aponta o Supabase; HTTP 200 com
+   commit diferente aponta o domínio ainda na versão antiga (passo 4).
+2. Conferir se a versão anterior funciona com o schema atual (migrations compatíveis, §10).
+3. Voltar, se for o caso: Vercel → _Deployments_ → deploy anterior → _Instant Rollback_, ou
+   `npx vercel@65.2.0 rollback <url-do-deploy-anterior> --token <token>`. Corrigir na `main` por PR,
+   como qualquer mudança.
+4. **Depois de um rollback, a Vercel para de mover o domínio de produção para os deploys novos.** O
+   próximo `deploy.yml` publica, mas o domínio fica na versão antiga, e o `smoke-test` falha com o
+   commit diferente: é o comportamento esperado, não um defeito do teste. Para voltar ao normal,
+   promover o deploy corrigido (_Deployments_ → deploy → _Promote_, ou `vercel promote <url>`) e rodar
+   o job `smoke-test` de novo (_Re-run jobs_), sem publicar outra vez.
+
+### 10.3 Proteção da `main` (2026-11-18)
+
+GitHub → _Settings → Branches_ → regra da `main` (aplicada pelo `gh api` em 2026-11-18):
+
+- **PR obrigatório**, sem aprovação mínima (equipe de duas pessoas; quem revisa é a CI). Ninguém
+  faz push direto na `main`.
+- **Checks obrigatórios:** `lint`, `test`, `audit`, `rls + e2e` e `sonar`. O `mutation` fica de fora
+  porque só roda quando o PR mexe em `src/services/` ou nos testes; obrigatório, travaria os outros
+  PRs esperando um check que nunca vem. O `sonar` pulado nos PRs do Dependabot conta como aprovado.
+- **`strict` desligado:** a branch não precisa estar atualizada com a `main` para o merge (evita
+  rebase em todo PR de release do release-please). O commit resultante passa pela CI completa de
+  novo no `deploy.yml` antes da produção.
+- **Vale também para administradores** (`enforce_admins`), sem force push nem exclusão da `main`.
+
+O Quality Gate do SonarQube é bloqueante ([sonarqube.md](sonarqube.md) §6): com o LABENS fora do ar, o
+`sonar` falha e trava todo merge. **Saída de emergência:** um administrador desliga temporariamente a
+exigência do check `sonar` (ou o _Include administrators_) na regra, faz o merge e religa, registrando
+o motivo no PR. O deploy continua exigindo o `sonar` verde no `deploy.yml`; com o LABENS fora, a
+produção espera.

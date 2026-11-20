@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { getSimulatedFailures } from "../../status/utils/failParam"
 import {
   serviceMetadata,
@@ -7,33 +6,23 @@ import {
   calculateUptime,
   calculateLatencies
 } from "../../status/utils/statusConfig"
+import {
+  CHECK_TIMEOUT_MS,
+  withDeadline,
+  supabaseConfig,
+  getPublicClient,
+  checkDatabase,
+  checkAuth
+} from "@/lib/health/checks"
 
 /**
  * System Status API Endpoint
  * Performs real health checks on all services
  * Supports ?fail=database,auth to simulate failures for testing (fora de Produção)
  *
- * Só usa a chave pública. A rota é aberta, sem login: com o cliente admin (service_role, ignora RLS),
- * qualquer descuido futuro (logar um resultado, devolver um erro) viraria vazamento. O banco é
- * checado pela RPC health_check() (20261106150417_add_health_check.sql), que não lê linha nenhuma, e
- * o Auth pelo endpoint público /auth/v1/health. Realtime e Storage não são checados: o app não usa.
+ * Só usa a chave pública: as checagens de banco e Auth vêm de src/lib/health/checks.js, as mesmas
+ * do /health. Realtime e Storage não são checados: o app não usa.
  */
-
-// Each check gives up after this long, so an unreachable project shows up as "critical"
-// instead of hanging until the serverless function times out (504). A per-request timeout
-// alone is not enough: supabase-js retries failed requests, multiplying the wait.
-const CHECK_TIMEOUT_MS = 3000
-
-const fetchWithTimeout = (url, options = {}) =>
-  fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(CHECK_TIMEOUT_MS) })
-
-function withDeadline(promise, ms = CHECK_TIMEOUT_MS) {
-  let timer
-  const deadline = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
-  })
-  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer))
-}
 
 // Nome e descrição de cada serviço vêm de serviceMetadata (o mesmo texto que a página usa)
 function service(id, status, latency = 0) {
@@ -41,47 +30,9 @@ function service(id, status, latency = 0) {
   return { id, name, description, status, latency }
 }
 
-function supabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  return url && key ? { url, key } : null
-}
-
-function getPublicClient(config) {
-  if (!config) return null
-  return createClient(config.url, config.key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: fetchWithTimeout }
-  })
-}
-
-async function checkDatabase(client) {
-  if (!client) return service("database", "critical")
-  const start = Date.now()
-  try {
-    const { data, error } = await withDeadline(client.rpc("health_check"))
-    return service(
-      "database",
-      !error && data === true ? "operational" : "critical",
-      Date.now() - start
-    )
-  } catch {
-    return service("database", "critical", Date.now() - start)
-  }
-}
-
-async function checkAuth(config) {
-  if (!config) return service("auth", "critical")
-  const start = Date.now()
-  try {
-    const response = await fetchWithTimeout(`${config.url}/auth/v1/health`, {
-      headers: { apikey: config.key },
-      cache: "no-store"
-    })
-    return service("auth", response.ok ? "operational" : "degraded", Date.now() - start)
-  } catch {
-    return service("auth", "critical", Date.now() - start)
-  }
+const asService = async (id, check) => {
+  const { status, latency } = await check
+  return service(id, status, latency)
 }
 
 // URL absoluta a partir da própria requisição. Antes era `${NEXT_PUBLIC_APP_URL}/api/health`, variável
@@ -138,8 +89,8 @@ export async function GET(request) {
     const run = (id, check) => (simulated(id) ? service(id, "critical") : check())
 
     const services = await Promise.all([
-      run("database", () => checkDatabase(client)),
-      run("auth", () => checkAuth(config)),
+      run("database", () => asService("database", checkDatabase(client))),
+      run("auth", () => asService("auth", checkAuth(config))),
       run("api", () => checkAPI(request)),
       run("cdn", () => checkCDN())
     ])

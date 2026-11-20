@@ -300,6 +300,11 @@ verificação.
 CA-004.01 e CA-004.02), escrito na #75 porque a página de configurações passou a excluir pela RPC. A
 suíte soma 18 testes.
 
+**Estado (2026-11-19):** `/health` contra o Supabase local (`health.spec.js`, 1 teste), da T4/P5
+(tacianosilva/bsi-tasks#604). Os testes de regressão da rota mockam o `fetch`; este é o único que
+exercita a RPC `health_check()` e o `/auth/v1/health` reais antes do smoke test em produção. A suíte
+soma 19 testes.
+
 **CI (recomendado pela P3):** um job headless no `test.yml` que reaproveita a subida do Supabase do
 job `rls`, faz `next build` e `next start` e roda a suíte E2E.
 
@@ -340,7 +345,7 @@ pelo colega que não desenvolveu a história.
 ### 2.4 Testes de regressão
 
 Todo defeito corrigido ganha um teste em `tests/regression/`, nomeado pela issue (ex.:
-`issue10-21-transactionService.test.js`). Hoje são 65 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, o `/api/status`, fuso horário em
+`issue10-21-transactionService.test.js`). Hoje são 78 testes, cobrindo #10/#21, #11, #24, #32, #76, falha de rede nos services, o `/api/status`, a prontidão do `/health`, fuso horário em
 `formatDate` e nome de categoria deletada. Eles rodam só localmente
 (`npm run test:regression` ou `npm run test:all`) e no job `test` do `test.yml` desde 2026-11-06;
 antes rodavam só localmente.

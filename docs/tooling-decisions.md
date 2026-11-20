@@ -964,3 +964,69 @@ o projeto passar a ter mais de um aprovador disponível para o environment.
 
 **Reavaliar quando.** A suíte crescer a ponto de o build pesar menos que a execução (aí vale
 paralelizar), ou o projeto precisar testar Firefox/WebKit (basta outro `project` no config).
+
+## 31. Smoke test pós-deploy no `/health`, conferindo o commit publicado
+
+**Decisão (2026-11-18/19, T4/P5, tacianosilva/bsi-tasks#604).** Depois do deploy de produção, um job
+separado (`smoke-test` no `deploy.yml`) chama `https://spend-smart-lilac.vercel.app/health` e só passa
+com `200` **e** com o campo `commit` igual ao commit que o pipeline acabou de publicar. O
+`/health` (`src/app/health/route.js`) é a checagem de prontidão: banco e Auth no ar, ou `503`.
+
+**Por que uma rota nova.** Nenhuma das existentes servia de alvo:
+
+- `/api/health` é a checagem de vida (liveness): responde `200` enquanto o processo estiver no ar,
+  sem tocar no banco. Com o Supabase fora, continuaria verde. Fica assim de propósito, para a página
+  de status e para monitores de disponibilidade (#56).
+- `/api/status` checa o banco, mas responde `200` mesmo com tudo `critical` (o problema só aparece no
+  corpo) e fica 30 s na CDN (`s-maxage=30`): um smoke test veria a resposta antiga ou um `200` falso
+  (#103).
+
+O `/health` responde pelo código HTTP, sem cache, e considera fora do ar também o Auth: sem login,
+para o usuário o sistema não funciona.
+
+**Por que conferir o commit.** Um `200` só prova que _alguma_ versão está saudável naquela URL, não
+que é a nova. O `vercel deploy --prod` normalmente só termina depois de apontar o domínio para o
+deploy novo, mas há casos em que o domínio continua no antigo e o deploy termina com sucesso:
+
+- **Depois de um Instant Rollback**, que é o nosso plano de volta quando o smoke test falha: a Vercel
+  para de mover o domínio de produção para os deploys novos até alguém promover um deploy de novo.
+- **Promote ou rollback manual** feito no painel durante um deploy.
+- **Rolling Releases** (liberação gradual da Vercel), se um dia for ligado: parte do tráfego segue na
+  versão antiga.
+
+Nesses casos, sem a comparação, o smoke test validaria a versão antiga, que está saudável, e o
+pipeline ficaria **verde dizendo "publicado e verificado"** enquanto os usuários usam o código
+anterior. O problema que motivou o deploy (uma correção de segurança, por exemplo) continuaria em
+produção sem ninguém saber, e a próxima investigação partiria da premissa errada de que a correção
+já está no ar. É um falso positivo no portão de qualidade: pior que um vermelho, porque ninguém olha.
+
+**Como.** O `deploy.yml` passa `--env APP_COMMIT_SHA=${{ github.sha }}` ao `vercel deploy` (variável
+só daquele deploy). O `/health` devolve `commit` = `APP_COMMIT_SHA`, senão `VERCEL_GIT_COMMIT_SHA`
+(Previews montados pela Vercel), senão `null`. O hash não é segredo: o repositório é público.
+
+**Detalhes do smoke test.**
+
+- **URL pública** (o domínio de produção), a mesma que o usuário abre. A URL única do deploy provaria
+  a versão sem a comparação, mas fica atrás da proteção de deploy da Vercel (`401`) e não é o que o
+  usuário vê.
+- **Tolerância:** 6 tentativas, 10 s entre elas, 10 s por tentativa (cerca de 1,5 min). O primeiro
+  acesso depois de um deploy pode ser lento (cold start da função). Commit diferente também conta
+  como falha e é tentado de novo.
+- **Job separado**, depois do `production`: aparece como etapa própria no gráfico do pipeline e pode
+  ser rodado de novo sem publicar outra vez.
+- **Falha deixa o pipeline vermelho, sem rollback automático.** A volta é manual (Instant Rollback ou
+  `vercel rollback`, em [environments.md](environments.md)). As migrations já foram aplicadas antes
+  do deploy; voltar o código sozinho, por reflexo, deixaria a versão antiga rodando sobre o schema
+  novo. A decisão de voltar é humana, como a do `--apply` das migrations.
+
+**Alternativas descartadas.**
+
+- **Comparar o `version`:** só muda num release do release-please; dois deploys de commits
+  diferentes respondem a mesma versão.
+- **Rollback automático no pipeline:** ver acima; fica como evolução, discutida no relatório de CI/CD.
+- **Só um `200` no `/api/health`:** passaria com o banco fora e com a versão antiga.
+
+**Reavaliar quando.** O deploy passar a ser gradual (Rolling Releases ou canário): aí o smoke test
+precisa conferir a fatia nova do tráfego, não só o domínio. Ou se a #103 for corrigida e o
+`/api/status` passar a responder pelo código HTTP: o `/health` continua sendo o alvo, mas os dois
+podem compartilhar a decisão de "fora do ar".

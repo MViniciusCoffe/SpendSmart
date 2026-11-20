@@ -14,30 +14,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
+  # A CI completa, a mesma que o PR exige (branch protection), agora no commit da main que vai para a
+  # produção: lint, unitários + pg-mem + regressão, audit, RLS + E2E e o Quality Gate do SonarQube.
+  # Qualquer falha impede o deploy. Antes, só um job com unitários, pg-mem e regressão bloqueava.
+  lint:
+    uses: ./.github/workflows/lint.yml
 
-    steps:
-      - name: Baixar código
-        uses: actions/checkout@v5
+  tests:
+    uses: ./.github/workflows/test.yml
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Testes unitários, de integração (pg-mem) e de regressão
-        run: |
-          npm test
-          npm run test:integration
-          npm run test:regression
+  sonar:
+    uses: ./.github/workflows/sonar.yml
+    secrets: inherit
 
   production:
-    needs: verify
+    needs: [lint, tests, sonar]
     runs-on: ubuntu-latest
     # O environment "production" exige aprovação: é a decisão humana do `--apply` (AGENTS.md §10.3)
     environment:
@@ -70,10 +61,52 @@ jobs:
           DATABASE_URL: ${{ secrets.SUPABASE_PROD_DB_URL }}
 
       # Build na própria Vercel, com as variáveis do painel (inclusive as Sensitive, que o
-      # `vercel pull` não lê). Só roda se as migrations passaram.
+      # `vercel pull` não lê). Só roda se as migrations passaram. O APP_COMMIT_SHA vale só para este
+      # deploy e volta no /health: é por ele que o smoke-test sabe que validou a versão nova.
       - name: Deploy na Vercel
-        run: npx --yes vercel@65.2.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+        run: >-
+          npx --yes vercel@65.2.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+          --env APP_COMMIT_SHA="$GITHUB_SHA"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  # Shift-right: confere a produção depois do deploy. Só passa com 200 no /health (banco e Auth no ar)
+  # e com o commit que este pipeline publicou; commit diferente quer dizer que o domínio ainda está na
+  # versão antiga (ex.: depois de um Instant Rollback). Falha deixa o pipeline vermelho, sem rollback
+  # automático: as migrations já rodaram, e a volta é decisão humana (docs/environments.md).
+  # Motivos: docs/tooling-decisions.md §31.
+  smoke-test:
+    needs: production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Smoke test no /health (200 e commit publicado)
+        env:
+          HEALTH_URL: https://spend-smart-lilac.vercel.app/health
+          EXPECTED_COMMIT: ${{ github.sha }}
+          ATTEMPTS: 6
+          DELAY_SECONDS: 10
+        run: |
+          # Sem o jq, o commit sairia sempre "ausente" e a falha pareceria versão antiga
+          command -v jq >/dev/null || { echo "::error::jq não encontrado no runner."; exit 1; }
+
+          for attempt in $(seq 1 "$ATTEMPTS"); do
+            rm -f health.json
+            code=$(curl -sS --max-time 10 -o health.json -w "%{http_code}" "$HEALTH_URL") || code=000
+            # Corpo que não é JSON (página de erro da Vercel, por exemplo) vira commit ausente
+            commit=$(jq -r '.commit // empty' health.json 2>/dev/null || true)
+            echo "Tentativa $attempt/$ATTEMPTS: HTTP $code, commit ${commit:-ausente}"
+            cat health.json 2>/dev/null && echo
+
+            if [ "$code" = "200" ] && [ "$commit" = "$EXPECTED_COMMIT" ]; then
+              echo "Produção saudável e na versão publicada ($EXPECTED_COMMIT)."
+              exit 0
+            fi
+            [ "$attempt" -lt "$ATTEMPTS" ] && sleep "$DELAY_SECONDS"
+          done
+
+          echo "::error::Smoke test falhou: esperado HTTP 200 e commit $EXPECTED_COMMIT em $HEALTH_URL (última resposta: HTTP $code, commit ${commit:-ausente})."
+          exit 1

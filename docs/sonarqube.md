@@ -104,6 +104,12 @@ sonar.sourceEncoding=UTF-8
 
 # Cobertura (lcov gerado pelo Jest)
 sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+# Quality Gate bloqueante (P5): o scanner espera o veredito do servidor e falha o job se o portão for
+# reprovado. Sem isso, o job ficava verde com o portão vermelho. Espera no máximo 5 min; servidor
+# fora também reprova (docs/environments.md §10.3).
+sonar.qualitygate.wait=true
+sonar.qualitygate.timeout=300
 ```
 
 ### Por que não há `sonar.exclusions`
@@ -232,9 +238,8 @@ e o mesmo comando roda no Ubuntu no workflow `test.yml`. Não há risco de forma
 name: SonarQube
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_call: # chamado pelo deploy.yml, com secrets: inherit
 
 jobs:
   sonar:
@@ -285,10 +290,26 @@ analyzed`, que só é possível com histórico completo.
 — sem que a mensagem aponte a causa. Os dois prefixos funcionam com o que está gravado, e o host não é
 informação sensível. A distinção importa para o token, que precisa ficar mascarado nos logs.
 
-### Push em branch diferente de `main` não dispara
+### Quando a análise roda
 
-O trigger `push` filtra `branches: [main]`. Um push na branch de trabalho **não** executa a análise;
-ela sobe na abertura do pull request. Isso é intencional, e evita uma análise por push em rascunho.
+Em todo pull request e, na `main`, dentro do pipeline de produção: o `deploy.yml` chama este workflow
+(`workflow_call`, com `secrets: inherit`) antes do deploy. Até 2026-11-20 havia também um trigger
+`push` na `main`; saiu porque, com o `deploy.yml` chamando o workflow, o merge rodava a análise duas
+vezes. Um push na branch de trabalho **não** executa a análise; ela sobe na abertura do pull request.
+
+`secrets: inherit` repassa só os secrets do **repositório** (`SONAR_TOKEN`, `SONAR_HOST_URL`). Os do
+environment `production` (banco e Vercel) continuam visíveis só para o job `production`.
+
+### Quality Gate bloqueante (2026-11-20, P5)
+
+Com `sonar.qualitygate.wait=true`, o scanner espera o veredito do servidor depois de enviar a análise
+e **falha o job se o portão for reprovado**. Antes, o job ficava verde com o portão vermelho: a
+análise subia e ninguém era impedido de nada. Agora o `sonar` é check obrigatório da `main`
+([environments.md](environments.md) §10.3) e pré-requisito do deploy.
+
+`sonar.qualitygate.timeout=300`: espera no máximo 5 min pelo processamento no servidor. O preço é a
+dependência do LABENS: com o servidor fora, o job falha e bloqueia merge e deploy. A saída de
+emergência está em environments.md §10.3.
 
 ### Pull request de fork não tem análise
 

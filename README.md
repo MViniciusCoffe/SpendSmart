@@ -72,7 +72,8 @@ SpendSmart/
   src/
     app/            páginas (App Router): dashboard, transactions, categories, settings,
                     login, register, about, contact, status
-      api/          rotas serverless públicas: health, status
+      api/          rotas serverless públicas: health (vida), status
+      health/       /health: prontidão (banco + Auth, 200/503), alvo do smoke test pós-deploy
     components/
       ui/           design system: Button, Input, Card, Table, Tabs, Dropdown, ChartContainer...
       forms/        TransactionForm, CategoryForm
@@ -133,32 +134,33 @@ As demais convenções de código, com o motivo de cada uma, estão em
 
 ## Estado real do projeto
 
-| Item                                        | Estado                                                                                                                                                                                                                                                                                  |
-| :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                                                                             |
-| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                                                                        |
-| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                                                                                      |
-| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                                                                             |
-| Excluir conta                               | Funcionando                                                                                                                                                                                                                                                                             |
-| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                                                                                     |
-| Testes de unidade                           | **241 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                                                                                      |
-| Testes de integração (pg-mem)               | **4 suítes, 27 testes** (constraints, FK, unicidade, FK composta de tipo e dono)                                                                                                                                                                                                        |
-| Testes de integração (Supabase/RLS)         | **3 suítes, 36 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado; `account.test.js`: trigger de perfil, RPC de exclusão e privilégios)                                                                                   |
-| Testes de regressão                         | **9 suítes, 65 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rota de status, fuso, categoria deletada)                                                                                                                                                                  |
-| `npm test`                                  | **Passa** — 241/241                                                                                                                                                                                                                                                                     |
-| Build de produção (`next build`)            | **Passa** — 17 rotas                                                                                                                                                                                                                                                                    |
-| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal                                             |
-| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                                                                                      |
-| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA + `heading-order` das 6 telas (axe), 18 testes, no CI; sem testes de componente (#33 fechada como _not planned_: o E2E cobre o objetivo) |
-| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                                                                            |
+| Item                                        | Estado                                                                                                                                                                                                                                                                                                                      |
+| :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cadastro, login, logout, perfil             | Funcionando                                                                                                                                                                                                                                                                                                                 |
+| Categorias: criar, listar, alterar, excluir | Funcionando, com exclusão lógica, contagem de usos e restauração                                                                                                                                                                                                                                                            |
+| Transações: criar, listar, editar, excluir  | Funcionando — uma página com abas, seleção de linha e ações no cabeçalho da tabela                                                                                                                                                                                                                                          |
+| Dashboard com gráficos                      | Funcionando                                                                                                                                                                                                                                                                                                                 |
+| Excluir conta                               | Funcionando                                                                                                                                                                                                                                                                                                                 |
+| Interface                                   | Toda em português, tema escuro, valores em R$ e datas em dd/mm/aaaa                                                                                                                                                                                                                                                         |
+| Testes de unidade                           | **241 testes, 100% de linhas, ramos e funções em `src/services/`**                                                                                                                                                                                                                                                          |
+| Testes de integração (pg-mem)               | **4 suítes, 27 testes** (constraints, FK, unicidade, FK composta de tipo e dono)                                                                                                                                                                                                                                            |
+| Testes de integração (Supabase/RLS)         | **3 suítes, 36 testes** (`rls.test.js`: isolamento real entre 2 usuários; `categoryService.test.js`: o service real autenticado; `account.test.js`: trigger de perfil, RPC de exclusão e privilégios)                                                                                                                       |
+| Testes de regressão                         | **10 suítes, 78 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rota de status, prontidão `/health`, fuso, categoria deletada)                                                                                                                                                                                |
+| `npm test`                                  | **Passa** — 241/241                                                                                                                                                                                                                                                                                                         |
+| Build de produção (`next build`)            | **Passa** — 17 rotas                                                                                                                                                                                                                                                                                                        |
+| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal                                                                                 |
+| RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                                                                                                                          |
+| Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA + `heading-order` das 6 telas (axe) e `/health` contra o Supabase local, 19 testes, no CI; sem testes de componente (#33 fechada como _not planned_: o E2E cobre o objetivo) |
+| Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                                                                                                                |
 
 ### Defeitos conhecidos
 
-| #                                                             | Problema                                                                                                                         |
-| :------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------- |
-| [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) | Cliente Supabase aceita sessão vinda da URL (`detectSessionInUrl` ligado sem uso): um link pode logar o navegador em outra conta |
+| #                                                               | Problema                                                                                                                                       |
+| :-------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91)   | Cliente Supabase aceita sessão vinda da URL (`detectSessionInUrl` ligado sem uso): um link pode logar o navegador em outra conta               |
+| [#103](https://github.com/MViniciusCoffe/SpendSmart/issues/103) | `/api/status` responde 200 com o banco ou o Auth fora do ar, e a CDN guarda a resposta por 30 s; monitoramento por código HTTP usa o `/health` |
 
-A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15.
+A [#91](https://github.com/MViniciusCoffe/SpendSmart/issues/91) foi encontrada por leitura de código em 2026-11-15; a [#103](https://github.com/MViniciusCoffe/SpendSmart/issues/103), ao planejar o smoke test pós-deploy, em 2026-11-18.
 
 Corrigidos e fechados (histórico em [`CHANGELOG.md`](CHANGELOG.md)):
 
@@ -236,27 +238,29 @@ arquivos abaixo, em Markdown.
 
 ## Scripts principais
 
-| Script                     | Comando                                       | Quando usar                                          |
-| -------------------------- | --------------------------------------------- | ---------------------------------------------------- |
-| `npm run dev`              | `node scripts/dev.js`                         | **Padrão** — sobe a infra se preciso e inicia o Next |
-| `npm run infra:up`         | `supabase start`                              | Só sobe infra (já tem `.env.local`)                  |
-| `npm run next:dev`         | `next dev`                                    | Next.js só (infra já rodando)                        |
-| `npm run infra:down`       | `supabase stop`                               | Para infra                                           |
-| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations (**apaga os dados**)       |
-| `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                 |
-| `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                 |
-| `npm run services:up`      | `docker compose up -d --wait`                 | Postgres puro (sem RLS)                              |
-| `npm run migrations:new`   | `supabase migration new`                      | Cria migration `.sql` com timestamp                  |
-| `npm run migrations:up`    | `supabase migration up --local`               | Aplica as migrations pendentes no banco local        |
-| `npm run migrations:list`  | `scripts/db-migrations.js list --target ...`  | Histórico de migrations num banco remoto/compose     |
-| `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)            |
-| `npm run test`             | `jest tests/unit`                             | Testes unitários                                     |
-| `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                    |
-| `npm run test:regression`  | `jest tests/regression`                       | Testes de regressão (também no CI)                   |
-| `npm run test:e2e`         | `playwright test`                             | E2E e acessibilidade (build + Supabase local)        |
-| `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                      |
-| `npm run build`            | `next build`                                  | Build de produção (o mesmo que a Vercel roda)        |
-| `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                     |
+| Script                     | Comando                                       | Quando usar                                                 |
+| -------------------------- | --------------------------------------------- | ----------------------------------------------------------- |
+| `npm run dev`              | `node scripts/dev.js`                         | **Padrão** — sobe a infra se preciso e inicia o Next        |
+| `npm run infra:up`         | `supabase start`                              | Só sobe infra (já tem `.env.local`)                         |
+| `npm run next:dev`         | `next dev`                                    | Next.js só (infra já rodando)                               |
+| `npm run infra:down`       | `supabase stop`                               | Para infra                                                  |
+| `npm run infra:reset`      | `supabase db reset`                           | Recria banco + migrations (**apaga os dados**)              |
+| `npm run infra:studio`     | `supabase studio`                             | Abre dashboard local                                        |
+| `npm run infra:status`     | `supabase status`                             | Mostra URLs e chaves                                        |
+| `npm run services:up`      | `docker compose up -d --wait`                 | Postgres puro (sem RLS)                                     |
+| `npm run migrations:new`   | `supabase migration new`                      | Cria migration `.sql` com timestamp                         |
+| `npm run migrations:up`    | `supabase migration up --local`               | Aplica as migrations pendentes no banco local               |
+| `npm run migrations:list`  | `scripts/db-migrations.js list --target ...`  | Histórico de migrations num banco remoto/compose            |
+| `npm run migrations:push`  | `scripts/db-migrations.js push --target ...`  | Aplica migrations (dry-run sem `--apply`)                   |
+| `npm run test`             | `jest tests/unit`                             | Testes unitários                                            |
+| `npm run test:integration` | `jest tests/integration/postgres --runInBand` | Integração pg-mem                                           |
+| `npm run test:regression`  | `jest tests/regression`                       | Testes de regressão (também no CI)                          |
+| `npm run test:e2e`         | `playwright test`                             | E2E e acessibilidade (build + Supabase local)               |
+| `npm run test:e2e:ui`      | `playwright test --ui`                        | Modo interativo: escolhe o teste e vê cada passo com a tela |
+| `npm run test:e2e:headed`  | `playwright test --headed`                    | Abre o Chromium e mostra o teste rodando ao vivo            |
+| `npm run test:all`         | unit + pg-mem + regressão + RLS               | Todos os testes                                             |
+| `npm run build`            | `next build`                                  | Build de produção (o mesmo que a Vercel roda)               |
+| `npm run test:mutation`    | `stryker run`                                 | Testes de mutação em `services/`                            |
 
 ---
 

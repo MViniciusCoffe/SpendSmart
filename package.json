@@ -38,7 +38,9 @@
     "prepare": "husky",
     "commit": "cz",
     "test:e2e": "playwright test",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui"
   },
   "lint-staged": {
     "*.{js,jsx}": [
