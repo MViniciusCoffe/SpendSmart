@@ -1,11 +1,11 @@
 name: linting
 
 on:
-  # Push só na main: nas outras branches o PR já dispara o mesmo workflow. Sem o filtro, cada PR
-  # rodava tudo duas vezes (push + pull_request), dobrando o uso e a chance de falha intermitente
-  push:
-    branches: [main]
+  # Só em PR e chamado pelo deploy.yml (workflow_call), que o roda antes da produção. Sem push na
+  # main: o deploy.yml já roda este workflow no commit da main, e o push dobraria a execução (e a
+  # chance de falha intermitente). Nas outras branches o PR já dispara o mesmo workflow.
   pull_request:
+  workflow_call:
 
 jobs:
   lint:

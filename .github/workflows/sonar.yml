@@ -1,9 +1,10 @@
 name: SonarQube
 
 on:
-  push:
-    branches: [main]
+  # Só em PR e chamado pelo deploy.yml (workflow_call, com secrets: inherit): a análise da main
+  # continua acontecendo, dentro do pipeline de produção, sem rodar duas vezes no merge.
   pull_request:
+  workflow_call:
 
 jobs:
   sonar:

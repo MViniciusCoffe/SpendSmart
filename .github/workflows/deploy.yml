@@ -14,30 +14,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest
+  # A CI completa, a mesma que o PR exige (branch protection), agora no commit da main que vai para a
+  # produção: lint, unitários + pg-mem + regressão, audit, RLS + E2E e o Quality Gate do SonarQube.
+  # Qualquer falha impede o deploy. Antes, só um job com unitários, pg-mem e regressão bloqueava.
+  lint:
+    uses: ./.github/workflows/lint.yml
 
-    steps:
-      - name: Baixar código
-        uses: actions/checkout@v5
+  tests:
+    uses: ./.github/workflows/test.yml
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Testes unitários, de integração (pg-mem) e de regressão
-        run: |
-          npm test
-          npm run test:integration
-          npm run test:regression
+  sonar:
+    uses: ./.github/workflows/sonar.yml
+    secrets: inherit
 
   production:
-    needs: verify
+    needs: [lint, tests, sonar]
     runs-on: ubuntu-latest
     # O environment "production" exige aprovação: é a decisão humana do `--apply` (AGENTS.md §10.3)
     environment:
