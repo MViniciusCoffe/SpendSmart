@@ -34,6 +34,15 @@ jobs:
       - name: Executar testes de regressão
         run: npm run test:regression
 
+      # P5 (#107): sem containerização, o artefato de produção é validado aqui. NEXT_PUBLIC_*
+      # são inlined no build; placeholders bastam para compilar. A Vercel reconstrói com as
+      # variáveis reais no deploy, que continua sendo o ambiente de produção.
+      - name: Verificar build de produção
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+
   audit:
     runs-on: ubuntu-latest
 
