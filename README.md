@@ -5,6 +5,11 @@ Aplicação web pessoal de controle financeiro: receitas, despesas, categorias, 
 O projeto atende a disciplina de **Testes de Software** do Bacharelado em Sistemas de Informação
 (BSI) da UFRN.
 
+[![Testes](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/test.yml/badge.svg)](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/test.yml)
+[![Lint](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/lint.yml/badge.svg)](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/lint.yml)
+[![SonarQube](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/sonar.yml/badge.svg)](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/sonar.yml)
+[![Deploy de produção](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/deploy.yml/badge.svg)](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/deploy.yml)
+
 ---
 
 ## Sobre este repositório
@@ -85,7 +90,7 @@ SpendSmart/
     lib/            cliente Supabase (supabase.js), formatadores (utils/format.js), config
     styles/         globals.css e design-tokens.css (variáveis de cor, espaço, raio, sombra...)
   supabase/migrations/   schema do banco (.sql aplicados pelo Supabase CLI)
-  infra/          Docker Compose do Postgres puro
+  infra/          Docker Compose do Postgres puro (sem RLS)
   tests/          suíte Jest — ver o estado real abaixo
   docs/           documentação
 ```
@@ -148,7 +153,7 @@ As demais convenções de código, com o motivo de cada uma, estão em
 | Testes de regressão                         | **10 suítes, 78 testes** (issues #10, #21, #11, #24, #32, #76, falha de rede, rota de status, prontidão `/health`, fuso, categoria deletada)                                                                                                                                                                                |
 | `npm test`                                  | **Passa** — 241/241                                                                                                                                                                                                                                                                                                         |
 | Build de produção (`next build`)            | **Passa** — 17 rotas                                                                                                                                                                                                                                                                                                        |
-| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal                                                                                 |
+| CI no GitHub Actions                        | **7 workflows** — `test.yml` (unit, pg-mem, regressão, build de produção, `npm audit` de produção, RLS), `lint.yml` (com `check:agents`), `sonar.yml`, `mutation.yml`, `codeql.yml`, `deploy.yml` (produção com aprovação) e `release.yml`; Dependabot semanal                                                              |
 | RLS aplicado e validado                     | **Validado** via `tests/integration/supabase/rls.test.js` (requer `supabase start` + `.env.local`)                                                                                                                                                                                                                          |
 | Testes de front-end                         | **E2E com Playwright** (P3): ST-01 (cadastro e login), ST-02 (despesa), ST-04 (troca de usuário), US-004 (excluir conta) e auditoria WCAG A/AA + `heading-order` das 6 telas (axe) e `/health` contra o Supabase local, 19 testes, no CI; sem testes de componente (#33 fechada como _not planned_: o E2E cobre o objetivo) |
 | Ambientes separados                         | **Sim** — Supabase local, projeto de Preview e projeto de Produção ([environments.md](docs/environments.md))                                                                                                                                                                                                                |
@@ -235,6 +240,18 @@ arquivos abaixo, em Markdown.
 | [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
 | [Política de segurança](SECURITY.md)                | Como reportar vulnerabilidade (reporte privado do GitHub) e o escopo          |
 | [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
+| [Relatório de CI/CD](docs/relatorio-ci-cd.md)       | P5: arquitetura da esteira, Quality Gate, ambientes e evidências              |
+
+### CI/CD e implantação (P5)
+
+- **Aplicação publicada:** <https://spend-smart-lilac.vercel.app/>
+- **Prontidão (`/health`):** <https://spend-smart-lilac.vercel.app/health>
+- **Pipeline de produção:** [Deploy de produção](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/deploy.yml)
+- **Build de produção na CI:** [Testes](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/test.yml) (job `test`, etapa `Verificar build de produção`)
+- **SonarQube do LABENS:** <http://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart>
+- **Issues:** [projeto #107](https://github.com/MViniciusCoffe/SpendSmart/issues/107) e [disciplina #609](https://github.com/tacianosilva/bsi-tasks/issues/609)
+
+O detalhamento está no [relatório de CI/CD](docs/relatorio-ci-cd.md).
 
 ## Scripts principais
 
