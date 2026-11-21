@@ -186,6 +186,9 @@ na validação da T4:
 }
 ```
 
+Revalidação em 21/11/2026: `/health` respondeu **HTTP 200**, com `database` e `auth` em `ok` e
+`commit = 6d5ac837608593862bc691bcdb434a7caaa7b660` (commit da `main` antes do merge desta P5).
+
 O campo `commit` é comparado com `github.sha` pelo smoke test; sem ele, um `200` de uma versão
 antiga passaria despercebido ([decisão §31](tooling-decisions.md#31-smoke-test-pós-deploy-no-health-conferindo-o-commit-publicado)).
 Não há screenshot em arquivo: o log de cada tentativa do job `smoke-test` registra código HTTP,
