@@ -4,8 +4,8 @@
 e [tacianosilva/bsi-tasks#609](https://github.com/tacianosilva/bsi-tasks/issues/609)  
 **Equipe:** José Samuel Silva Lima ([@Jose-Samuel-Lima](https://github.com/Jose-Samuel-Lima)) e
 Marcus Vinícius de Souza Azevedo ([@MViniciusCoffe](https://github.com/MViniciusCoffe))  
-**PRs de entrega:** [#PR_PROJETO_P5](https://github.com/MViniciusCoffe/SpendSmart/pull/#PR_PROJETO_P5)
-e [#PR_DISCIPLINA_P5](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/#PR_DISCIPLINA_P5)  
+**PRs de entrega:** [108](https://github.com/MViniciusCoffe/SpendSmart/pull/108)
+e [2](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/2)  
 **Data:** 21/11/2026
 
 ---
@@ -160,8 +160,8 @@ npm run build
 | Qualidade — SonarQube LABENS              | <http://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart>                                     |
 | Issue no projeto                          | [SpendSmart#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)                         |
 | Issue na disciplina                       | [bsi-tasks#609](https://github.com/tacianosilva/bsi-tasks/issues/609)                             |
-| PR no projeto                             | [#PR_PROJETO_P5](https://github.com/MViniciusCoffe/SpendSmart/pull/#PR_PROJETO_P5)                |
-| PR no fork da disciplina                  | [#PR_DISCIPLINA_P5](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/#PR_DISCIPLINA_P5)         |
+| PR no projeto                             | [108](https://github.com/MViniciusCoffe/SpendSmart/pull/108)                                      |
+| PR no fork da disciplina                  | [2](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/2)                                         |
 
 ---
 
@@ -193,19 +193,19 @@ commit e corpo da resposta, e os badges do `README.md` mostram o estado atual do
 
 ### Requisito → implementação (P5)
 
-| Requisito do enunciado                                           | Implementação                                                                                                                                                                  |
-| :--------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Issues no projeto e na disciplina                                | [#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107) e [#609](https://github.com/tacianosilva/bsi-tasks/issues/609)                                                 |
-| Branch temática e commits convencionais com referência           | `infra/#107-pipeline-ci-cd` e `task/609-p5`; `docs(...): ... (#107)` / `docs(...): ... (#609)`                                                                                 |
-| CI no push/PR para `main`                                        | PR dispara os workflows; na `main`, o `deploy.yml` os chama por `workflow_call` no commit publicado (evita duplicação)                                                         |
-| Setup, lint, unidade, integração, E2E headless, cobertura, Sonar | `lint.yml`, `test.yml`, `sonar.yml` — ver §1                                                                                                                                   |
-| Build do artefato de produção na CI                              | etapa `Verificar build de produção` no `test.yml`, com `npm run build`                                                                                                         |
-| Quality Gate bloqueante                                          | `sonar.qualitygate.wait=true` + checks obrigatórios na proteção da `main`                                                                                                      |
-| Dockerfile multi-stage, Compose e job de build de imagem         | **Não entregues, por orientação do Marcus**: Vercel já produz/publica o artefato e o build é verificado na CI; ver §2                                                          |
-| CD só após CI verde, na `main`, com credenciais em secrets       | job `production` com `needs` completo, environment com aprovação e `vercel deploy --prod`                                                                                      |
-| Migrações antes da publicação                                    | `supabase db push --dry-run` e `--yes` no job `production`                                                                                                                     |
-| Endpoint de integridade                                          | `GET /health` (`src/app/health/route.js`), 200/503 com banco e Auth                                                                                                            |
-| Smoke test pós-deploy com retries                                | job `smoke-test`: 6 tentativas, exige 200 e `commit` igual ao publicado                                                                                                        |
-| Relatório em `docs/relatorio-ci-cd.md`                           | este arquivo                                                                                                                                                                   |
-| Links atualizados no bsi-tasks                                   | `softwaretesting/20262/README.md` no fork [@Jose-Samuel-Lima](https://github.com/Jose-Samuel-Lima/bsi-tasks)                                                                   |
-| PR para a `main`                                                 | [#PR_PROJETO_P5](https://github.com/MViniciusCoffe/SpendSmart/pull/#PR_PROJETO_P5) e [#PR_DISCIPLINA_P5](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/#PR_DISCIPLINA_P5) |
+| Requisito do enunciado                                           | Implementação                                                                                                                  |
+| :--------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| Issues no projeto e na disciplina                                | [#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107) e [#609](https://github.com/tacianosilva/bsi-tasks/issues/609) |
+| Branch temática e commits convencionais com referência           | `infra/#107-pipeline-ci-cd` e `task/609-p5`; `docs(...): ... (#107)` / `docs(...): ... (#609)`                                 |
+| CI no push/PR para `main`                                        | PR dispara os workflows; na `main`, o `deploy.yml` os chama por `workflow_call` no commit publicado (evita duplicação)         |
+| Setup, lint, unidade, integração, E2E headless, cobertura, Sonar | `lint.yml`, `test.yml`, `sonar.yml` — ver §1                                                                                   |
+| Build do artefato de produção na CI                              | etapa `Verificar build de produção` no `test.yml`, com `npm run build`                                                         |
+| Quality Gate bloqueante                                          | `sonar.qualitygate.wait=true` + checks obrigatórios na proteção da `main`                                                      |
+| Dockerfile multi-stage, Compose e job de build de imagem         | **Não entregues, por orientação do Marcus**: Vercel já produz/publica o artefato e o build é verificado na CI; ver §2          |
+| CD só após CI verde, na `main`, com credenciais em secrets       | job `production` com `needs` completo, environment com aprovação e `vercel deploy --prod`                                      |
+| Migrações antes da publicação                                    | `supabase db push --dry-run` e `--yes` no job `production`                                                                     |
+| Endpoint de integridade                                          | `GET /health` (`src/app/health/route.js`), 200/503 com banco e Auth                                                            |
+| Smoke test pós-deploy com retries                                | job `smoke-test`: 6 tentativas, exige 200 e `commit` igual ao publicado                                                        |
+| Relatório em `docs/relatorio-ci-cd.md`                           | este arquivo                                                                                                                   |
+| Links atualizados no bsi-tasks                                   | `softwaretesting/20262/README.md` no fork [@Jose-Samuel-Lima](https://github.com/Jose-Samuel-Lima/bsi-tasks)                   |
+| PR para a `main`                                                 | [108](https://github.com/MViniciusCoffe/SpendSmart/pull/108) e [2](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/2)       |
