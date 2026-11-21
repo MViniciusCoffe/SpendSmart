@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.2...v0.5.0) (2026-11-20)
+
+
+### Funcionalidades
+
+* adiciona o /health como checagem de prontidão para o smoke test pós-deploy ([26bc6b7](https://github.com/MViniciusCoffe/SpendSmart/commit/26bc6b77306a77c44bdf717517f1e4fb63def44a))
+* inclui no /health o commit da versão que respondeu ([674bb88](https://github.com/MViniciusCoffe/SpendSmart/commit/674bb8891a5f3ff383cd4f676318121c29727e9b))
+
+
+### Refatoração
+
+* extrai as checagens de banco e Auth do /api/status para um módulo compartilhado ([0173515](https://github.com/MViniciusCoffe/SpendSmart/commit/01735157055aa381ec4a02c98ebc327081016f0f))
+
+
+### Documentação
+
+* lista os scripts test:e2e:ui e test:e2e:headed no README ([f08d4de](https://github.com/MViniciusCoffe/SpendSmart/commit/f08d4de260fba31ab681123a0f36664dbe16699d))
+
 ## [0.4.2](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.1...v0.4.2) (2026-11-18)
 
 
