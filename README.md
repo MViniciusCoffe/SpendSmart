@@ -93,6 +93,7 @@ SpendSmart/
   infra/          Docker Compose do Postgres puro (sem RLS)
   tests/          suíte Jest — ver o estado real abaixo
   docs/           documentação
+    devops/       relatórios de DevOps (T4) e de CI/CD (P5)
 ```
 
 A separação de responsabilidades adotada:
@@ -233,14 +234,15 @@ arquivos abaixo, em Markdown.
 
 ### Operação
 
-| Documento                                           | Conteúdo                                                                      |
-| :-------------------------------------------------- | :---------------------------------------------------------------------------- |
-| [Manual de execução](docs/execution-manual.md)      | Instalação, configuração, execução da aplicação e de todas as suítes de teste |
-| [Ambientes](docs/environments.md)                   | Matriz de ambientes, variáveis, o problema do `npm run dev`                   |
-| [SonarQube](docs/sonarqube.md)                      | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
-| [Política de segurança](SECURITY.md)                | Como reportar vulnerabilidade (reporte privado do GitHub) e o escopo          |
-| [Decisões de ferramenta](docs/tooling-decisions.md) | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
-| [Relatório de CI/CD](docs/relatorio-ci-cd.md)       | P5: arquitetura da esteira, Quality Gate, ambientes e evidências              |
+| Documento                                                   | Conteúdo                                                                      |
+| :---------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| [Manual de execução](docs/execution-manual.md)              | Instalação, configuração, execução da aplicação e de todas as suítes de teste |
+| [Ambientes](docs/environments.md)                           | Matriz de ambientes, variáveis, o problema do `npm run dev`                   |
+| [SonarQube](docs/sonarqube.md)                              | Análise estática no LABENS: escopo medido, cobertura, resultado e pendências  |
+| [Política de segurança](SECURITY.md)                        | Como reportar vulnerabilidade (reporte privado do GitHub) e o escopo          |
+| [Decisões de ferramenta](docs/tooling-decisions.md)         | Por que cada versão foi escolhida: ESLint 9, Jest, Husky, escopo do Sonar     |
+| [Relatório de DevOps (T4)](docs/devops/relatorio-devops.md) | T4: fundamentação, CI/CD, Quality Gate e smoke test                           |
+| [Relatório de CI/CD (P5)](docs/devops/relatorio-ci-cd.md)   | P5: arquitetura da esteira, Quality Gate, ambientes e evidências              |
 
 ### CI/CD e implantação (P5)
 
@@ -250,8 +252,11 @@ arquivos abaixo, em Markdown.
 - **Build de produção na CI:** [Testes](https://github.com/MViniciusCoffe/SpendSmart/actions/workflows/test.yml) (job `test`, etapa `Verificar build de produção`)
 - **SonarQube do LABENS:** <http://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart>
 - **Issues:** [projeto #107](https://github.com/MViniciusCoffe/SpendSmart/issues/107) e [disciplina #609](https://github.com/tacianosilva/bsi-tasks/issues/609)
+- **PRs de entrega:** [#108](https://github.com/MViniciusCoffe/SpendSmart/pull/108) e [#2](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/2)
 
-O detalhamento está no [relatório de CI/CD](docs/relatorio-ci-cd.md).
+Os detalhamentos estão em [docs/devops/](docs/devops/):
+[relatório de DevOps](docs/devops/relatorio-devops.md) (T4) e
+[relatório de CI/CD](docs/devops/relatorio-ci-cd.md) (P5).
 
 ## Scripts principais
 

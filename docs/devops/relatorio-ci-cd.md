@@ -37,13 +37,13 @@ flowchart LR
 
 ### Estágios
 
-| Estágio                 | Workflow                                                          | O que bloqueia                                                                                                                                                               |
-| :---------------------- | :---------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Setup e lint            | [`.github/workflows/lint.yml`](../.github/workflows/lint.yml)     | Node 24 com cache npm, `npm ci`, ESLint, Prettier e `check:agents`                                                                                                           |
-| Testes e build          | [`.github/workflows/test.yml`](../.github/workflows/test.yml)     | 241 unitários com cobertura, 27 de integração (pg-mem), 78 de regressão, `npm run build`, `npm audit --omit=dev`, 36 de RLS/Supabase e 19 E2E (Playwright/Chromium headless) |
-| Métricas e Quality Gate | [`.github/workflows/sonar.yml`](../.github/workflows/sonar.yml)   | LCOV enviado ao LABENS com `sonar.qualitygate.wait=true`; gate reprovado falha o job                                                                                         |
-| CD                      | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) | Só na `main`, depois de `lint`, `tests` e `sonar`; environment `production` exige aprovação, migrations com dry-run e deploy na Vercel com `APP_COMMIT_SHA`                  |
-| Smoke test              | job `smoke-test` do `deploy.yml`                                  | Até 6 tentativas no `/health`; exige HTTP **200** e `commit` igual ao do deploy                                                                                              |
+| Estágio                 | Workflow                                                             | O que bloqueia                                                                                                                                                               |
+| :---------------------- | :------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Setup e lint            | [`.github/workflows/lint.yml`](../../.github/workflows/lint.yml)     | Node 24 com cache npm, `npm ci`, ESLint, Prettier e `check:agents`                                                                                                           |
+| Testes e build          | [`.github/workflows/test.yml`](../../.github/workflows/test.yml)     | 241 unitários com cobertura, 27 de integração (pg-mem), 78 de regressão, `npm run build`, `npm audit --omit=dev`, 36 de RLS/Supabase e 19 E2E (Playwright/Chromium headless) |
+| Métricas e Quality Gate | [`.github/workflows/sonar.yml`](../../.github/workflows/sonar.yml)   | LCOV enviado ao LABENS com `sonar.qualitygate.wait=true`; gate reprovado falha o job                                                                                         |
+| CD                      | [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) | Só na `main`, depois de `lint`, `tests` e `sonar`; environment `production` exige aprovação, migrations com dry-run e deploy na Vercel com `APP_COMMIT_SHA`                  |
+| Smoke test              | job `smoke-test` do `deploy.yml`                                     | Até 6 tentativas no `/health`; exige HTTP **200** e `commit` igual ao do deploy                                                                                              |
 
 Os workflows de lint, teste e Sonar rodam no PR e, na `main`, são chamados por `workflow_call`
 dentro do `deploy.yml` no commit que vai para produção. Isso evita executar duas vezes a mesma
@@ -154,8 +154,9 @@ npm run build
 | Aplicação publicada                       | <https://spend-smart-lilac.vercel.app/>                                                           |
 | Endpoint de integridade                   | <https://spend-smart-lilac.vercel.app/health>                                                     |
 | Repositório do projeto                    | <https://github.com/MViniciusCoffe/SpendSmart>                                                    |
-| Workflow de CI/CD                         | [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)                                 |
-| Build de produção na CI                   | [`.github/workflows/test.yml`](../.github/workflows/test.yml)                                     |
+| Relatório de DevOps (T4)                  | [relatorio-devops.md](./relatorio-devops.md)                                                      |
+| Workflow de CI/CD                         | [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml)                              |
+| Build de produção na CI                   | [`.github/workflows/test.yml`](../../.github/workflows/test.yml)                                  |
 | Execução de produção usada como evidência | [Actions run #44811028671](https://github.com/MViniciusCoffe/SpendSmart/actions/runs/44811028671) |
 | Qualidade — SonarQube LABENS              | <http://labens.dct.ufrn.br/sonarqube/dashboard?id=spendsmart>                                     |
 | Issue no projeto                          | [SpendSmart#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)                         |
@@ -170,7 +171,7 @@ npm run build
 **Quality Gate.** Commit `fdcd531` (PR #104, simulação documentada na T4): `test`, `sonar` e
 `mutation` vermelhos; a proteção da `main` barrou o merge e o `deploy.yml` não chegou a rodar.
 Commit `ac7759f` restabeleceu os checks. O `sonar.qualitygate.wait=true` está em
-[`sonar-project.properties`](../sonar-project.properties).
+[`sonar-project.properties`](../../sonar-project.properties).
 
 **Deploy + smoke test.** Run
 [#44811028671](https://github.com/MViniciusCoffe/SpendSmart/actions/runs/44811028671),
@@ -190,7 +191,7 @@ Revalidação em 21/11/2026: `/health` respondeu **HTTP 200**, com `database` e 
 `commit = 6d5ac837608593862bc691bcdb434a7caaa7b660` (commit da `main` antes do merge desta P5).
 
 O campo `commit` é comparado com `github.sha` pelo smoke test; sem ele, um `200` de uma versão
-antiga passaria despercebido ([decisão §31](tooling-decisions.md#31-smoke-test-pós-deploy-no-health-conferindo-o-commit-publicado)).
+antiga passaria despercebido ([decisão §31](../tooling-decisions.md#31-smoke-test-pós-deploy-no-health-conferindo-o-commit-publicado)).
 Não há screenshot em arquivo: o log de cada tentativa do job `smoke-test` registra código HTTP,
 commit e corpo da resposta, e os badges do `README.md` mostram o estado atual dos workflows.
 
@@ -209,6 +210,6 @@ commit e corpo da resposta, e os badges do `README.md` mostram o estado atual do
 | Migrações antes da publicação                                    | `supabase db push --dry-run` e `--yes` no job `production`                                                                     |
 | Endpoint de integridade                                          | `GET /health` (`src/app/health/route.js`), 200/503 com banco e Auth                                                            |
 | Smoke test pós-deploy com retries                                | job `smoke-test`: 6 tentativas, exige 200 e `commit` igual ao publicado                                                        |
-| Relatório em `docs/relatorio-ci-cd.md`                           | este arquivo                                                                                                                   |
+| Relatório em `docs/devops/relatorio-ci-cd.md`                    | este arquivo                                                                                                                   |
 | Links atualizados no bsi-tasks                                   | `softwaretesting/20262/README.md` no fork [@Jose-Samuel-Lima](https://github.com/Jose-Samuel-Lima/bsi-tasks)                   |
 | PR para a `main`                                                 | [108](https://github.com/MViniciusCoffe/SpendSmart/pull/108) e [2](https://github.com/Jose-Samuel-Lima/bsi-tasks/pull/2)       |
