@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.1](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.5.0...v0.5.1) (2026-11-21)
+
+
+### Documentação
+
+* **devops:** organiza relatórios em docs/devops ([#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)) ([5c2b539](https://github.com/MViniciusCoffe/SpendSmart/commit/5c2b5392042409999ce37aabac7e76a93ad64229))
+* **devops:** relatórios de DevOps e CI/CD em docs/devops ([#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)) ([961f757](https://github.com/MViniciusCoffe/SpendSmart/commit/961f757741d6f43db87c9f4fa3f2123bc3754fda))
+* **p5:** adiciona relatório de CI/CD e links ([#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)) ([bd17d00](https://github.com/MViniciusCoffe/SpendSmart/commit/bd17d00edb44004df46de92b12e0ec46cff34542))
+* **p5:** registra links dos PRs de entrega ([#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)) ([22aa11f](https://github.com/MViniciusCoffe/SpendSmart/commit/22aa11f28e6ea21e6b7f8f4f683a0541d1076069))
+* **p5:** registra revalidação do health ([#107](https://github.com/MViniciusCoffe/SpendSmart/issues/107)) ([b9cb603](https://github.com/MViniciusCoffe/SpendSmart/commit/b9cb603b1dedeaf2a79fc2add54c41fa474173a8))
+
 ## [0.5.0](https://github.com/MViniciusCoffe/SpendSmart/compare/v0.4.2...v0.5.0) (2026-11-20)
 
 
