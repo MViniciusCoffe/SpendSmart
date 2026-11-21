@@ -116,7 +116,7 @@ describe("createTransaction", () => {
       category_id: 7
     })
 
-    expect(supabase.from).toHaveBeenCalledWith("transactions")
+    expect(supabase.from).toHaveBeenCalledWith("transacoes") // falha proposital: o código usa "transactions"
   })
 
   it("recusa sem sessao", async () => {
